@@ -1,0 +1,12 @@
+# Forzar archivos de texto a LF
+* text=auto
+
+# Opcional: especificar finales de línea para algunos tipos de archivo
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+
+# Mantener binarios sin cambios
+*.png binary
+*.jpg binary
+*.zip binary
