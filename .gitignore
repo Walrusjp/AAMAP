@@ -1,0 +1,18 @@
+# Ignorar carpetas específicas
+/AAMAP_empleados
+/dashboard
+/img
+/osTicket
+/osTicket-lang
+/webalizer
+
+# Ignorar archivos comunes
+applications.html
+*.tmp
+bitnami.css
+favicon.ico
+osTicket.zip
+
+
+# Ignorar carpetas de XAMPP
+/xampp

@@ -1,0 +1,42 @@
+/* Asegurarse de que el formulario tenga un ancho fijo */
+.container {
+    width: 600px;  /* Puedes ajustar el valor si necesitas un tamaño diferente */
+    max-height: 450px;
+    overflow-y: auto;
+    margin: 0 auto; /* Centrar el formulario */
+    border: 1px solid;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Evitar que el formulario se expanda más allá de su ancho */
+.input-group, .btn {
+    width: 100%;
+}
+
+/* Evitar que las celdas de la tabla cambien el ancho del formulario */
+td, th {
+    word-wrap: break-word;  /* Asegura que el texto largo se ajuste y haga un salto de línea */
+    max-width: 200px;  /* Limitar el tamaño máximo de las celdas */
+}
+
+table {
+    width: 100%;
+}
+
+/* Opcional: Agregar un pequeño margen entre el formulario y los productos */
+table, .input-group, .btn {
+    margin-top: 10px;
+}
+#reback {
+    background-color: darkgray;
+}
+#reback:hover {
+    background-color: gray;
+}
+
+textarea {
+    width: 100%; /* Ajusta el ancho al contenedor */
+    height: 150px; /* Fija la altura */
+    resize: none; /* Deshabilita el redimensionamiento */
+}

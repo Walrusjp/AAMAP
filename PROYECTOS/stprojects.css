@@ -1,0 +1,166 @@
+/* Estilos básicos para el modal */
+.modal {
+    display: block; /* Para que sea visible inicialmente si está activado */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+    opacity: 0; /* Para animación */
+    visibility: hidden; /* Oculta cuando no se muestra */
+    transition: opacity 0.5s ease, visibility 0.5s ease; /* Transiciones suaves */
+}
+.modal.show {
+    opacity: 1; /* Hacer visible */
+    visibility: visible; /* Mostrar */
+}
+.modal-content {
+    background-color: #ffffff; /* Fondo blanco */
+    border-radius: 10px; /* Bordes redondeados */
+    margin: 15% auto;
+    padding: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombra elegante */
+    width: 40%; /* Ancho */
+    transform: scale(0.9); /* Efecto de entrada */
+    transition: transform 0.5s ease; /* Animación al escalar */
+}
+.modal.show .modal-content {
+    transform: scale(1); /* Escalar a tamaño normal */
+}
+.modal-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+.modal-body {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 20px;
+}
+.close-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+.close-btn:hover {
+    background-color: #d32f2f;
+}
+
+
+/* Estilo general para el contenedor principal */
+.chompa {
+    margin-left: 40px;
+}
+
+.container {
+    margin: 30px auto;
+    padding: 20px;
+    max-width: 1200px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Título de la página */
+h1 {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Contenedor de las tarjetas de proyectos */
+.proyectos-container {
+    width: 90%;
+    height: 400px;
+    display: flex;
+    padding-left: 10px;
+    padding-right: 10px;
+    justify-content: center; /* Alinea las tarjetas al centro */
+    gap: 20px; /* Espacio entre tarjetas */
+    padding: 15px;
+    margin-left: 5%;
+    align-items: stretch;
+    overflow-y: scroll;
+    /*border: 1px solid;*/
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+.card {
+    border: 0px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+/* Cada tarjeta individual */
+.proyecto-card {
+    width: auto;
+    background-color: #ffffff;
+    /*border: 1px solid #ddd;*/
+    border-radius: 10px;
+    /*box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);*/
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    padding: 20px;
+    height: auto;
+}
+
+/* Enlace dentro de la tarjeta */
+.card a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 25px;
+}
+
+/* Encabezado dentro de cada tarjeta */
+.proyecto-card h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+/* Información adicional dentro de la tarjeta */
+.proyecto-card p {
+    font-size: 14px;
+    color: #555;
+    margin: 5px 0;
+}
+
+
+/* Hover effect para las tarjetas */
+/*.proyecto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background-color: #f9f9f9;
+}*/
+
+/* Alineación responsiva */
+@media (max-width: 768px) {
+    .proyectos-container {
+        flex-direction: column; /* Cambia a una sola columna en pantallas pequeñas */
+        align-items: center;
+    }
+
+    .proyecto-card {
+        width: 90%; /* Ocupa el 90% del ancho en pantallas pequeñas */
+    }
+}
+
+

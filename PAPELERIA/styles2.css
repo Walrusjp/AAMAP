@@ -1,0 +1,299 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc; /* Fondo azul-grisáceo */
+    margin: 0;
+    padding: 20px;
+    color: #2c3e50;
+}
+
+/* Estilos básicos para el modal */
+.modal {
+    display: block; /* Para que sea visible inicialmente si está activado */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+    opacity: 0; /* Para animación */
+    visibility: hidden; /* Oculta cuando no se muestra */
+    transition: opacity 0.5s ease, visibility 0.5s ease; /* Transiciones suaves */
+}
+.modal.show {
+    opacity: 1; /* Hacer visible */
+    visibility: visible; /* Mostrar */
+}
+.modal-content {
+    background-color: #ffffff; /* Fondo blanco */
+    border-radius: 10px; /* Bordes redondeados */
+    margin: 15% auto;
+    padding: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombra elegante */
+    width: 40%; /* Ancho */
+    transform: scale(0.9); /* Efecto de entrada */
+    transition: transform 0.5s ease; /* Animación al escalar */
+}
+.modal.show .modal-content {
+    transform: scale(1); /* Escalar a tamaño normal */
+}
+.modal-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+.modal-body {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 20px;
+}
+.close-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+.close-btn:hover {
+    background-color: #d32f2f;
+}
+
+
+/* Estilos personalizados para el header */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background-color: rgba(247, 249, 252, 1.0) !important;
+    color: white;
+    z-index: 1000;
+    padding: 15px 0;
+}
+
+.header h1 {
+    font-size: 24px;
+    margin: 0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.container.flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.push {
+    margin-left: 10px;
+}
+
+.logout-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+}
+
+.jiji {
+    margin-left: 5px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+}
+
+.search-box .form-control {
+    width: 250px;
+    margin-right: 5px;
+}
+
+.sec {
+    /*margin-left: 60px;/**/
+}
+
+.btn {
+    color: white;
+    position: flex;
+}
+
+.btn:hover {
+    color: white !important;
+}
+
+/*#logout {
+    position: relative;
+    top: -90px;
+}*/
+
+#logout:hover {
+    color: white;
+    font-weight: bold;
+}
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+h1 {
+    color: #1e3799;
+    margin: 0;
+}
+
+.button {
+    padding: 10px 15px;
+    background-color: #40739e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.button:hover {
+    background-color: #1e3799;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-left: 10px;
+    flex-wrap: wrap;
+}
+
+.search-box input {
+    padding: 10px;
+    border: 1px solid #1e3799;
+    border-radius: 4px;
+    font-size: 16px;
+    margin-right: 5px;
+}
+
+#search {
+    margin-bottom: 10px;
+    padding: 7px 15px;
+}
+
+/*#psearch { width: 250px; }*/
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 10px;
+    background-color: rgba(247, 249, 252, 0.9);
+    border-bottom: 1px solid #ddd;
+}
+
+/* Estilos para las cards */
+.card {
+    margin: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card img {
+    object-fit: contain; /* Asegura que la imagen quede completa sin recortarse */
+    width: auto;        /* Ajusta la imagen al ancho del contenedor */
+    height: auto;      /* Establece una altura fija para mantener la proporción */
+    display: block;     /* Elimina espacios adicionales en algunos navegadores */
+    margin: auto;       /* Centra la imagen dentro de la card */
+    border-radius: 5px; /* (Opcional) Da bordes redondeados */
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.card-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #34495e;
+}
+
+.card-text {
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.btn {
+    font-size: 14px;
+    padding: 10px 15px;
+    border-radius: 4px;
+}
+
+.add-to-cart:hover, .remove-from-cart:hover {
+    font-size: 15px;
+    font-weight: bolder;
+}
+
+.btncard {
+    margin-right: 5px;
+}
+
+.bpanel {
+    display: flex;
+}
+
+
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .sticky-header {
+        position: static;  /* Desactiva la propiedad sticky en pantallas pequeñas */
+        flex-direction: column; /* Los elementos de la cabecera se apilan en pantallas pequeñas */
+        padding: 20px;
+        align-items: flex-start;
+    }
+
+    .header h1 {
+        text-align: center; /* Centra el título en pantallas pequeñas */
+    }
+
+    .container.flex {
+        flex-direction: column; /* Los botones y demás elementos se apilan */
+        align-items: flex-start; /* Alinea los elementos a la izquierda */
+        width: 100%; /* Ocupa todo el ancho disponible */
+    }
+
+    .btn {
+        width: auto; /* Los botones ocupan todo el ancho disponible */
+        margin: 5px 0; /* Espaciado entre los botones */
+    }
+
+    .search-box input {
+        width: 100%; /* El input de búsqueda ocupa todo el ancho */
+        margin-bottom: 10px; /* Espacio debajo del input */
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .button {
+        font-size: 14px;
+    }
+}
