@@ -14,38 +14,8 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 }
 
 $proyecto_id = ($_GET['id']);
-//var_dump($_GET['id']);
 
-// Comprobamos si se ha enviado el formulario para registrar la nueva partida
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Obtener los datos del formulario para la nueva partida
-    $mac = $_POST['mac'];
-    $man = $_POST['man'];
-    $com = $_POST['com'];
-    
-    // Obtener la fecha actual para el campo fecha_log
-    $fecha_log = date('Y-m-d H:i:s'); // La fecha actual del servidor
-
-    // Insertar la nueva partida en la base de datos
-    $insertSql = "INSERT INTO partidas (cod_fab, mac, man, com) VALUES (?, ?, ?, ?)";
-    $stmt = $conn->prepare($insertSql);
-    $stmt->bind_param("ssss", $proyecto_id, $mac, $man, $com);
-    $stmt->execute();
-
-    // Obtener el ID de la nueva partida insertada
-    $partida_id = $stmt->insert_id;
-
-    // Ahora insertar el primer registro en la tabla de registro_estatus
-    $estatus_log = 'sin registro';  // Valor por defecto
-    $insertEstatusSql = "INSERT INTO registro_estatus (id_partida, estatus_log, fecha_log) VALUES (?, ?, ?)";
-    $stmt = $conn->prepare($insertEstatusSql);
-    $stmt->bind_param("iss", $partida_id, $estatus_log, $fecha_log);
-    $stmt->execute();
-
-    // Redirigir a la página donde se muestran las partidas o mostrar un mensaje de éxito
-    header("Location: detalle_proyecto.php?id=" . $proyecto_id);
-    exit();
-}
+// ... (código para registrar nueva partida) ...
 
 // Consultar datos del proyecto junto con las partidas
 $sql = "SELECT 
@@ -74,10 +44,9 @@ $sql = "SELECT
     WHERE 
         p.cod_fab = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $proyecto_id); // Usamos 's' para pasar el parámetro como cadena
+$stmt->bind_param("s", $proyecto_id);
 $stmt->execute();
 $result = $stmt->get_result();
-
 
 if ($result->num_rows === 0) {
     echo "Proyecto no encontrado.";
@@ -86,8 +55,14 @@ if ($result->num_rows === 0) {
 
 $proyecto = $result->fetch_assoc();
 
-?>
+// Consultar datos del pedido
+$sqlPedido = "SELECT articulos, cantidad, precio, um FROM pedidos_p_detalle WHERE id_proyecto = ?";
+$stmtPedido = $conn->prepare($sqlPedido);
+$stmtPedido->bind_param("s", $proyecto_id);
+$stmtPedido->execute();
+$resultPedido = $stmtPedido->get_result();
 
+?>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -122,47 +97,90 @@ $proyecto = $result->fetch_assoc();
     // Vuelve a ejecutar la consulta para obtener todas las partidas
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     // Control para la primera fila
     $isFirstRow = true;
+    $numRows = $result->num_rows; // Almacenar el número de filas
 
-    while ($row = $result->fetch_assoc()) {
-    echo "<tr>";
+    if ($numRows > 0) { // Si hay partidas
+        while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
 
-    if ($isFirstRow) {
-        echo "<td rowspan='" . $result->num_rows . "' class='text-center align-middle'>" . htmlspecialchars($row['cod_fab']) . "</td>";
-        echo "<td rowspan='" . $result->num_rows . "' class='text-center align-middle'>" . htmlspecialchars($row['nombre_cliente']) . "</td>";
-        echo "<td rowspan='" . $result->num_rows . "' class='text-center align-middle'>" . htmlspecialchars($row['fecha_entrega']) . "</td>";
+            if ($isFirstRow) {
+                echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($row['cod_fab']) . "</td>";
+                echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($row['nombre_cliente']) . "</td>";
+                echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($row['fecha_entrega']) . "</td>";
+                $isFirstRow = false; // Asegurarse de que solo se ejecute una vez
+            }
+
+            // Mostrar el ID y nombre de la partida
+            echo "<td>" . htmlspecialchars($row['partida']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['nombre_partida']) . "</td>";
+
+            $com = $row['com'] == 1 ? "&#10004;" : "&#10008;";
+            $man = $row['man'] == 1 ? "&#10004;" : "&#10008;";
+            $maq = $row['maq'] == 1 ? "&#10004;" : "&#10008;";
+
+            echo "<td>" . $com . "</td>";
+            echo "<td>" . $man . "</td>";
+            echo "<td>" . $maq . "</td>";
+            echo "<td>" . htmlspecialchars($row['estatus']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
+
+            echo "</tr>";
+        }
+    } else { // Si no hay partidas
+        echo "<tr>";
+        echo "<td class='text-center align-middle'>" . htmlspecialchars($proyecto['cod_fab']) . "</td>";
+        echo "<td class='text-center align-middle'>" . htmlspecialchars($proyecto['nombre_cliente']) . "</td>";
+        echo "<td class='text-center align-middle'>" . htmlspecialchars($proyecto['fecha_entrega']) . "</td>";
+        echo "</tr>";
     }
-
-    // Mostrar el ID y nombre de la partida
-    echo "<td>" . htmlspecialchars($row['partida']) . "</td>";
-    echo "<td>" . htmlspecialchars($row['nombre_partida']) . "</td>";
-
-    $com = $row['com'] == 1 ? "&#10004;" : "&#10008;";
-    $man = $row['man'] == 1 ? "&#10004;" : "&#10008;";
-    $maq = $row['maq'] == 1 ? "&#10004;" : "&#10008;";
-
-    echo "<td>" . $com . "</td>";
-    echo "<td>" . $man . "</td>";
-    echo "<td>" . $maq . "</td>";
-    echo "<td>" . htmlspecialchars($row['estatus']) . "</td>";
-    echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
-
-    echo "</tr>";
-    $isFirstRow = false;
-}
-
     ?>
 </tbody>
     </table>
 
+    <h2>Pedido</h2>
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>Artículo</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Total</th>
+                <th>Unidad de Medida</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php
+        $totalPedido = 0;
+        while ($rowPedido = $resultPedido->fetch_assoc()) {
+            $total = $rowPedido['cantidad'] * $rowPedido['precio'];
+            $totalPedido += $total;
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($rowPedido['articulos']) . "</td>";
+            echo "<td>" . htmlspecialchars($rowPedido['cantidad']) . "</td>";
+            echo "<td>" . htmlspecialchars($rowPedido['precio']) . "</td>";
+            echo "<td>" . htmlspecialchars($total) . "</td>";
+            echo "<td>" . htmlspecialchars($rowPedido['um']) . "</td>";
+            echo "</tr>";
+        }
+        ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-right"><strong>Total del Pedido:</strong></td>
+                <td><strong><?php echo $totalPedido; ?></strong></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
     <div class="mt-4">
-    <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
-    <a href="edit_project.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-primary">Editar</a>
-    <a href="ver_logs.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-info">Logs</a>
-    <a href="crear_partida.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-success">Registrar Partida</a>
-</div>
+        <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
+        <a href="edit_project.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-primary">Editar</a>
+        <a href="ver_logs.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-info">Logs</a>
+    </div>
 </div>
 
 </body>

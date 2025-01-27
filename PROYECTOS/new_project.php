@@ -23,37 +23,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = $_POST['nombre'];
     $id_cliente = $_POST['id_cliente'];
     $descripcion = $_POST['descripcion'];
-    $id_pedido = $_POST['id_pedido'];
-    $estatus = $_POST['estatus'];
     $fecha_entrega = $_POST['fecha_entrega'];
-    $pedido = $_POST['pedido'];
-    $costo = $_POST['costo'];
-    $precio_cliente = $_POST['precio_cliente'];
+    $unidad_medida = $_POST['unidad_medida'];
+    $partidas = json_decode($_POST['partidas'], true); // Partidas enviadas en formato JSON
+    $articulos = json_decode($_POST['articulos'], true); // Artículos enviados en formato JSON
 
-    // Insertar en la base de datos
-    $sql = "INSERT INTO proyectos (cod_fab, nombre, id_cliente, descripcion, id_pedido, estatus, fecha_entrega, pedido, costo, precio_cliente)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param(
-        'ssisissdds',
-        $cod_fab,
-        $nombre,
-        $id_cliente,
-        $descripcion,
-        $id_pedido,
-        $estatus,
-        $fecha_entrega,
-        $pedido,
-        $costo,
-        $precio_cliente
-    );
+    // Iniciar transacción
+    $conn->begin_transaction();
+    try {
+        // Insertar proyecto
+        $sqlProyecto = "INSERT INTO proyectos (cod_fab, nombre, id_cliente, descripcion, etapa, fecha_entrega, unidad_medida)
+                        VALUES (?, ?, ?, ?, 'en proceso', ?, ?)";
+        $stmtProyecto = $conn->prepare($sqlProyecto);
+        $stmtProyecto->bind_param('ssisss', $cod_fab, $nombre, $id_cliente, $descripcion, $fecha_entrega, $unidad_medida);
+        $stmtProyecto->execute();
+        $id_proyecto = $stmtProyecto->insert_id;
 
-    if ($stmt->execute()) {
+        // Insertar partidas
+        $sqlPartida = "INSERT INTO partidas (cod_fab, nombre, mac, man, com) VALUES (?, ?, ?, ?, ?)";
+        $stmtPartida = $conn->prepare($sqlPartida);
+        foreach ($partidas as $partida) {
+            $stmtPartida->bind_param(
+                'ssiii',
+                $cod_fab,
+                $partida['nombre'],
+                $partida['mac'],
+                $partida['man'],
+                $partida['com']
+            );
+            $stmtPartida->execute();
+        }
+
+        // Insertar artículos
+        $sqlArticulo = "INSERT INTO pedidos_p_detalle (id_proyecto, articulos, cantidad, precio, um) VALUES (?, ?, ?, ?, ?)";
+        $stmtArticulo = $conn->prepare($sqlArticulo);
+        foreach ($articulos as $articulo) {
+            $stmtArticulo->bind_param(
+                'ssids',
+                $cod_fab, // Asignar el ID del proyecto recién creado
+                $articulo['articulos'],
+                $articulo['cantidad'],
+                $articulo['precio'],
+                $articulo['um']
+            );
+            $stmtArticulo->execute();
+        }
+
+        // Confirmar transacción
+        $conn->commit();
         echo "<script>alert('Proyecto registrado exitosamente.'); window.location.href = 'all_projects.php';</script>";
-    } else {
-        echo "<script>alert('Error al registrar el proyecto: " . $stmt->error . "');</script>";
+    } catch (Exception $e) {
+        $conn->rollback();
+        echo "<script>alert('Error al registrar el proyecto: " . $e->getMessage() . "');</script>";
     }
-    $stmt->close();
 }
 ?>
 
@@ -63,14 +85,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Nuevo Proyecto</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="icon" href="/assets/logo.ico">
-    <link rel="stylesheet" type="text/css" href="allp.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
 <div class="container">
     <h1 class="text-center">Nuevo Proyecto</h1>
-    <form method="POST" action="new_project.php">
+    <form id="projectForm" method="POST" action="new_project.php">
         <div class="form-group">
             <label for="cod_fab">Código de Fabricación</label>
             <input type="text" class="form-control" id="cod_fab" name="cod_fab" required>
@@ -92,34 +113,163 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="descripcion">Descripción</label>
             <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
         </div>
-        <!--<div class="form-group">
-            <label for="id_pedido">ID del Pedido</label>
-            <input type="number" class="form-control" id="id_pedido" name="id_pedido" required>
-        </div>-->
-        <div class="form-group">
-            <label for="estatus">Estado</label><br>
-            <label><input type="radio" name="estatus" value="en proceso" checked> En proceso</label>
-            <label><input type="radio" name="estatus" value="finalizado"> Finalizado</label>
-        </div>
         <div class="form-group">
             <label for="fecha_entrega">Fecha de Entrega</label>
             <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega" required>
         </div>
         <div class="form-group">
-            <label for="pedido">Pedido</label>
-            <textarea class="form-control" id="pedido" name="pedido" rows="3"></textarea>
+            <label for="unidad_medida">Unidad de Medida</label>
+            <input type="text" class="form-control" id="unidad_medida" name="unidad_medida" required>
         </div>
-        <div class="form-group">
-            <label for="costo">Costo</label>
-            <input type="number" step="0.01" class="form-control" id="costo" name="costo" required>
+
+        <h3>Partidas</h3>
+        <div class="form-row">
+            <div class="col">
+                <input type="text" class="form-control" id="nombre_partida" placeholder="Nombre de la Partida">
+            </div>
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="mac">
+                    <label class="form-check-label" for="mac">Mac</label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="man">
+                    <label class="form-check-label" for="man">Man</label>
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="com">
+                    <label class="form-check-label" for="com">Com</label>
+                </div>
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-primary" id="addPartida">Agregar Partida</button>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="precio_cliente">Precio al Cliente</label>
-            <input type="number" step="0.01" class="form-control" id="precio_cliente" name="precio_cliente" required>
+
+        <table class="table mt-3">
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Mac</th>
+                <th>Man</th>
+                <th>Com</th>
+                <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody id="partidasTable"></tbody>
+        </table>
+
+        <h3>Artículos</h3>
+        <div class="form-row">
+            <div class="col">
+                <input type="text" class="form-control" id="nombre_articulo" placeholder="Nombre del Artículo">
+            </div>
+            <div class="col">
+                <input type="number" class="form-control" id="cantidad_articulo" placeholder="Cantidad">
+            </div>
+            <div class="col">
+                <input type="number" class="form-control" id="precio_articulo" placeholder="Precio">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" id="um_articulo" placeholder="Unidad de Medida">
+            </div>
+            <div class="col">
+                <button type="button" class="btn btn-primary" id="addArticulo">Agregar Artículo</button>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-block">Registrar Proyecto</button>
+
+        <table class="table mt-3">
+            <thead>
+            <tr>
+                <th>Artículo</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Unidad de Medida</th>
+                <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody id="articulosTable"></tbody>
+        </table>
+
+        <input type="hidden" name="partidas" id="partidas">
+        <input type="hidden" name="articulos" id="articulos">
+        <button type="submit" class="btn btn-success btn-block">Crear Proyecto</button>
     </form>
 </div>
+
+<script>
+    const partidas = [];
+    const articulos = [];
+
+    $('#addPartida').click(function () {
+        const nombre = $('#nombre_partida').val();
+        const mac = $('#mac').is(':checked') ? 1 : 0;
+        const man = $('#man').is(':checked') ? 1 : 0;
+        const com = $('#com').is(':checked') ? 1 : 0;
+
+        if (nombre) {
+            partidas.push({ nombre, mac, man, com });
+            $('#partidasTable').append(`
+                <tr>
+                    <td>${nombre}</td>
+                    <td>${mac}</td>
+                    <td>${man}</td>
+                    <td>${com}</td>
+                    <td><button class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
+                </tr>
+            `);
+            $('#nombre_partida').val('');
+            $('#mac').prop('checked', false);
+            $('#man').prop('checked', false);
+            $('#com').prop('checked', false);
+        }
+    });
+
+    $(document).on('click', '.removePartida', function () {
+        const index = $(this).closest('tr').index();
+        partidas.splice(index, 1);
+        $(this).closest('tr').remove();
+    });
+
+   $('#addArticulo').click(function () {
+    const nombreArticulo = $('#nombre_articulo').val(); // Cambiar nombre de variable
+    const cantidad = $('#cantidad_articulo').val();
+    const precio = $('#precio_articulo').val();
+    const um = $('#um_articulo').val();
+
+    if (nombreArticulo && cantidad && precio && um) {
+        articulos.push({ articulos: nombreArticulo, cantidad, precio, um }); // Usar nombreArticulo aquí
+        $('#articulosTable').append(`
+            <tr>
+                <td>${nombreArticulo}</td>
+                <td>${cantidad}</td>
+                <td>${precio}</td>
+                <td>${um}</td>
+                <td><button class="btn btn-danger btn-sm removeArticulo">Eliminar</button></td>
+            </tr>
+        `);
+        $('#nombre_articulo').val('');
+        $('#cantidad_articulo').val('');
+        $('#precio_articulo').val('');
+        $('#um_articulo').val('');
+    }
+});
+
+    $(document).on('click', '.removeArticulo', function () {
+        const index = $(this).closest('tr').index();
+        articulos.splice(index, 1);
+        $(this).closest('tr').remove();
+    });
+
+    $('#projectForm').submit(function () {
+        $('#partidas').val(JSON.stringify(partidas));
+        $('#articulos').val(JSON.stringify(articulos));
+    });
+</script>
 
 </body>
 </html>
