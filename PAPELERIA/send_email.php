@@ -21,7 +21,7 @@ function send_email_order($to, $subject, $body) {
         $mail->setFrom('papeleria.aamap@gmail.com', 'PAPELERIA AAMAP');
         $mail->addAddress($to);
 
-        $mail->isHTML(false); // Enviar como texto plano
+        $mail->isHTML(true); // Enviar como texto plano
         $mail->Subject = $subject;
         $mail->Body = $body;
 

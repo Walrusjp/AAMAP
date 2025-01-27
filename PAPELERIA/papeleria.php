@@ -8,6 +8,7 @@ if (!isset($_SESSION['username'])) {
 include 'db_connect.php';
 include 'role.php';
 require 'send_email.php';
+//include 'search_producto.php';
 
 // Verificar si se solicitó el cierre de sesión
 if (isset($_POST['logout'])) {
@@ -75,7 +76,6 @@ if (isset($_POST['remove_from_cart'])) {
 }
 
 
-// Procesar la acción de guardar el pedido
 if (isset($_POST['save_order'])) {
     $userId = $_SESSION['user_id'];
     $username = $_SESSION['username'];
@@ -84,22 +84,31 @@ if (isset($_POST['save_order'])) {
         // Variable para almacenar el cuerpo del correo
         $emailBody = "Usuario #$userId, $username solicitó:\n\n";
         $whatsappMessage = "Usuario: $username\nPedido:\n"; // Mensaje para WhatsApp
+        $productsInfo = []; // Array para almacenar los productos con detalles
 
         foreach ($_SESSION['cart'] as $productId => $quantity) {
-            // Obtener detalles del producto
-            $query = "SELECT descripcion FROM productos WHERE id = ?";
+            // Obtener detalles del producto (descripción, imagen)
+            $query = "SELECT descripcion, imagen FROM productos WHERE id = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("s", $productId);
             $stmt->execute();
-            $stmt->bind_result($descripcion);
+            $stmt->bind_result($descripcion, $imagen);
             $stmt->fetch();
             $stmt->close();
 
-            // Agregar al cuerpo del correo
+            // Agregar detalles al cuerpo del correo
             $emailBody .= "Producto: $productId\nDescripción: $descripcion\nCantidad: $quantity\n\n";
 
-            // Agregar a la variable de mensaje de WhatsApp
+            // Agregar detalles para WhatsApp
             $whatsappMessage .= "$productId: $descripcion - Cantidad: $quantity\n";
+
+            // Guardar los detalles del producto con la URL de la imagen
+            $productsInfo[] = [
+                'id' => $productId,
+                'descripcion' => $descripcion,
+                'cantidad' => $quantity,
+                'imagen' => $imagen // URL de la imagen
+            ];
 
             // Actualizar el stock del producto
             $updateStockQuery = "UPDATE productos SET stock = stock - ? WHERE id = ?";
@@ -119,10 +128,21 @@ if (isset($_POST['save_order'])) {
         }
         $stmt->close();
 
-        // Enviar el correo generado especialmente para estas acciones
+        // Generar el cuerpo del correo con imágenes
+        $emailBodyHTML = "Pedido de $username:\n\n"; // Cuerpo para correo en HTML
+        foreach ($productsInfo as $product) {
+            $emailBodyHTML .= "<strong>Producto:</strong> {$product['descripcion']} - {$product['id']}<br>";
+            $emailBodyHTML .= "<strong>Cantidad:</strong> {$product['cantidad']}<br>";
+            if (!empty($product['imagen'])) {
+                $emailBodyHTML .= "<img src='{$product['imagen']}' alt='{$product['descripcion']}' width='100'><br><br>"; // Incluir imagen
+            }
+            $emailBodyHTML .= "<hr>";
+        }
+
+        // Enviar el correo con el cuerpo en formato HTML
         $to = "papeleria.aamap@gmail.com";
-        $subject = "PAPELERÍA AAMAP";
-        send_email_order($to, $subject, $emailBody);
+        $subject = "PAPELERÍA AAMAP - Pedido de stock";
+        send_email_order($to, $subject, $emailBodyHTML); // Se pasa el cuerpo en HTML
 
         // Limpiar el carrito
         $_SESSION['cart'] = [];
@@ -136,6 +156,7 @@ if (isset($_POST['save_order'])) {
         exit;
     }
 }
+
 
 
 // Procesar la acción de solicitud de producto
@@ -180,12 +201,11 @@ if (isset($_POST['request_product'])) {
 //ocultar productos a op
 $productos_ocultos = ['PROD000', 'PROD001', 'PROD002', 'PROD003'];
 
-// Buscar productos
+// Buscar productos y consultar productos para mostrar
 $search = "";
 if (isset($_GET['search'])) {
     $search = $_GET['search'];
 }
-
 
 $query = "SELECT id, imagen, descripcion, stock FROM productos WHERE activo = 1 AND (id LIKE ? OR descripcion LIKE ?)";
 $search_param = "%" . $search . "%";
@@ -231,6 +251,7 @@ $result = $stmt->get_result();
             <form method="GET" action="">
                 <input type="text" name="search" class="form-control" id="psearch" placeholder="Buscar..." value="<?php echo htmlspecialchars($search); ?>">
             </form>
+            <div id="searchResults"></div>
             <button type="submit" class="btn btn-primary mt-2" id="search">Buscar</button>
         </div>
         <div class="bpanel">
@@ -240,8 +261,8 @@ $result = $stmt->get_result();
             <!--<a href="solicitar_producto.php" class="btn btn-warning jiji">Solicitar</a>-->
             <a href="agregar_producto.php" class="btn btn-info jiji">Agregar Nuevo Producto</a>
             <?php if($role === 'admin'): ?>
-                <a href="pedidos.php" class="btn btn-secondary sec">Pedidos</a>
-                <a href="cotizacion.php" class="btn btn-secondary sec">Cotizaci&oacute;n</a>
+                <a href="pedidos.php" class="btn btn-secondary sec jiji">Pedidos</a>
+                <a href="cotizacion.php" class="btn btn-secondary sec jiji">Cotizaci&oacute;n</a>
             <?php endif; ?>
             <form method="POST" action="">
                 <button type="submit" name="logout" class="logout-button push btn" id="logout">Cerrar sesi&oacute;n</button>

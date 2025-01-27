@@ -9,7 +9,10 @@ if (!isset($_SESSION['username'])) {
 include 'db_connect.php';
 include 'role.php';
 
-// Consulta para obtener los pedidos con los nombres de usuario, descripciones y el ID del producto
+// Inicializar filtro
+$filtro_tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todos';
+
+// Construir la consulta según el filtro seleccionado
 $query = "SELECT 
             p.id AS pedido_id,
             u.username,
@@ -21,8 +24,15 @@ $query = "SELECT
           JOIN users u ON p.usuario_id = u.id
           JOIN productos pr ON p.producto_id = pr.id";
 
-$result = $conn->query($query);
+if ($filtro_tipo === 'salidas') {
+    $query .= " WHERE p.tipo = 'salida'";
+} elseif ($filtro_tipo === 'solicitudes') {
+    $query .= " WHERE p.tipo = 'solicitud'";
+}
 
+$query .= " ORDER BY p.fecha DESC";
+
+$result = $conn->query($query);
 ?>
 
 <!DOCTYPE html>
@@ -31,6 +41,17 @@ $result = $conn->query($query);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos</title>
+    <style type="text/css">
+        #back {
+            padding: 5px 10px;
+            position: absolute;
+            top: 40px;
+            left: 80px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
     <!-- Incluir Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -39,6 +60,15 @@ $result = $conn->query($query);
     <div class="container mt-5">
         <h1>Lista de Pedidos</h1>
 
+        <!-- Botones de filtro -->
+        <div class="mb-3">
+            <a href="papeleria.php" class="btn btn-danger" id="">REGRESAR</a>
+            <a href="?tipo=todos" class="btn btn-primary <?php echo $filtro_tipo === 'todos' ? 'active' : ''; ?>">Todos</a>
+            <a href="?tipo=salidas" class="btn btn-secondary <?php echo $filtro_tipo === 'salidas' ? 'active' : ''; ?>">Salidas</a>
+            <a href="?tipo=solicitudes" class="btn btn-secondary <?php echo $filtro_tipo === 'solicitudes' ? 'active' : ''; ?>">Solicitudes</a>
+        </div>
+
+        <!-- Tabla de pedidos -->
         <?php if ($result->num_rows > 0): ?>
             <table class="table table-striped">
                 <thead>
@@ -69,7 +99,6 @@ $result = $conn->query($query);
                 No hay pedidos registrados.
             </div>
         <?php endif; ?>
-
     </div>
 
     <!-- Incluir Bootstrap JS y dependencias (opcional) -->
