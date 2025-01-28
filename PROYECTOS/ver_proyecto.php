@@ -26,7 +26,8 @@ $sql = "SELECT
         pa.mac AS maq, 
         pa.man, 
         pa.com, 
-        p.fecha_entrega, 
+        p.fecha_entrega,
+        p.etapa,  -- Agregar la columna 'etapa' aquí
         (SELECT re.estatus_log 
          FROM registro_estatus re 
          WHERE re.id_partida = pa.id 
@@ -124,7 +125,7 @@ $resultPedido = $stmtPedido->get_result();
             echo "<td>" . $com . "</td>";
             echo "<td>" . $man . "</td>";
             echo "<td>" . $maq . "</td>";
-            echo "<td>" . htmlspecialchars($row['estatus']) . "</td>";
+            echo "<td data-id='" . htmlspecialchars($row['partida']) . "' class='editable'>" . htmlspecialchars($row['estatus']) . "</td>";
             echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
 
             echo "</tr>";
@@ -178,10 +179,61 @@ $resultPedido = $stmtPedido->get_result();
 
     <div class="mt-4">
         <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
-        <a href="edit_project.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-primary">Editar</a>
+        <!--<a href="edit_project.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-primary">Editar</a>-->
         <a href="ver_logs.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-info">Logs</a>
+        <?php if ($proyecto['etapa'] !== 'finalizado'): ?> 
+            <a href="finish_project.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-success">Finalizar Proyecto</a>
+        <?php endif; ?>
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    // Función para hacer la celda editable
+    function makeEditable(td) {
+        var originalValue = td.text();
+        var input = $("<input type='text'>").val(originalValue);
+        td.html(input);
+        input.focus();
+
+        // Guardar el cambio al presionar Enter
+        input.on('keydown', function(e) {
+            if (e.which == 13) { // 13 es el código de la tecla Enter
+                var newValue = $(this).val();
+                var partidaId = td.data('id');
+                updateEstatus(partidaId, newValue, td);
+            }
+        });
+
+        // Restaurar el valor original si se pierde el foco
+        input.on('blur', function() {
+            td.html(originalValue);
+        });
+    }
+
+    // Función para actualizar el estatus en la base de datos
+    function updateEstatus(partidaId, nuevoEstatus, td) {
+        $.ajax({
+            url: 'actualizar_estatus.php', // Crea este archivo PHP
+            type: 'POST',
+            data: { id: partidaId, estatus: nuevoEstatus },
+            success: function(response) {
+                td.html(nuevoEstatus);
+                // Actualizar la última fecha de actualización en la fila correspondiente
+                td.closest('tr').find('td:last').text(response); // Ajusta el índice si la columna de fecha no es la última
+            },
+            error: function() {
+                alert('Error al actualizar el estatus.');
+            }
+        });
+    }
+
+    // Detectar doble clic en las celdas editables
+    $('.editable').on('dblclick', function() {
+        makeEditable($(this));
+    });
+});
+</script>
 </body>
 </html>

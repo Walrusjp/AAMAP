@@ -198,6 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="hidden" name="partidas" id="partidas">
         <input type="hidden" name="articulos" id="articulos">
         <button type="submit" class="btn btn-success btn-block">Crear Proyecto</button>
+        <a href="all_projects.php" class="btn btn-secondary btn-block">Regresar</a>
     </form>
 </div>
 

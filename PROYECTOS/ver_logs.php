@@ -13,62 +13,62 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
     exit();
 }
 
-$proyecto_id = intval($_GET['id']);
+$proyecto_id = $_GET['id'];
 
-// Consultar todos los registros de estatus del proyecto
-$sql = "SELECT 
-            id, 
-            estatus_log, 
-            fecha_log 
-        FROM registro_estatus 
-        WHERE id_proyecto = ? 
-        ORDER BY fecha_log DESC";
+// Consultar los logs del proyecto
+$sql = "SELECT re.id, pa.nombre AS nombre_partida, re.estatus_log, re.fecha_log 
+        FROM registro_estatus re
+        JOIN partidas pa ON re.id_partida = pa.id
+        WHERE pa.cod_fab = ? 
+        ORDER BY re.fecha_log DESC"; // Ordenar por fecha_log en orden descendente
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $proyecto_id);
+$stmt->bind_param("s", $proyecto_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if ($result->num_rows === 0) {
-    echo "No se encontraron logs para este proyecto.";
-    exit();
-}
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Logs del Proyecto</title>
+    <title>Ver Logs del Proyecto</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="stprojects.css">
 </head>
 <body>
 
 <div class="container mt-4">
-    <h1>Logs del Proyecto</h1>
+    <h1>Logs del Proyecto <?php echo htmlspecialchars($proyecto_id); ?></h1>
+
     <table class="table table-bordered">
         <thead class="thead-dark">
             <tr>
-                <th>ID</th>
+                <th>ID Log</th>
+                <th>Partida</th>
                 <th>Estatus</th>
                 <th>Fecha de Registro</th>
             </tr>
         </thead>
         <tbody>
-            <?php while ($log = $result->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($log['id']); ?></td>
-                    <td><?php echo htmlspecialchars($log['estatus_log']); ?></td>
-                    <td><?php echo htmlspecialchars($log['fecha_log']); ?></td>
-                </tr>
-            <?php endwhile; ?>
+        <?php
+        if ($result->num_rows > 0) {
+            while($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . $row["id"] . "</td>";
+                echo "<td>" . htmlspecialchars($row["nombre_partida"]) . "</td>";
+                echo "<td>" . htmlspecialchars($row["estatus_log"]) . "</td>";
+                echo "<td>" . htmlspecialchars($row["fecha_log"]) . "</td>";
+                echo "</tr>";
+            }
+        } else {
+            echo "<tr><td colspan='4' class='text-center'>No hay logs registrados para este proyecto.</td></tr>";
+        }
+        ?>
         </tbody>
     </table>
 
-    <div class="mt-4">
-        <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto_id); ?>" class="btn btn-secondary">Regresar</a>
-    </div>
+    <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto_id); ?>" class="btn btn-secondary mt-3">Regresar</a>
 </div>
 
 </body>

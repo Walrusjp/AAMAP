@@ -85,7 +85,8 @@ if ($result->num_rows > 0) {
         </select>
     
             <a href="new_project.php" class="btn btn-success chompa">Nuevo Proyecto</a>
-        
+            <a href="ver_clientes.php" class="btn btn-info chompa">Ver Clientes</a>
+            <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
             <form method="POST" action="">
                 <button type="submit" name="logout" class="btn btn-danger chompa">Cerrar sesi&oacute;n</button>
             </form>
@@ -97,7 +98,7 @@ if ($result->num_rows > 0) {
     <div class="row" id="proyectos-container">
         <?php if (!empty($proyectos)): ?>
             <?php foreach ($proyectos as $proyecto): ?>
-                <div class="col-md-4 mb-4 proyecto-card" data-estatus="<?php echo htmlspecialchars($proyecto['estatus']); ?>">
+                <div class="mb-4 proyecto-card" data-estatus="<?php echo htmlspecialchars($proyecto['estatus']); ?>">
                     <?php //var_dump($proyecto['proyecto_id']); ?>
                     <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">
 
