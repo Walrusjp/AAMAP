@@ -34,7 +34,7 @@ $sql = "SELECT
             clientes_p.nombre AS cliente_nombre
         FROM proyectos
         LEFT JOIN clientes_p ON proyectos.id_cliente = clientes_p.id -- Relación corregida
-        ORDER BY proyectos.fecha_entrega ASC";
+        ORDER BY proyectos.etapa ASC";
 
 $result = $conn->query($sql);
 $proyectos = [];

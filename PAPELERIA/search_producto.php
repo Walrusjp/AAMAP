@@ -1,130 +1,47 @@
 <?php
-//session_start();
 include 'db_connect.php';
-//include 'role.php';
 
-//ocultar productos a op
-$productos_ocultos = ['PROD000', 'PROD001', 'PROD002', 'PROD003'];
-
-// Habilitar la visualización de errores para depuración
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Si se recibe el parámetro 'query', actúa como una API JSON
-if (isset($_GET['query'])) {
-    header('Content-Type: application/json');
-
-    $query = $_GET['query'];
-    
-    // Consultar productos que coincidan con el texto ingresado
-    $sql = "SELECT id, descripcion, imagen FROM productos WHERE id LIKE ? LIMIT 10";
-    $stmt = $conn->prepare($sql);
-    $likeQuery = "%$query%";
-    $stmt->bind_param("s", $likeQuery);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    $products = [];
-    while ($row = $result->fetch_assoc()) {
-        // Si el producto está en la lista de productos ocultos, lo omitimos
-        if (in_array($row['id'], $productos_ocultos)) {
-            continue;
-        }
-        
-        // Añadir el producto al array de productos
-        $products[] = $row;
-    }
-
-    $stmt->close();
-
-    // Devolver el resultado en formato JSON
-    echo json_encode($products);
-    exit;
+$search = "";
+if (isset($_GET['search'])) {
+    $search = $_GET['search'];
 }
 
-// Si no se recibe 'query', mostrar la página de prueba
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <style type="text/css">
-        #suggestions {
-            position: absolute;
-            z-index: 1000;
-            width: calc(50% - 2px);
-            border: 1px solid #ccc;
-            background: rgba(255, 255, 255, 0.4);
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-            font-size: 14px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        #suggestions div:hover {
-            background-color: #f0f0f0;
-        }
+$query = "SELECT id, imagen, descripcion, stock FROM productos WHERE activo = 1 AND (id LIKE ? OR descripcion LIKE ?)";
+$search_param = "%" . $search . "%";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("ss", $search_param, $search_param);
+$stmt->execute();
+$result = $stmt->get_result();
 
-        #suggestions img {
-            width: 40px;
-            height: 40px;
-            margin-right: 10px;
-            object-fit: cover;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
-
-    </style>
-</head>
-<body>
-    <!--<h1>Prueba de Búsqueda de Productos</h1>
-    <input type="text" id="product_code" onkeyup="searchProduct(this.value)" placeholder="Buscar producto...">
-    <div id="suggestions" style="display: none;"></div>-->
-
-    <script>
-        function searchProduct(query) {
-            const suggestionsDiv = document.getElementById("suggestions");
-
-            if (query.length === 0) {
-                suggestionsDiv.style.display = "none";
-                suggestionsDiv.innerHTML = "";
-                return;
-            }
-
-            // Llamada AJAX para obtener resultados
-            fetch(`search_producto.php?query=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        let suggestions = "";
-                        data.forEach(product => {
-                            suggestions += `
-                                <div style="padding: 5px; cursor: pointer; display: flex; align-items: center;" 
-                                     onclick="selectProduct('${product.id}')">
-                                    <img src="${product.imagen}" alt="${product.descripcion}" style="width: 40px; height: 40px; margin-right: 10px; object-fit: cover; border: 1px solid #ccc; border-radius: 3px;">
-                                    <div>
-                                        <strong>${product.id}</strong> - ${product.descripcion}
-                                    </div>
-                                </div>`;
-                        });
-                        suggestionsDiv.innerHTML = suggestions;
-                        suggestionsDiv.style.display = "block";
-                    } else {
-                        suggestionsDiv.innerHTML = "<div style='padding: 5px;'>No se encontraron productos</div>";
-                        suggestionsDiv.style.display = "block";
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                });
-        }
-
-        function selectProduct(productCode) {
-            document.getElementById("product_code").value = productCode;
-            document.getElementById("suggestions").style.display = "none";
-            document.getElementById("suggestions").innerHTML = "";
-        }
-    </script>
-</body>
-</html>
+while ($row = $result->fetch_assoc()): ?>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <img src="<?php echo htmlspecialchars($row['imagen']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($row['descripcion']); ?>" style="height:200px; object-fit:cover;">
+            <div class="card-body">
+                <h5 class="card-title"><?php echo htmlspecialchars($row['descripcion']); ?></h5>
+                <p class="card-text">
+                    <strong>ID:</strong> <?php echo htmlspecialchars($row['id']); ?><br>
+                    <strong>Stock:</strong> <?php echo htmlspecialchars($row['stock']); ?>
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div style="display:inline-flex;">
+                        <button type="button" class="btn btn-success add-to-cart btncard" 
+                            data-id="<?php echo $row['id']; ?>"
+                            <?php echo ($row['stock'] <= 0) ? 'disabled' : ''; ?>>+</button>
+                        <button type="button" class="btn btn-danger remove-from-cart btncard" 
+                            data-id="<?php echo $row['id']; ?>">-</button>
+                        <?php if ($row['stock'] == 0): ?>
+                            <form method="post" action="" onsubmit="return confirm('¿Estás seguro de que deseas solicitar este producto?');">
+                                <input type="hidden" name="product_id" value="<?php echo $row['id']; ?>">
+                                <button type="submit" name="request_product" class="btn btn-warning btncard">Solicitar</button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
+                    <span class="badge badge-secondary" id="cart-quantity-<?php echo $row['id']; ?>">
+                        <?php echo isset($_SESSION['cart'][$row['id']]) ? $_SESSION['cart'][$row['id']] : 0; ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endwhile; ?>
