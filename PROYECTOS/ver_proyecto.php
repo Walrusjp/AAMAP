@@ -15,17 +15,13 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $proyecto_id = ($_GET['id']);
 
-// ... (código para registrar nueva partida) ...
-
 // Consultar datos del proyecto junto con las partidas
 $sql = "SELECT 
         p.cod_fab, 
         c.nombre AS nombre_cliente, 
         pa.id AS partida, 
         pa.nombre AS nombre_partida, 
-        pa.mac AS maq, 
-        pa.man, 
-        pa.com, 
+        pa.proceso,
         p.fecha_entrega,
         p.etapa,  -- Agregar la columna 'etapa' aquí
         (SELECT re.estatus_log 
@@ -85,10 +81,8 @@ $resultPedido = $stmtPedido->get_result();
                 <th>Cliente</th>
                 <th>F.E</th>
                 <th>ID Partida</th>
-                <th>Partida</th>
-                <th>COM</th>
-                <th>MAN</th>
-                <th>MAQ</th>
+                <th>Descrip Partida</th>
+                <th>Proceso</th>
                 <th>Estatus</th>
                 <th>Última Fecha de Registro</th>
             </tr>
@@ -118,13 +112,9 @@ $resultPedido = $stmtPedido->get_result();
             echo "<td>" . htmlspecialchars($row['partida']) . "</td>";
             echo "<td>" . htmlspecialchars($row['nombre_partida']) . "</td>";
 
-            $com = $row['com'] == 1 ? "&#10004;" : "&#10008;";
-            $man = $row['man'] == 1 ? "&#10004;" : "&#10008;";
-            $maq = $row['maq'] == 1 ? "&#10004;" : "&#10008;";
+            $proceso = $row['proceso'];
 
-            echo "<td>" . $com . "</td>";
-            echo "<td>" . $man . "</td>";
-            echo "<td>" . $maq . "</td>";
+            echo "<td>" . $proceso . "</td>";
             echo "<td data-id='" . htmlspecialchars($row['partida']) . "' class='editable'>" . htmlspecialchars($row['estatus']) . "</td>";
             echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
 

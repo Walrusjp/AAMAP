@@ -40,16 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_proyecto = $stmtProyecto->insert_id;
 
         // Insertar partidas
-        $sqlPartida = "INSERT INTO partidas (cod_fab, nombre, mac, man, com) VALUES (?, ?, ?, ?, ?)";
+        $sqlPartida = "INSERT INTO partidas (cod_fab, nombre, proceso) VALUES (?, ?, ?)";
         $stmtPartida = $conn->prepare($sqlPartida);
         foreach ($partidas as $partida) {
             $stmtPartida->bind_param(
-                'ssiii',
+                'sss',
                 $cod_fab,
                 $partida['nombre'],
-                $partida['mac'],
-                $partida['man'],
-                $partida['com']
+                $partida['proceso']
             );
             $stmtPartida->execute();
         }
@@ -128,22 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" class="form-control" id="nombre_partida" placeholder="Nombre de la Partida">
             </div>
             <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="mac">
-                    <label class="form-check-label" for="mac">Mac</label>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="man">
-                    <label class="form-check-label" for="man">Man</label>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="com">
-                    <label class="form-check-label" for="com">Com</label>
-                </div>
+                <select class="form-control" id="proceso">
+                    <option value="man">MAN</option>
+                    <option value="maq">MAQ</option>
+                    <option value="com">COM</option>
+                </select>
             </div>
             <div class="col">
                 <button type="button" class="btn btn-primary" id="addPartida">Agregar Partida</button>
@@ -154,9 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Mac</th>
-                <th>Man</th>
-                <th>Com</th>
+                <th>Proceso</th>
                 <th>Acción</th>
             </tr>
             </thead>
@@ -208,25 +193,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $('#addPartida').click(function () {
         const nombre = $('#nombre_partida').val();
-        const mac = $('#mac').is(':checked') ? 1 : 0;
-        const man = $('#man').is(':checked') ? 1 : 0;
-        const com = $('#com').is(':checked') ? 1 : 0;
+        const proceso = $('#proceso').val();
 
         if (nombre) {
-            partidas.push({ nombre, mac, man, com });
+            partidas.push({ nombre, proceso });
             $('#partidasTable').append(`
                 <tr>
                     <td>${nombre}</td>
-                    <td>${mac}</td>
-                    <td>${man}</td>
-                    <td>${com}</td>
+                    <td>${proceso}</td>
                     <td><button class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
                 </tr>
             `);
             $('#nombre_partida').val('');
-            $('#mac').prop('checked', false);
-            $('#man').prop('checked', false);
-            $('#com').prop('checked', false);
         }
     });
 
