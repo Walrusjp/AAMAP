@@ -15,12 +15,13 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $proyecto_id = $_GET['id'];
 
-// Consultar los logs del proyecto
-$sql = "SELECT re.id, pa.nombre AS nombre_partida, re.estatus_log, re.fecha_log 
+// Consultar los logs del proyecto, incluyendo el nombre de usuario
+$sql = "SELECT re.id, u.username AS nombre_usuario, pa.nombre AS nombre_partida, re.estatus_log, re.fecha_log
         FROM registro_estatus re
         JOIN partidas pa ON re.id_partida = pa.id
-        WHERE pa.cod_fab = ? 
-        ORDER BY re.fecha_log DESC"; // Ordenar por fecha_log en orden descendente
+        JOIN users u ON re.id_usuario = u.id  -- Unir con la tabla de usuarios
+        WHERE pa.cod_fab = ?
+        ORDER BY re.fecha_log DESC";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $proyecto_id);
@@ -45,7 +46,7 @@ $result = $stmt->get_result();
         <thead class="thead-dark">
             <tr>
                 <th>ID Log</th>
-                <th>Partida</th>
+                <th>Usuario</th> <th>Partida</th>
                 <th>Estatus</th>
                 <th>Fecha de Registro</th>
             </tr>
@@ -56,13 +57,14 @@ $result = $stmt->get_result();
             while($row = $result->fetch_assoc()) {
                 echo "<tr>";
                 echo "<td>" . $row["id"] . "</td>";
+                echo "<td>" . htmlspecialchars($row["nombre_usuario"]) . "</td>"; // Mostrar el nombre de usuario
                 echo "<td>" . htmlspecialchars($row["nombre_partida"]) . "</td>";
                 echo "<td>" . htmlspecialchars($row["estatus_log"]) . "</td>";
                 echo "<td>" . htmlspecialchars($row["fecha_log"]) . "</td>";
                 echo "</tr>";
             }
         } else {
-            echo "<tr><td colspan='4' class='text-center'>No hay logs registrados para este proyecto.</td></tr>";
+            echo "<tr><td colspan='5' class='text-center'>No hay logs registrados para este proyecto.</td></tr>";
         }
         ?>
         </tbody>

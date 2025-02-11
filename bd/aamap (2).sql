@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 08-02-2025 a las 19:33:50
+-- Tiempo de generación: 11-02-2025 a las 01:00:21
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -150,18 +150,14 @@ CREATE TABLE `partidas` (
 INSERT INTO `partidas` (`id`, `nombre`, `cod_fab`, `proceso`) VALUES
 (10, 'slats', 'SLOF2', 'com'),
 (11, 'jaulas', 'SLOF2', 'maq'),
-(12, 'slats', 'FAB001', 'maq'),
 (13, 'Comedores', 'SLOF2', 'man'),
 (14, 'jaulas', 'SLOF2', 'maq'),
-(16, 'Puertas', 'FAB001', 'maq'),
 (17, 'slats', 'SLOF2', 'man'),
 (18, 'puertas', 'SLOF2', 'maq'),
 (20, 'soleras', 'SLOF2', 'com'),
 (72, 'partida 1', 'SLOF455', 'maq'),
 (73, 'partida 2', 'SLOF455', 'man'),
 (74, 'partida 3', 'SLOF455', 'com'),
-(75, 'partida1', 'SLOF393', 'maq'),
-(76, 'partida 4', 'SLOF393', 'maq'),
 (77, 'describe partida', 'FRUBA23', 'maq'),
 (78, 'describe partida 2', 'FRUBA23', 'com');
 
@@ -287,7 +283,8 @@ INSERT INTO `pedidos` (`id`, `usuario_id`, `producto_id`, `cantidad`, `fecha`, `
 (99, 18, 'PROD010', 1, '2025-02-07 10:44:42', 'solicitud', NULL),
 (100, 18, 'PROD037', 1, '2025-02-07 10:45:10', 'solicitud', NULL),
 (101, 18, 'PROD052', 1, '2025-02-07 10:45:26', 'solicitud', NULL),
-(102, 19, 'PROD048', 1, '2025-02-07 16:41:41', 'salida', NULL);
+(102, 19, 'PROD048', 1, '2025-02-07 16:41:41', 'salida', NULL),
+(103, 19, 'PROD023', 2, '2025-02-10 15:57:09', 'salida', NULL);
 
 -- --------------------------------------------------------
 
@@ -311,13 +308,10 @@ CREATE TABLE `pedidos_p_detalle` (
 INSERT INTO `pedidos_p_detalle` (`id`, `id_proyecto`, `articulos`, `cantidad`, `precio`, `um`) VALUES
 (100, 'SLOF2', 'barras de acero de 2.5\" ', 12, 23.56, NULL),
 (101, 'SLOF2', 'Soleras de aluminio reforzado', 93, 12.50, NULL),
-(102, 'FAB001', 'chaatarra', 13, 45.00, NULL),
 (104, 'SLOF2', 'camara de caucho para llanta', 2, 354.55, NULL),
 (123, 'SLOF455', 'solera', 250, 80.00, 'pulg'),
 (124, 'SLOF455', 'varilla 1/2\"', 45, 95.50, 'mts'),
 (125, 'SLOF455', 'alambre recocido', 50, 39.00, 'kg'),
-(126, 'SLOF393', 'soleras', 50, 35.50, 'pieza'),
-(127, 'SLOF393', 'varilla 1/2\"', 40, 90.00, 'pieza'),
 (128, 'FRUBA23', 'varilla mano', 30, 45.50, 'mts');
 
 -- --------------------------------------------------------
@@ -363,7 +357,7 @@ INSERT INTO `productos` (`id`, `imagen`, `descripcion`, `activo`, `stock`, `pres
 ('PROD020', 'assets/prod020.jpg', 'Clip mariposa estándar #2 caja 50 pzas', 1, 28, '50 pzas'),
 ('PROD021', 'assets/prod021.jpg', 'Marcador permanente negro fino single', 1, 6, NULL),
 ('PROD022', 'assets/prod022.jpg', 'respuesto navaja de cutter', 1, 10, '5 pzas'),
-('PROD023', 'assets/prod023.jpg', 'Marcador permananete blanco uni paint PX-20', 1, 3, 'pza'),
+('PROD023', 'assets/prod023.jpg', 'Marcador permananete blanco uni paint PX-20', 1, 1, 'pza'),
 ('PROD024', 'assets/prod024.jpg', 'Borrador de fieltro para pizarrón base madera Vinci', 1, 0, NULL),
 ('PROD025', 'assets/prod025.jpg', 'Tijera metal plastico 6 3/4 para oficina Soft Blt', 1, 0, NULL),
 ('PROD026', 'assets/prod026.jpg', 'Cutter Uso Pesado con guía Blt', 1, 0, NULL),
@@ -439,7 +433,7 @@ CREATE TABLE `proyectos` (
   `id_pedido` int(11) DEFAULT NULL,
   `unidad_medida` varchar(10) DEFAULT NULL,
   `fecha_entrega` date DEFAULT NULL,
-  `etapa` enum('en proceso','finalizado') DEFAULT 'en proceso'
+  `etapa` enum('en proceso','finalizado','facturacion') DEFAULT 'en proceso'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -447,12 +441,10 @@ CREATE TABLE `proyectos` (
 --
 
 INSERT INTO `proyectos` (`cod_fab`, `id_cliente`, `partida`, `nombre`, `descripcion`, `id_pedido`, `unidad_medida`, `fecha_entrega`, `etapa`) VALUES
-('FAB001', 100, 0, 'Proyecto Alpha', 'Descripción del proyecto Alpha', NULL, NULL, '2024-12-15', 'finalizado'),
 ('FAB030', 100, 0, 'Proyecto Beta', 'Descripción del proyecto Beta', NULL, NULL, '2025-01-10', 'en proceso'),
 ('FRUBA23', 103, 0, 'UPDATE PROCESO', 'update de manejo de proceso man, maq y com', NULL, 'fb', '2025-02-04', 'en proceso'),
 ('SLOF2', 101, 0, 'Slats cordoba', 'nueva_descripcion', NULL, NULL, '2024-11-13', 'en proceso'),
-('SLOF393', 101, 0, 'Ejemplo', 'nadjocnjonefje', NULL, 'lote', '2026-06-09', 'finalizado'),
-('SLOF455', 103, 0, 'PROYECTO KAMIKAZE', 'proyecto de ejemplo lorem ipsum vruda nobus pecartium', NULL, 'khv', '2026-02-03', 'en proceso');
+('SLOF455', 103, 0, 'PROYECTO KAMIKAZE', 'proyecto de ejemplo lorem ipsum vruda nobus pecartium', NULL, 'khv', '2026-02-03', 'finalizado');
 
 -- --------------------------------------------------------
 
@@ -465,6 +457,7 @@ CREATE TABLE `registro_estatus` (
   `id_proyecto` varchar(100) DEFAULT NULL,
   `estatus_log` varchar(255) DEFAULT 'sin registro',
   `fecha_log` timestamp NOT NULL DEFAULT current_timestamp(),
+  `id_usuario` int(11) DEFAULT NULL,
   `id_partida` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -472,22 +465,12 @@ CREATE TABLE `registro_estatus` (
 -- Volcado de datos para la tabla `registro_estatus`
 --
 
-INSERT INTO `registro_estatus` (`id`, `id_proyecto`, `estatus_log`, `fecha_log`, `id_partida`) VALUES
-(93, 'SLOF2', 'En area de produccion xd', '2024-12-11 00:07:51', 10),
-(95, 'SLOF2', 'Mano de obra', '2024-12-11 16:53:48', 13),
-(98, 'SLOF2', 'sin registro', '2024-12-11 18:27:40', 14),
-(99, NULL, 'sin registro', '2024-12-12 03:00:23', 18),
-(101, NULL, 'sin registro', '2024-12-13 00:19:24', 20),
-(110, NULL, 'entregado', '2025-01-28 16:02:59', 11),
-(111, NULL, 'mp arrivó', '2025-01-28 16:25:29', 72),
-(112, NULL, 'en espera de mp', '2025-01-28 16:25:37', 73),
-(113, NULL, 'entregado', '2025-01-28 16:25:41', 74),
-(114, NULL, 'en producción', '2025-01-28 16:52:55', 72),
-(115, NULL, 'mp arrivó', '2025-01-28 16:53:23', 73),
-(116, NULL, 'en area de pintado', '2025-01-28 16:54:47', 73),
-(117, NULL, 'mp llegó', '2025-01-28 19:57:06', 75),
-(118, NULL, 'se envia a galvanizado', '2025-01-28 20:00:55', 75),
-(119, NULL, 'en pintura', '2025-01-28 20:04:48', 72);
+INSERT INTO `registro_estatus` (`id`, `id_proyecto`, `estatus_log`, `fecha_log`, `id_usuario`, `id_partida`) VALUES
+(1, 'SLOF455', 'prueba 2 partida 1', '2025-02-10 18:09:35', 9, 72),
+(2, 'SLOF455', 'prueba 1 partida 2', '2025-02-10 18:09:45', 9, 73),
+(3, 'SLOF455', 'prueba 2 partida 1', '2025-02-10 18:09:51', 9, 72),
+(4, 'SLOF455', 'prueba 1 partida 3', '2025-02-10 18:09:57', 9, 74),
+(5, 'SLOF2', 'mp llego', '2025-02-10 20:06:05', 9, 10);
 
 -- --------------------------------------------------------
 
@@ -618,7 +601,8 @@ ALTER TABLE `proyectos`
 ALTER TABLE `registro_estatus`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_id_proyecto_cod_fab` (`id_proyecto`),
-  ADD KEY `fk_partida` (`id_partida`);
+  ADD KEY `fk_partida` (`id_partida`),
+  ADD KEY `FK_usuario_registro` (`id_usuario`);
 
 --
 -- Indices de la tabla `share_link`
@@ -659,25 +643,25 @@ ALTER TABLE `empleados`
 -- AUTO_INCREMENT de la tabla `partidas`
 --
 ALTER TABLE `partidas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos_p_detalle`
 --
 ALTER TABLE `pedidos_p_detalle`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT de la tabla `registro_estatus`
 --
 ALTER TABLE `registro_estatus`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `share_link`
@@ -729,6 +713,7 @@ ALTER TABLE `proyectos`
 -- Filtros para la tabla `registro_estatus`
 --
 ALTER TABLE `registro_estatus`
+  ADD CONSTRAINT `FK_usuario_registro` FOREIGN KEY (`id_usuario`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `aamap/registro_estatus_ibfk_1` FOREIGN KEY (`id_proyecto`) REFERENCES `proyectos` (`cod_fab`),
   ADD CONSTRAINT `fk_id_proyecto_cod_fab` FOREIGN KEY (`id_proyecto`) REFERENCES `proyectos` (`cod_fab`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_id_proyecto_status` FOREIGN KEY (`id_proyecto`) REFERENCES `proyectos` (`cod_fab`),
