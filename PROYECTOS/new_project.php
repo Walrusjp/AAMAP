@@ -90,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <h1 class="text-center">Nuevo Proyecto</h1>
     <form id="projectForm" method="POST" action="new_project.php">
-        
         <div class="form-group">
             <label for="cod_fab">Código de Fabricación</label>
             <input type="text" class="form-control" id="cod_fab" name="cod_fab" required>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 11-02-2025 a las 01:00:21
+-- Tiempo de generación: 13-02-2025 a las 22:53:36
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -159,7 +159,8 @@ INSERT INTO `partidas` (`id`, `nombre`, `cod_fab`, `proceso`) VALUES
 (73, 'partida 2', 'SLOF455', 'man'),
 (74, 'partida 3', 'SLOF455', 'com'),
 (77, 'describe partida', 'FRUBA23', 'maq'),
-(78, 'describe partida 2', 'FRUBA23', 'com');
+(78, 'describe partida 2', 'FRUBA23', 'com'),
+(81, 'ejn', 'hdbh', 'maq');
 
 -- --------------------------------------------------------
 
@@ -284,7 +285,35 @@ INSERT INTO `pedidos` (`id`, `usuario_id`, `producto_id`, `cantidad`, `fecha`, `
 (100, 18, 'PROD037', 1, '2025-02-07 10:45:10', 'solicitud', NULL),
 (101, 18, 'PROD052', 1, '2025-02-07 10:45:26', 'solicitud', NULL),
 (102, 19, 'PROD048', 1, '2025-02-07 16:41:41', 'salida', NULL),
-(103, 19, 'PROD023', 2, '2025-02-10 15:57:09', 'salida', NULL);
+(103, 19, 'PROD023', 2, '2025-02-10 15:57:09', 'salida', NULL),
+(104, 20, 'PROD017', 1, '2025-02-11 08:25:09', 'salida', NULL),
+(105, 20, 'PROD006', 1, '2025-02-11 08:25:09', 'salida', NULL),
+(106, 20, 'PROD004', 1, '2025-02-11 08:25:09', 'salida', NULL),
+(107, 20, 'PROD004', 1, '2025-02-11 09:52:14', 'salida', NULL),
+(108, 21, 'PROD026', 1, '2025-02-11 12:55:18', 'solicitud', NULL),
+(109, 9, 'PROD011', 1, '2025-02-11 15:33:22', 'solicitud', NULL),
+(110, 9, 'PROD011', 47, '2025-02-11 15:33:51', 'personalizado', 'jhuche'),
+(111, 27, 'PROD029', 1, '2025-02-11 16:11:55', 'solicitud', NULL),
+(112, 27, 'PROD029', 1, '2025-02-11 16:12:22', 'personalizado', 'No tengo, estoy usando el de Liz :('),
+(113, 27, 'PROD012', 1, '2025-02-11 16:12:35', 'solicitud', NULL),
+(114, 27, 'PROD038', 1, '2025-02-11 16:12:58', 'solicitud', NULL),
+(115, 27, 'PROD037', 1, '2025-02-11 16:13:09', 'solicitud', NULL),
+(116, 27, 'PROD054', 1, '2025-02-11 16:13:54', 'solicitud', NULL),
+(117, 27, 'PROD043', 1, '2025-02-11 16:14:47', 'solicitud', NULL),
+(118, 27, 'PROD020', 1, '2025-02-11 16:14:53', 'salida', NULL),
+(119, 27, 'PROD039', 1, '2025-02-11 16:14:53', 'salida', NULL),
+(120, 27, 'PROD040', 1, '2025-02-11 16:14:53', 'salida', NULL),
+(121, 27, 'PROD044', 1, '2025-02-11 16:14:53', 'salida', NULL),
+(122, 27, 'PROD061', 1, '2025-02-11 16:14:53', 'salida', NULL),
+(123, 27, 'PROD071', 1, '2025-02-11 16:14:53', 'salida', NULL),
+(124, 19, 'PROD047', 1, '2025-02-13 08:44:05', 'salida', NULL),
+(125, 20, 'PROD004', 1, '2025-02-13 11:24:01', 'salida', NULL),
+(126, 17, 'PROD009', 1, '2025-02-13 11:27:28', 'salida', NULL),
+(127, 17, 'PROD028', 1, '2025-02-13 11:27:28', 'salida', NULL),
+(128, 17, 'PROD014', 1, '2025-02-13 11:27:28', 'salida', NULL),
+(129, 20, 'PROD006', 1, '2025-02-13 11:27:54', 'salida', NULL),
+(130, 17, 'PROD055', 1, '2025-02-13 11:33:27', 'salida', NULL),
+(131, 20, 'PROD004', 1, '2025-02-13 11:40:16', 'salida', NULL);
 
 -- --------------------------------------------------------
 
@@ -312,7 +341,8 @@ INSERT INTO `pedidos_p_detalle` (`id`, `id_proyecto`, `articulos`, `cantidad`, `
 (123, 'SLOF455', 'solera', 250, 80.00, 'pulg'),
 (124, 'SLOF455', 'varilla 1/2\"', 45, 95.50, 'mts'),
 (125, 'SLOF455', 'alambre recocido', 50, 39.00, 'kg'),
-(128, 'FRUBA23', 'varilla mano', 30, 45.50, 'mts');
+(128, 'FRUBA23', 'varilla mano', 30, 45.50, 'mts'),
+(130, 'hdbh', 'njicn', 342, 34.00, 'fsr');
 
 -- --------------------------------------------------------
 
@@ -338,23 +368,23 @@ INSERT INTO `productos` (`id`, `imagen`, `descripcion`, `activo`, `stock`, `pres
 ('PROD001', 'assets/prod001.jpg', 'Papel Ofix Premium Oficio Blanco 37K C/500Hjs Of Bond-Ofix', 1, 10, NULL),
 ('PROD002', 'assets/prod002.jpg', 'Paq papel Opalina Carta Blanca Ofix Con 100Hjs', 1, 10, NULL),
 ('PROD003', 'assets/prod003.jpg', 'Papel Ofix Ecologico Carta Blanco 37K Caja 10 Paquetes Cta Eco-Ofix', 1, 10, 'caja 10 paquetes'),
-('PROD004', 'assets/prod004.jpg', 'Papel Uni Seguridad Carta Blanco', 1, 7, '40pzas'),
+('PROD004', 'assets/prod004.jpg', 'Papel Uni Seguridad Carta Blanco', 1, 3, '40pzas'),
 ('PROD005', 'assets/prod005.jpg', 'Separadores con Pestañas', 1, 5, '12 divisiones'),
-('PROD006', 'assets/prod006.jpg', 'Sobre Bolsa Oficio Golden Engomado', 1, 23, '50 Pzas'),
+('PROD006', 'assets/prod006.jpg', 'Sobre Bolsa Oficio Golden Engomado', 1, 21, '50 Pzas'),
 ('PROD007', 'assets/prod007.jpg', 'Folder Carta Verde', 1, 0, '25 Pzas'),
 ('PROD008', 'assets/prod008.jpg', 'Folder Oficio Crema', 1, 27, '25 pzas'),
-('PROD009', 'assets/prod009.jpg', 'Folder Carta Azul', 1, 25, '25 Pzas'),
+('PROD009', 'assets/prod009.jpg', 'Folder Carta Azul', 1, 24, '25 Pzas'),
 ('PROD010', 'assets/prod010.jpg', 'Archivador / recopilador Carta Marmoleado Verde Lefort', 1, 0, NULL),
 ('PROD011', 'assets/prod011.jpg', 'Carpeta Arillo 2 D Blanca Panoramica Lefort', 1, 0, NULL),
 ('PROD012', 'assets/prod012.jpg', 'Porta Lápices', 1, 0, NULL),
 ('PROD013', 'assets/prod013.jpg', 'Boligrafo / lapicero Fino Negro Pin Point Barril Amarillo', 1, 30, '12 pzas'),
-('PROD014', 'assets/prod014.jpg', 'Boligrafo /lapicero Fino Azul Pin Point Barril Amarillo', 1, 28, NULL),
+('PROD014', 'assets/prod014.jpg', 'Boligrafo /lapicero Fino Azul Pin Point Barril Amarillo', 1, 27, NULL),
 ('PROD015', 'assets/prod015.jpg', 'Boligrafo /lapicero Fino Rojo Pin Point Barril Amarillo', 1, 31, NULL),
 ('PROD016', 'assets/prod016.jpg', 'Goma Borrar Migajon M40', 1, 12, NULL),
-('PROD017', 'assets/prod017.jpg', 'Lápiz Mirado #2', 1, 32, NULL),
+('PROD017', 'assets/prod017.jpg', 'Lápiz Mirado #2', 1, 31, NULL),
 ('PROD018', 'assets/prod018.jpg', 'Lapiz Bicolor Triangular Delg Smarty Bol', 1, 0, NULL),
 ('PROD019', 'assets/prod019.jpg', 'Sacapuntas Metálico Cuadrado', 1, 22, NULL),
-('PROD020', 'assets/prod020.jpg', 'Clip mariposa estándar #2 caja 50 pzas', 1, 28, '50 pzas'),
+('PROD020', 'assets/prod020.jpg', 'Clip mariposa estándar #2 ', 1, 27, 'caja 50 pzas'),
 ('PROD021', 'assets/prod021.jpg', 'Marcador permanente negro fino single', 1, 6, NULL),
 ('PROD022', 'assets/prod022.jpg', 'respuesto navaja de cutter', 1, 10, '5 pzas'),
 ('PROD023', 'assets/prod023.jpg', 'Marcador permananete blanco uni paint PX-20', 1, 1, 'pza'),
@@ -362,26 +392,26 @@ INSERT INTO `productos` (`id`, `imagen`, `descripcion`, `activo`, `stock`, `pres
 ('PROD025', 'assets/prod025.jpg', 'Tijera metal plastico 6 3/4 para oficina Soft Blt', 1, 0, NULL),
 ('PROD026', 'assets/prod026.jpg', 'Cutter Uso Pesado con guía Blt', 1, 0, NULL),
 ('PROD027', 'assets/prod027.jpg', 'Notas adhesivas 3X3 cubo neón / post it', 1, 29, NULL),
-('PROD028', 'assets/prod028.jpg', 'Broche para archivo 8cm Caja c/50 pzas', 1, 97, NULL),
+('PROD028', 'assets/prod028.jpg', 'Broche para archivo 8cm', 1, 96, 'caja 50 pzs'),
 ('PROD029', 'assets/prod029.jpg', 'Dedal de Hule rojo #13', 1, 0, NULL),
 ('PROD030', 'assets/prod030.jpg', 'Pins Plastico Colores Surtidos C/100Pzas /chinches / tachuelas', 1, 1, NULL),
 ('PROD031', 'assets/prod031.jpg', 'Libreta Francesa color sólido', 1, 2, NULL),
 ('PROD032', 'assets/prod032.jpg', 'Libreta de cuadros profesional (100 hojas)', 1, 0, NULL),
 ('PROD033', 'assets/prod033.jpg', 'Libro Florete', 1, 0, NULL),
 ('PROD034', 'assets/prod034.jpg', 'Carpetas colgantes tamaño oficio (39 cm)', 1, 0, NULL),
-('PROD035', 'assets/prod035.jpg', 'Etiqueta Laser 109 carta blanca caja', 1, 100, '100 hjs'),
+('PROD035', 'assets/prod035.jpg', 'Etiqueta Laser 109 carta blanca', 1, 100, '100 hjs'),
 ('PROD036', 'assets/prod036.jpg', 'Protector De Hojas Smart Carta Paq 100 Pz', 1, 152, NULL),
 ('PROD037', 'assets/prod037.jpg', 'Engrapadora smart tira completa', 1, 0, NULL),
 ('PROD038', 'assets/prod038.jpg', 'Perforadora Smart, 2 orificios', 1, 0, NULL),
-('PROD039', 'assets/prod039.jpg', 'Tira de grapas ', 1, 40, 'caja 25 tiras'),
-('PROD040', 'assets/prod040.jpg', 'Caja de sujeta documentos / agarrapapel (32mm)', 1, 23, NULL),
+('PROD039', 'assets/prod039.jpg', 'Tira de grapas ', 1, 39, 'caja 25 tiras'),
+('PROD040', 'assets/prod040.jpg', 'Sujeta documentos / agarrapapel (32mm)', 1, 22, 'Caja'),
 ('PROD041', 'assets/prod041.jpg', 'Clip mariposa #1', 1, 0, '12 pzas'),
-('PROD042', 'assets/prod042.jpg', 'Caja de clip estándar caja 100pzas #2', 1, 2, NULL),
+('PROD042', 'assets/prod042.jpg', 'Clip estándar #2', 1, 2, NULL),
 ('PROD043', 'assets/prod043.jpg', 'Tapete Para Mouse Ergonomico De Gel Negro', 1, 0, NULL),
-('PROD044', 'assets/prod044.jpg', 'Memoria USB kingston negra 64 gb 3.2', 1, 1, NULL),
+('PROD044', 'assets/prod044.jpg', 'Memoria USB kingston negra 64 gb 3.2', 1, 0, NULL),
 ('PROD045', 'assets/prod045.jpg', 'Regla de aluminio 30 cm', 1, 0, NULL),
 ('PROD046', 'assets/prod046.jpg', 'Cinta Diurex Delgada 24mm', 1, 1, NULL),
-('PROD047', 'assets/prod047.jpg', 'Cinta diurex Gruesa (48mm)', 1, 4, NULL),
+('PROD047', 'assets/prod047.jpg', 'Cinta diurex Gruesa (48mm)', 1, 3, NULL),
 ('PROD048', 'assets/prod048.jpg', 'Cinta Canela (48mm)', 1, 0, NULL),
 ('PROD049', 'assets/prod049.jpg', 'Cinta Masking delgada (12mm)', 1, 0, NULL),
 ('PROD050', 'assets/prod050.jpg', 'Cinta Masking gruesa (48mm)', 1, 0, NULL),
@@ -389,13 +419,13 @@ INSERT INTO `productos` (`id`, `imagen`, `descripcion`, `activo`, `stock`, `pres
 ('PROD052', 'assets/prod052.jpg', 'Calculadora Mediana', 1, 0, NULL),
 ('PROD053', 'assets/prod053.jpg', 'Maquina Contadora De Billetes Con Detector De Billetes Falsos Bill-100', 1, 0, NULL),
 ('PROD054', 'assets/prod054.jpg', 'Organizador de escritorio ', 1, 0, NULL),
-('PROD055', 'assets/prod055.jpg', 'Pritt Lápiz adhesivo', 1, 3, NULL),
+('PROD055', 'assets/prod055.jpg', 'Pritt Lápiz adhesivo', 1, 2, NULL),
 ('PROD056', 'assets/prod056.jpg', 'Sobre bolsa coin paq 50 pzas', 1, 0, NULL),
 ('PROD057', 'assets/prod057.jpg', 'Desengrapadora Smart', 1, 0, NULL),
 ('PROD058', 'assets/prod058.jpg', 'Tapete para mouse basic colors', 1, 0, NULL),
 ('PROD059', 'assets/prod059.jpg', 'Pila Recargable Aa Metal Hidrogeno Con 2 Blt', 1, 0, NULL),
 ('PROD060', 'assets/prod060.jpg', 'Pila Recargable Aaa Metal Hidrogeno Con 2 Blt', 1, 0, NULL),
-('PROD061', 'assets/prod061.jpg', 'Mouse de oficina Logitech M90', 1, 3, NULL),
+('PROD061', 'assets/prod061.jpg', 'Mouse de oficina Logitech M90', 1, 0, NULL),
 ('PROD062', 'assets/prod062.jpg', 'Paño de Microfibra', 1, 0, NULL),
 ('PROD063', 'assets/prod063.jpg', 'Juego de pinceles profesional plano y redondo', 1, 0, NULL),
 ('PROD064', 'assets/prod064.jpg', 'Libreta Pocket profesional a cuadros', 1, 0, NULL),
@@ -405,7 +435,7 @@ INSERT INTO `productos` (`id`, `imagen`, `descripcion`, `activo`, `stock`, `pres
 ('PROD068', 'assets/prod068.jpg', 'Marcador para pizarron magistral didactico negro', 1, 5, '12 pzas'),
 ('PROD069', 'assets/prod069.jpg', 'Marcador para pizarron magistral didactico azul', 1, 0, '12 pzas'),
 ('PROD070', 'assets/prod070.jpg', 'Marcador para pizarron magistral didactico rojo', 1, 4, '12 pzas'),
-('PROD071', 'assets/prod071.jpg', 'Marcatextos / subrayador de texto', 1, 3, '12 pzas'),
+('PROD071', 'assets/prod071.jpg', 'Marcatextos / subrayador de texto', 1, 2, '12 pzas'),
 ('PROD072', 'assets/prod072.jpg', 'Marcador de agua de color', 1, 10, NULL),
 ('PROD073', 'assets/prod073.jpg', 'Lapiz Marcador para todo uso rojo', 1, 8, '10 pzas'),
 ('PROD074', 'assets/prod074.jpg', 'Lapiz rojo de chequeo', 1, 5, '10 pzas'),
@@ -443,6 +473,7 @@ CREATE TABLE `proyectos` (
 INSERT INTO `proyectos` (`cod_fab`, `id_cliente`, `partida`, `nombre`, `descripcion`, `id_pedido`, `unidad_medida`, `fecha_entrega`, `etapa`) VALUES
 ('FAB030', 100, 0, 'Proyecto Beta', 'Descripción del proyecto Beta', NULL, NULL, '2025-01-10', 'en proceso'),
 ('FRUBA23', 103, 0, 'UPDATE PROCESO', 'update de manejo de proceso man, maq y com', NULL, 'fb', '2025-02-04', 'en proceso'),
+('hdbh', 101, 0, 'uscbu', ' fne', NULL, 'ndj', '2028-01-01', 'en proceso'),
 ('SLOF2', 101, 0, 'Slats cordoba', 'nueva_descripcion', NULL, NULL, '2024-11-13', 'en proceso'),
 ('SLOF455', 103, 0, 'PROYECTO KAMIKAZE', 'proyecto de ejemplo lorem ipsum vruda nobus pecartium', NULL, 'khv', '2026-02-03', 'finalizado');
 
@@ -534,7 +565,8 @@ INSERT INTO `users` (`id`, `username`, `password`, `role`) VALUES
 (23, 'contabilidad2', '$2y$10$b.GkhvpqRo1axTbehdVL9.S5Gnay06yDkJo3hYNbDZJ3jWakVFjVK', 'operador'),
 (24, 'coord.prodman', '$2y$10$z3KeiOrGvZHzuj.BKMpJU.v2Ys2GqWDCpVn0ZIgky6P5OE/az9N..', 'operador'),
 (25, 'vigilanteaamap', '$2y$10$13ICyqJ2tYac/7VLuXsagu98.cwdZy7dKx80eZoXmC0o/q2saZxv2', 'operador'),
-(26, 'tesop', '$2y$10$uQ4pFGwkQEs.rgNP3ih31ueX0J0eeqoZvwfxvU.NwFbcuhG3tu2P2', 'operador');
+(26, 'tesop', '$2y$10$uQ4pFGwkQEs.rgNP3ih31ueX0J0eeqoZvwfxvU.NwFbcuhG3tu2P2', 'operador'),
+(27, 'auxiliar contable', '$2y$10$KPITq9kIecV1gJfnCB6/lO5nx9kRAuzKBzDpEiGQr7ViWRMO060AG', 'operador');
 
 --
 -- Índices para tablas volcadas
@@ -643,19 +675,19 @@ ALTER TABLE `empleados`
 -- AUTO_INCREMENT de la tabla `partidas`
 --
 ALTER TABLE `partidas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos_p_detalle`
 --
 ALTER TABLE `pedidos_p_detalle`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT de la tabla `registro_estatus`
@@ -673,7 +705,7 @@ ALTER TABLE `share_link`
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- Restricciones para tablas volcadas
