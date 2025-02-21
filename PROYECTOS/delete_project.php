@@ -22,36 +22,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proyecto_id'])) {
     $proyectoId = $_POST['proyecto_id'];
 
     try {
-        // Iniciar transacción
         $conn->begin_transaction();
 
-        // Eliminar pedidos_p_detalle
-        $sqlDeletePedidos = "DELETE FROM pedidos_p_detalle WHERE id_proyecto = ?";
-        $stmt = $conn->prepare($sqlDeletePedidos);
-        $stmt->bind_param("s", $proyectoId);
-        $stmt->execute();
-
-        // Eliminar registro_estatus
+        // 1. Eliminar de registro_estatus (usando INNER JOIN para mayor seguridad)
         $sqlDeleteRegistros = "DELETE FROM registro_estatus WHERE id_partida IN (SELECT id FROM partidas WHERE cod_fab = ?)";
         $stmt = $conn->prepare($sqlDeleteRegistros);
         $stmt->bind_param("s", $proyectoId);
         $stmt->execute();
 
-        // Eliminar partidas
+        // 2. Eliminar de partidas (antes de eliminar proyectos)
         $sqlDeletePartidas = "DELETE FROM partidas WHERE cod_fab = ?";
         $stmt = $conn->prepare($sqlDeletePartidas);
         $stmt->bind_param("s", $proyectoId);
         $stmt->execute();
 
-        // Eliminar proyecto
+
+        // 3. Eliminar de proyectos (después de eliminar partidas y registro_estatus)
         $sqlDeleteProyecto = "DELETE FROM proyectos WHERE cod_fab = ?";
         $stmt = $conn->prepare($sqlDeleteProyecto);
         $stmt->bind_param("s", $proyectoId);
         $stmt->execute();
 
-        // Confirmar transacción
-        $conn->commit();
 
+        $conn->commit();
         echo "<script>alert('Proyecto eliminado exitosamente.'); window.location.href = 'all_projects.php';</script>";
 
     } catch (Exception $e) {

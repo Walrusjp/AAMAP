@@ -1,0 +1,135 @@
+/* Estilos generales */
+body {
+    font-family: sans-serif;
+}
+
+/* Estilos para tablas */
+.table-bordered td,
+.table-bordered th {
+    border: 1px solid #000; /* Bordes negros en la tabla */
+}
+
+/* Estilos para la cabecera */
+.header-info {
+    margin-bottom: 20px;
+}
+
+.header-info p {
+    margin-bottom: 5px; /* Espacio reducido entre párrafos */
+}
+
+/* Estilos para el título de la cotización */
+h4.text-center {
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Estilos para la tabla de partidas */
+.table-bordered th {
+    background-color: #f0f0f0; /* Color de fondo para encabezados */
+    font-weight: bold;
+}
+
+/* Estilos para el pie de página */
+.table-borderless td {
+    vertical-align: middle;
+}
+
+/* Estilos para los datos bancarios */
+.table-bordered {
+    margin-bottom: 10px; /* Eliminar margen inferior */
+}
+
+/* Estilos adicionales para la estructura de tabla */
+.main-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.main-table td {
+    vertical-align: top;
+}
+
+/* Estilos para la distribución de elementos */
+#datos_contacto {
+    vertical-align: top; /* Asegurar que el contenido se alinee arriba */
+    font-size: 0.9em;
+    line-height: 0.5;
+}
+
+#iso {
+    vertical-align: top; /* Asegurar que el contenido se alinee arriba */
+    line-height: 1.1;
+}
+
+#info {
+    display: flex;
+    margin-left: -260px;
+    margin-bottom: 30px;
+    text-align: center; /* Centrar el texto en la celda */
+    font-size: 1.4em;
+    line-height: 0.9;
+}
+
+.datos_vigencia {
+    line-height: 0.5; /* Reducir el interlineado */
+    font-size: 0.9em;
+}
+
+.datos_bancarios {
+    font-size: 0.7em; /* Reducir el tamaño de fuente */
+}
+
+#logo {
+    width: 60%;
+    padding-bottom: 50px;
+}
+
+#footer {
+    background-color: #ff0 !important; /* Amarillo con !important */
+    font-weight: bold;
+}
+
+.descuento { /* Estilo para filas de descuento */
+    background-color: greenyellow; !important; /* Verde lima */
+    color: black !important;
+}
+
+.cifras {
+    line-height: 0.5;
+    font-size: 0.4em;
+}
+
+/* Estilos específicos para impresión */
+@media print {
+    /* Ocultar bordes de celdas vacías */
+    table {
+        empty-cells: hide;
+    }
+
+    /* Asegurar que los colores de fondo se impriman */
+    .descuento {
+        background-color: greenyellow; !important; /* Verde */
+        color: black !important;
+        -webkit-print-color-adjust: exact !important; /* Para Chrome y Safari */
+        print-color-adjust: exact !important; /* Estándar */
+    }
+
+    #footer {
+        background-color: #ff0 !important; /* Amarillo */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Eliminar márgenes innecesarios al imprimir */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Asegurar que las imágenes se impriman correctamente */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}

@@ -7,6 +7,26 @@ if (!isset($_SESSION['username'])) {
 
 include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
 
+// Procesar la actualización de la etapa si se presiona el botón
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['generar_cotizacion'])) {
+    $proyecto_id = $_POST['proyecto_id'];
+
+    // Actualizar la etapa a "en proceso"
+    $sqlUpdate = "UPDATE proyectos SET etapa = 'en proceso' WHERE cod_fab = ?";
+    $stmtUpdate = $conn->prepare($sqlUpdate);
+    $stmtUpdate->bind_param("s", $proyecto_id);
+
+    if ($stmtUpdate->execute()) {
+        $stmtUpdate->close();
+        // Redirigir a ver_cot.php después de actualizar la etapa
+        header("Location: ver_cot.php?id=" . urlencode($proyecto_id));
+        exit();
+    } else {
+        echo "Error al actualizar el estado del proyecto.";
+        exit();
+    }
+}
+
 // Validar y sanitizar la entrada del ID del proyecto
 $proyecto_id = filter_var($_GET['id'], FILTER_SANITIZE_STRING);
 if ($proyecto_id === false || empty($proyecto_id)) {
@@ -14,24 +34,11 @@ if ($proyecto_id === false || empty($proyecto_id)) {
     exit();
 }
 
-// Consultar datos del proyecto, incluyendo el pedido
-$sql = "SELECT 
-        p.cod_fab, 
-        c.nombre AS nombre_cliente, 
-        p.fecha_entrega,
-        p.etapa,
-        GROUP_CONCAT(CONCAT(pd.articulos, ' - ', pd.cantidad, ' - ', pd.precio) SEPARATOR '\n') AS pedido
-    FROM 
-        proyectos p
-    LEFT JOIN 
-        clientes_p c ON p.id_cliente = c.id
-    LEFT JOIN 
-        pedidos_p_detalle pd ON pd.id_proyecto = p.cod_fab
-    WHERE 
-        p.cod_fab = ?
-    GROUP BY 
-        p.cod_fab, c.nombre, 
-        p.fecha_entrega, p.etapa";
+// Consultar datos del proyecto
+$sql = "SELECT p.cod_fab, p.nombre, c.nombre_comercial AS nombre_cliente, p.fecha_entrega, p.etapa
+        FROM proyectos p
+        LEFT JOIN clientes_p c ON p.id_cliente = c.id
+        WHERE p.cod_fab = ?";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
@@ -54,23 +61,24 @@ if ($result->num_rows === 0) {
 
 $proyecto = $result->fetch_assoc();
 
-// Consultar las partidas del proyecto
+// Consultar las partidas del proyecto con subtotales, IVA y totales
 $sqlPartidas = "SELECT 
-        pa.id AS partida, 
-        pa.nombre AS nombre_partida, 
-        pa.proceso,
-        (SELECT re.estatus_log 
-         FROM registro_estatus re 
-         WHERE re.id_partida = pa.id 
-         ORDER BY re.fecha_log DESC 
-         LIMIT 1) AS estatus, 
-        (SELECT MAX(re.fecha_log) 
-         FROM registro_estatus re 
-         WHERE re.id_partida = pa.id) AS ultimo_registro
-    FROM 
-        partidas pa
-    WHERE 
-        pa.cod_fab = ?";
+                    pa.id AS partida_id,
+                    pa.descripcion AS nombre_partida, 
+                    pa.proceso,
+                    pa.cantidad,
+                    pa.unidad_medida,
+                    (SELECT re.estatus_log
+                     FROM registro_estatus re
+                     WHERE re.id_partida = pa.id
+                     ORDER BY re.fecha_log DESC
+                     LIMIT 1) AS estatus,
+                    (SELECT MAX(re.fecha_log)
+                     FROM registro_estatus re
+                     WHERE re.id_partida = pa.id) AS ultimo_registro
+                FROM partidas pa
+                WHERE pa.cod_fab = ?";
+
 $stmtPartidas = $conn->prepare($sqlPartidas);
 if (!$stmtPartidas) {
     echo "Error en la preparación de la consulta de partidas: " . $conn->error;
@@ -84,8 +92,7 @@ if (!$stmtPartidas->execute()) {
 }
 
 $resultPartidas = $stmtPartidas->get_result();
-$partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC); // Obtener todas las partidas en un array
-
+$partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 
 ?>
 
@@ -101,58 +108,78 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC); // Obtener todas las parti
 <body>
 
 <div class="container mt-4">
-    <h1>Detalles del Proyecto</h1>
+    <?php if ($proyecto['etapa'] != 'creado'): ?>
+    <?php echo "<h1>Proyecto: " . htmlspecialchars($proyecto['nombre']) . "</h1>";?>
     <table class="table table-bordered">
         <thead class="thead-dark">
             <tr>
                 <th>OF</th>
                 <th>Cliente</th>
                 <th>F.E</th>
-                <th>Pedido</th>
                 <th>ID partida</th>
                 <th>Descrip Partida</th>
                 <th>Proceso</th>
+                <th>Cantidad</th>
+                <th>UM</th>
                 <th>Estatus</th>
                 <th>Última Fecha de Registro</th>
             </tr>
         </thead>
         <tbody>
         <?php
-        $numRows = count($partidas); // Obtener el número de partidas
+        $numRows = count($partidas);
         if (!empty($partidas)) {
             foreach ($partidas as $key => $row) {
                 echo "<tr>";
-                if ($key === 0) { // Mostrar rowspan solo en la primera fila
+                if ($key === 0) {
                     echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['cod_fab']) . "</td>";
                     echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['nombre_cliente']) . "</td>";
                     echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['fecha_entrega']) . "</td>";
-                    // Mostrar la columna "pedido" solo en la primera fila
-                    echo "<td rowspan='" . $numRows . "' class='align-middle'>" . nl2br(htmlspecialchars($proyecto['pedido'])) . "</td>";
                 }
-                echo "<td>" . htmlspecialchars($row['partida']) . "</td>";
+                echo "<td>" . htmlspecialchars($row['partida_id']) . "</td>";
                 echo "<td>" . htmlspecialchars($row['nombre_partida']) . "</td>";
                 echo "<td>" . htmlspecialchars($row['proceso']) . "</td>";
-                echo "<td data-id='" . htmlspecialchars($row['partida']) . "' class='editable'>" . htmlspecialchars($row['estatus']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
-                echo "</tr>";
+                echo "<td>" . htmlspecialchars($row['cantidad']) . "</td>";
+                echo "<td>" . htmlspecialchars($row['unidad_medida']) . "</td>";
+                if ($proyecto['etapa'] == 'en proceso'):
+                    echo "<td data-id='" . htmlspecialchars($row['partida_id']) . "' class='editable'>" . htmlspecialchars($row['estatus']) . "</td>";
+                    echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
+                    echo "</tr>";
+                endif;
+
+                if ($proyecto['etapa'] == 'finalizado' or $proyecto['etapa'] == 'facturacion'):
+                    echo '
+                        <td data-id="'. htmlspecialchars($row['partida_id']). '">'. htmlspecialchars($row['estatus']). '</td>
+                        <td>'. htmlspecialchars($row['ultimo_registro']). '</td>
+                    ';
+                endif;
             }
         } else {
             echo "<tr>";
-            echo "<td colspan='9' class='text-center'>No se encontraron partidas para este proyecto.</td>";
+            echo "<td colspan='14' class='text-center'>No se encontraron partidas para este proyecto.</td>";
             echo "</tr>";
         }
         ?>
         </tbody>
     </table>
+    <?php endif; ?>
+
+    <?php if ($proyecto['etapa'] == 'creado'): ?>
+        <a href="ver_cot.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-info">Generar Cotización</a>
+    <?php endif; ?>
+
 
     <div class="mt-4">
         <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
+        <?php if ($proyecto['etapa'] != 'creado'): ?>
         <a href="ver_logs.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-info">Logs</a>
+        <?php endif; ?>
         <?php if ($proyecto['etapa'] == 'en proceso'): ?> 
             <a href="finish_project.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-success">Finalizar Proyecto</a>
         <?php endif; ?>
     </div>
 </div>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">

@@ -25,16 +25,16 @@ if (!isset($_SESSION['welcome_shown'])) {
 }
 
 // Obtener los proyectos desde la base de datos
-$sql = "SELECT 
-            proyectos.cod_fab AS proyecto_id, -- Usamos 'cod_fab' en lugar de 'id'
-            proyectos.nombre AS proyecto_nombre,
-            proyectos.descripcion,
-            proyectos.etapa AS estatus, -- Cambiamos 'estatus' por 'etapa'
-            proyectos.fecha_entrega,
-            clientes_p.nombre AS cliente_nombre
-        FROM proyectos
-        LEFT JOIN clientes_p ON proyectos.id_cliente = clientes_p.id -- Relación corregida
-        ORDER BY proyectos.etapa ASC";
+$sql = "SELECT
+            p.cod_fab AS proyecto_id,
+            p.nombre AS proyecto_nombre,
+            p.descripcion,
+            p.etapa AS estatus,
+            p.fecha_entrega,
+            c.nombre_comercial AS cliente_nombre -- Usar nombre comercial del cliente
+        FROM proyectos AS p
+        INNER JOIN clientes_p AS c ON p.id_cliente = c.id
+        ORDER BY p.etapa ASC";
 
 $result = $conn->query($sql);
 $proyectos = [];
@@ -46,7 +46,7 @@ if ($result->num_rows > 0) {
 
 // Función para actualizar el estatus del proyecto
 function actualizarEstatusProyecto($conn, $proyecto_id, $nuevo_estatus) {
-    $sql = "UPDATE proyectos SET etapa = ? WHERE cod_fab = ?"; // Usar cod_fab
+    $sql = "UPDATE proyectos SET etapa = ? WHERE cod_fab = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ss", $nuevo_estatus, $proyecto_id);
     $stmt->execute();
@@ -56,11 +56,18 @@ function actualizarEstatusProyecto($conn, $proyecto_id, $nuevo_estatus) {
 // Manejar la solicitud de facturación
 if (isset($_POST['facturar'])) {
     $proyecto_id = $_POST['proyecto_id'];
-    actualizarEstatusProyecto($conn, $proyecto_id, 'facturación');
+    actualizarEstatusProyecto($conn, $proyecto_id, 'facturacion');
     header("Location: all_projects.php");
     exit();
 }
 
+// Manejar la solicitud de aprobación de cotización
+if (isset($_POST['aprobar_cotizacion'])) {
+    $proyecto_id = $_POST['proyecto_id'];
+    actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso');
+    header("Location: all_projects.php"); // Redirigir a la página de proyectos
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -81,7 +88,7 @@ if (isset($_POST['facturar'])) {
                 <h2>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
             </div>
             <div class="modal-body">
-                <p>Inicio de sesi&oacute;n exitoso.</p>
+                <p>Inicio de sesión exitoso.</p>
             </div>
             <button class="close-btn" onclick="closeModal()">Cerrar</button>
         </div>
@@ -95,19 +102,20 @@ if (isset($_POST['facturar'])) {
     <div class="container d-flex justify-content-between chompa">
         <h2 class="text-center">Mis Proyectos</h2>
         <div class="d-flex justify-content-center mb-3">
-        <label for="filter" class="mr-2">Filtrar:</label>
-        <select id="filter" class="form-control w-auto">
-            <option value="todos">Todos</option>
-            <option value="en proceso">En proceso</option>
-            <option value="finalizado">Finalizados</option>
-            <option value="facturacion">Facturacion</option>
-        </select>
-    
-            <a href="new_project.php" class="btn btn-success chompa">Nuevo Proyecto</a>
-            <a href="ver_clientes.php" class="btn btn-info chompa">Ver Clientes</a>
+            <label for="filter" class="mr-2">Filtrar:</label>
+            <select id="filter" class="form-control w-auto">
+                <option value="todos">Todos</option>
+                <option value="creado">Creado</option>
+                <option value="en proceso">En proceso</option>
+                <option value="finalizado">Finalizados</option>
+                <option value="facturacion">Facturación</option>
+            </select>
+            <a href="new_project.php" class="btn btn-success chompa">Nueva Cotización</a>
+            <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
+            <!--<a href="lista_cot.php" class="btn btn-info chompa">Cotizaciones</a>-->
             <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
             <form method="POST" action="">
-                <button type="submit" name="logout" class="btn btn-danger chompa">Cerrar sesi&oacute;n</button>
+                <button type="submit" name="logout" class="btn btn-danger chompa">Cerrar sesión</button>
             </form>
         </div>
     </div>
@@ -118,10 +126,12 @@ if (isset($_POST['facturar'])) {
         <?php if (!empty($proyectos)): ?>
             <?php foreach ($proyectos as $proyecto): ?>
                 <div class="mb-4 proyecto-card" data-estatus="<?php echo htmlspecialchars($proyecto['estatus']); ?>">
-                    <?php //var_dump($proyecto['proyecto_id']); ?>
                     <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">
-
-                        <div class="card text-<?php echo $proyecto['estatus'] == 'finalizado' ? 'success' : ($proyecto['estatus'] == 'facturacion' ? 'primary' : 'warning'); ?>">
+                        <div class="card text-<?php 
+                            echo $proyecto['estatus'] == 'finalizado' ? 'success' : 
+                                 ($proyecto['estatus'] == 'facturacion' ? 'primary' : 
+                                 ($proyecto['estatus'] == 'creado' ? 'danger' : 'warning')); 
+                        ?>">
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
                                 <p class="card-text">
@@ -131,13 +141,30 @@ if (isset($_POST['facturar'])) {
                             </div>
                         </div>
                     </a>
+
+                    <?php if ($proyecto['estatus'] == 'finalizado'): ?>
+                        <form method="POST" action="">
+                            <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>">
+                            <button type="submit" name="facturar" class="btn btn-primary mt-2">Mandar a Facturar</button>
+                        </form>
+                    <?php endif; ?>
+
+                    <?php if ($proyecto['estatus'] == 'creado'):?>
+                        <form method="POST" action="">
+                            <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto['proyecto_id']);?>">
+                            <button type="submit" name="aprobar_cotizacion" class="btn btn-success mt-2">Aprobar Cotización</button>
+                        </form>
+                    <?php endif;?>
+
                 </div>
             <?php endforeach; ?>
+
         <?php else: ?>
             <div class="col-12">
                 <p class="text-muted text-center">No hay proyectos disponibles.</p>
             </div>
         <?php endif; ?>
+
     </div>
 </div>
 
@@ -146,7 +173,7 @@ if (isset($_POST['facturar'])) {
     document.getElementById('filter').addEventListener('change', function () {
         const selectedFilter = this.value;
         const proyectos = document.querySelectorAll('.proyecto-card');
-        
+
         proyectos.forEach(function (proyecto) {
             if (selectedFilter === 'todos' || proyecto.dataset.estatus === selectedFilter) {
                 proyecto.style.display = 'block';

@@ -5,7 +5,7 @@ include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $proyectoId = $_POST['id'];
 
-    $sql = "UPDATE proyectos SET etapa = 'facturación' WHERE cod_fab = ?";
+    $sql = "UPDATE proyectos SET etapa = 'facturacion' WHERE cod_fab = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $proyectoId);
 
