@@ -8,8 +8,8 @@ if ($proyecto_id === false || empty($proyecto_id)) {
 }
 
 // Consultar datos del proyecto y el cliente
-$sql = "SELECT p.cod_fab, p.nombre AS nombre_proyecto, c.nombre_comercial AS nombre_cliente, 
-               c.direccion AS ubicacion_cliente, c.telefono AS telefono_cliente, 
+$sql = "SELECT p.cod_fab, p.descripcion AS descripcion, p.nombre AS nombre_proyecto, c.nombre_comercial AS nombre_cliente, 
+               c.direccion AS ubicacion_cliente, c.comprador AS atencion_cliente, c.telefono AS telefono_cliente, 
                c.correo AS email_cliente, p.fecha_entrega
         FROM proyectos p
         LEFT JOIN clientes_p c ON p.id_cliente = c.id

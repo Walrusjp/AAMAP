@@ -11,260 +11,214 @@ require 'generar_cot.php';
  ?>
 
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotización</title>
+    <title>Cotización_<?php echo $cotizacion_no;?></title>
+    <link rel="icon" href="/assets/logo.ico">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #fff;
-        }
-        .cotizacion-container {
-            width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #000;
-            box-sizing: border-box;
-        }
-        .header {
-		    border: solid 1px;
-		    text-align: left; /* Alinea el contenido a la izquierda */
-		    margin-bottom: 20px;
-		    display: flex; /* Usa flexbox para alinear la imagen y el texto */
-		    align-items: center; /* Centra verticalmente */
-		}
-
-		.header-text {
-		    flex: 1; /* Ocupa el espacio restante */
-		}
-		.header h2 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .header p {
-            margin: 5px 0;
-            font-size: 12px;
-        }
-        .empresa-info {
-        	border: 1px solid;
-            margin-bottom: 0px;
-        }
-        .empresa-info p {
-        	text-align: center;
-            margin: 5px 0;
-            font-size: 15px;
-        }
-        .cod_fab {
-        	width: 12%;
-        	border: 1px solid;
-        }
-        .cod_fab p {
-        	font-size: 12px;
-        	text-align: center;
-        }
-        .cliente-info {
-        	border: 1px solid;
-        	padding-top: 10px;
-        }
-        .cliente-info p {
-            margin: 5px 0;
-            font-size: 12px;
-        }
-        .partidas {
-		    border: 1px solid;
-		    padding-top: 10px;
-		    margin-bottom: 20px;
-		}
-
-		.partida-header, .partida-row {
-		    display: flex;
-		    justify-content: space-between;
-		    margin-bottom: 0; /* Elimina el margen inferior */
-		    border: 1px solid;
-		}
-
-		.partida-header div, .partida-row div {
-		    flex: 1;
-		    text-align: center;
-		    font-size: 12px;
-		    padding: 5px; /* Ajusta el padding si es necesario */
-		}
-
-		/* Si quieres que los bordes se fusionen */
-		.partidas {
-		    border-collapse: collapse;
-		}
-
-        /* Contenedor flexible para nota y totales */
-        .nota-totales-container {
+        p, h1, h2, h3, h4, .content {text-align: center;}
+        .interlineado {line-height: 0.4;}
+        .interlineador {line-height: 0.1;}
+        #cot {
             display: flex;
-            justify-content: right;
-            margin-bottom: 5px;
-            margin-top: -20px;
-            font-size: 12px;
-        }
-
-        /* Estilos para la nota */
-        .nota {
+            font-size: 0.8em;
             border: 1px solid;
-            width: 60%; /* Ajusta el ancho según sea necesario */
-            padding: 10px;
-            box-sizing: border-box;
+            border-bottom: none;
+            border-right: none;
+            line-height: 1.0;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            margin-left: auto;
+            width: fit-content;
+            margin-top: -25px;
         }
-
-        /* Estilos para los totales */
-        .totales {
+        #cod1 {
+            font-size: 0.8em;
+            border-bottom: 1px solid;
+            line-height: 0.3;
+        }
+        #cod2 {
+            font-size: 0.8em;
+            border-bottom: 1px solid;
+            line-height: 0.3;
+        }
+        #cod3 {
+            font-size: 0.8em;
+            line-height: 0.3;
+        }
+        table {
+            width: 100%;
+            padding: 10px;
             border: 1px solid;
-            width: 35%; /* Ajusta el ancho según sea necesario */
-            padding: 10px;
-            box-sizing: border-box;
-            text-align: right; /* Alinea el texto a la derecha */
+            border-spacing: 0;
+            border-collapse: collapse;
         }
+        .cols {
+            border: 1px solid; font-size: 0.8em;
+        }
+        .bg-cols {
+            background-color: lightgray;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+        .content {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+        .cliente {font-size: 0.8em;}
+        .vigencia {font-size: 0.7em;}
+        .cifras {line-height: 0;}
 
-        .footer {
-            text-align: left;
-            margin-bottom: 50px;
-        }
-        .footer p {
-            margin: 5px 0;
-            font-size: 12px;
-        }
-        .footer2 {
-        	text-align: center;
-        }
-        /* Elimina position: absolute de la imagen */
-		.imagen {
-		    display: inline-block; /* Cambia a inline-block para alinear con el texto */
-		    vertical-align: top; /* Alinea la imagen con el texto */
-		}
+        @media print {
+            .interlineado {line-height: 0.3;}
+            .interlineador {line-height: 0.1; font-size: 0.7em}
 
-		#logo {
-		    width: 20%;
-		    height: auto; /* Ajusta la altura automáticamente */
-		    border: 1px solid;
-		    margin-right: 10px; /* Espacio entre la imagen y el texto */
-		}
-
-		#logo img {
-		    width: 100%;
-		    height: auto; /* Mantiene la proporción de la imagen */
-		}
-        #datos {
-        	width: 43%;
-        	/*border: 1px solid;*/
-        	top: 650px;
-        	left: 350px;
         }
-        #datos img {
-        	width: 100%;
-        }
-        #ate {
-        	text-align: center;
-        }
-        .partida-header {
-        	border: 1px solid;
-        }
-
+        .cols {font-size: 0.7em}
     </style>
 </head>
-<body>
-    
-        <!-- Encabezado -->
-		<div class="header">
-		    <div class="imagen" id="logo">
-		        <img src="/assets/aamap.png" alt="Grupo AAMAP">
-		    </div>
-		    <div class="header-text">
-		        <h2>Cotización</h2>
-		        <p>Código: AAMAP-VE-F-03</p>
-		        <p>Fecha de revisión: 24/06/2024</p>
-		        <p>Revisión: 00</p>
-		    </div>
-		</div>
+<body style="padding: 10px; font-family: Arial;">
+    <!-- Primera tabla: Distribución 80%-20% -->
+    <table style="margin-bottom: 10px;">
+        <tr>
+            <td style="width: 80%; height: 30px; border: 1px solid;">
+                <img src="/assets/grupo_aamap.png" style="width: 30%;">
+            </td>
+            <td style="width: 20%; height: auto; border: 1px solid;" class="interlineador">
+                <div id="cod1"><p style="text-align: left;">Código: AAMAP-VE-F-03</p></div>
+                <div id="cod2"><p style="text-align: left;">Fecha de revisión: 24/06/2024</p></div>
+                <div id="cod3"><p style="text-align: left;">Revisión: 00</p></div>
+            </td>
+        </tr>
+    </table>
 
-        <!-- Información de la empresa -->
-        <div class="empresa-info">
-            <p><b>Agregados, Aceros, Maquilas Prefabricadas S.A de C.V</b></p>
-            <p><b>AAM2102261R5</b></p>
-            <p>Camino a San Miguel #1537</p>
-            <p>Col. Granjas Mayorazgo, Puebla, Pue.</p>
-            <p>C.P. 72480 TEL: 222-910-19-51</p>
-            <div class="cod_fab">
-            	<p>Código: <br> <?php echo htmlspecialchars($proyecto['cod_fab']); ?></p>
-            </div>
-        </div>
+    <!-- Segunda tabla: Información de la empresa -->
+    <table style="border: 1px solid; border-bottom: none;">
+        <tr>
+            <td colspan="2" style="width: 100%;" class="interlineado">
+                <p style="font-size: 1em;"><b>Agregados, Aceros, Maquilas Prefabricadas S.A de C.V</b></p>
+                <p style="font-size: 1em;"><b>AAM2102261R5</b></p>
+                <p style="font-size: 0.9em;">Camino a San Miguel #1537</p>
+                <p style="font-size: 0.9em;">Col. Granjas Mayorazgo Puebla, Pue.</p>
+                <p style="font-size: 0.9em;">C.P. 72480 TEL: 222-910-19-51</p>
+                <div id="cot"><p style="padding-left: 8px; padding-right: 8px;">Cotización No. <br><?php echo $cotizacion_no;?></p></div>
+            </td>
+        </tr>
+    </table>
 
-        <!-- Información del cliente -->
-        <div class="cliente-info">
-            <p>CLIENTE: <?php echo htmlspecialchars($proyecto['nombre_cliente']); ?></p>
-            <p>UBICACIÓN: <?php echo htmlspecialchars($proyecto['ubicacion_cliente']); ?></p>
-            <p>TEL: <?php echo htmlspecialchars($proyecto['telefono_cliente']); ?></p>
-            <p>E-MAIL: <?php echo htmlspecialchars($proyecto['email_cliente']); ?></p>
-        </div>
+    <!-- Tercera tabla: Distribución 20%-80% -->
+    <table>
+        <tr>
+            <td style="width: 20%; border: 1px solid; border-right: none;" class="interlineado cliente">
+                <p style="text-align: left;"><b><u>CLIENTE:</u></b></p>
+                <p style="text-align: left;"><b><u>UBICACIÓN:</u></b></p>
+                <p style="text-align: left;"><b><u>TEL:</u></b></p>
+                <p style="text-align: left;"><b><u>E-MAIL:</u></b></p>
+            </td>
+            <td style="width: 80%; border: 1px solid; border-left: none;" class="interlineado cliente">
+                <p style="text-align: left;"><?php echo $proyecto['nombre_cliente'];?></p>
+                <p style="text-align: left;"><?php echo $proyecto['ubicacion_cliente'];?></p>
+                <p style="text-align: left;"><?php echo $proyecto['telefono_cliente'];?></p>
+                <p style="text-align: left;"><?php echo $proyecto['email_cliente'];?></p>
+            </td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid; border-right: none; border-bottom: none;"><p style="text-align: left;" class="cliente"><b><u>ATENCIÓN:</u></b></p></td>
+            <td style="border-bottom: none;"><P style="text-align: left;"><?php echo $proyecto['atencion_cliente'];?></P></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="border-bottom: 1px solid;" class="cliente"><p>POR MEDIO DEL PRESENTE, DEJO A SUS ORDENES LA SIGUIENTE OFERTA.</p></td>
+        </tr>
 
-        <div class="cliente-info">
-            <p>ATENCIÓN:</p>
-            <p id="ate">POR MEDIO DEL PRESENTE, DEJO A SUS ORDENES LA SIGUIENTE OFERTA.</p>
-        </div>
+        <tr><td><p style="font-size: 0.5em; border-bottom: none;">&nbsp;&nbsp;&nbsp;</p></td></tr>
+    </table>
 
-        <!-- Partidas -->
-        <div class="partidas">
-            <div class="partida-header">
-                <div>PARTIDA</div>
-                <div>DESCRIPCION</div>
-                <div>CANT</div>
-                <div>UM</div>
-                <div>P.U</div>
-                <div>SUBTOTAL</div>
-            </div>
-            <?php foreach ($partidas as $partida): ?>
-                <div class="partida-row">
-                    <div><?php echo htmlspecialchars($partida['descripcion']); ?></div>
-                    <div><?php echo htmlspecialchars($partida['cantidad']); ?></div>
-                    <div><?php echo htmlspecialchars($partida['unidad_medida']); ?></div>
-                    <div><?php echo htmlspecialchars($partida['precio_unitario']); ?></div>
-                    <div><?php echo htmlspecialchars($partida['cantidad'] * $partida['precio_unitario']); ?></div>
-                </div>
-            <?php endforeach; ?>
-        </div>
+    <!--tabla de partidas-->
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%; " class="cols bg-cols">PARTIDA</th>
+                <th style="width: 30%; " class="cols bg-cols">DESCRIPCIÓN</th>
+                <th style="width: 10%; " class="cols bg-cols">CANT</th>
+                <th style="width: 10%; " class="cols bg-cols">UM</th>
+                <th style="width: 15%; " class="cols bg-cols">P.U</th>
+                <th style="width: 25%; " class="cols bg-cols">SUBTOTAL PARTIDA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $subtotal = 0;
+            foreach ($partidas as $index => $partida) {
+                $subtotal_partida = $partida['cantidad'] * $partida['precio_unitario'];
+                $subtotal += $subtotal_partida;
 
-        <!-- Nota y Totales -->
-        <div class="nota-totales-container">
-            <!-- Nota -->
-            <div class="nota">
-                <p>NOTA: descripcion (tabla proyectos)</p>
-            </div>
+                echo "<tr>";
+                echo "<td class='cols content'>" . ($index + 1) . "</td>";
+                echo "<td class='cols content'>" . $partida['descripcion'] . "</td>";
+                echo "<td class='cols content'>" . $partida['cantidad'] . "</td>";
+                echo "<td class='cols content'>" . $partida['unidad_medida'] . "</td>";
+                echo "<td class='cols content'>$" . number_format($partida['precio_unitario'], 2) . "</td>";
+                echo "<td class='cols content'>$" . number_format($subtotal_partida, 2) . "</td>";
+                echo "</tr>";
+            }
+            ?>
+        </tbody>
+    </table>
 
-            <!-- Totales -->
-            <div class="totales">
-                <p>SUBTOTAL: <?php echo htmlspecialchars(array_sum(array_map(function($partida) { return $partida['cantidad'] * $partida['precio_unitario']; }, $partidas))); ?></p>
-                <p>IVA: <?php echo htmlspecialchars(array_sum(array_map(function($partida) { return $partida['cantidad'] * $partida['precio_unitario']; }, $partidas)) * 0.16); ?></p>
-                <p>TOTAL: <?php echo htmlspecialchars(array_sum(array_map(function($partida) { return $partida['cantidad'] * $partida['precio_unitario']; }, $partidas)) * 1.16); ?></p>
-            </div>
-        </div>
+    <!--Tabla de totales y nota-->
+    <table style="border-bottom: none;">
+        <tr>
+            <td class="cols cifras" style="width: 10%;"><p><b>NOTA:</b></p></td>
+            <td class="cols cifras" style="width: 50%; padding-top: 5px; padding-bottom: 5px;"><p><?php echo $proyecto['descripcion']; ?></p></td>
+            <td class="cols cifras" style="width: 15%;"><p><B>SUBTOTAL:</B></p></td>
+            <td class="cols cifras" style="width: 25%;"><P>$<?php echo number_format($subtotal, 2); ?></P></td>
+        </tr>
+        <tr>
+            <td class="cliente cifras" style="width: 10%;"></td>
+            <td class="cliente cifras" style="width: 50%;"></td>
+            <td class="cols cifras" style="width: 15%;"><p><B>IVA:</B></p></td>
+            <td class="cols cifras" style="width: 25%;"><P>$<?php echo number_format($subtotal * 0.16, 2); ?></P></td>
+        </tr>
+        <tr>
+            <td class="cliente cifras" style="width: 10%;"></td>
+            <td class="cliente cifras" style="width: 50%;"></td>
+            <td class="cols cifras" style="width: 15%;"><p><B>TOTAL:</B></p></td>
+            <td class="cols cifras" style="width: 25%;"><P>$<?php echo number_format($subtotal * 1.16, 2); ?></P></td>
+        </tr>
+    </table>
 
-        <!-- Pie de página -->
-        <div class="footer">
-        	<div class="vigencia">
-	            <p>VIGENCIA: <?php echo date('m/Y'); ?></p>
-	            <p>PRECIOS: Sujetos a cambio sin previo aviso</p>
-	            <p>MONEDA: MXN/USD/EU</p>
-	            <p>COND. PAGO: 60% anticipo y 40% contra aviso de entrega</p>
-	            <p>L.A.B: Puebla, Pue.</p>
-	            <p>TPO. ENTR: A convenir con el cliente</p>
-	        </div>
-	        <div class="imagen" id="datos">
-            	<img src="/assets/datos.png" alt="Imagen 2">
-        	</div>
-        </div>
+    <!--tabla de daotos de vigencia y bancarios-->
+    <table style="border-top: none">
+        <tr><div id="data">
+            <td class="interlineado vigencia" style="width: 15%;">
+                <p style="text-align: left;"><b>VIGENCIA:</b></p>
+                <p style="text-align: left;"><b>PRECIOS</b></p>
+                <p style="text-align: left;"><b>MONEDA</b></p>
+                <p style="text-align: left;"><b>COND. PAGO</b></p>
+                <p style="text-align: left;"><b>L.A.B:</b></p>
+                <p style="text-align: left;"><b>TPO. ENTR:</b></p>
+            </td>
+            <td class="interlineado vigencia" style="width: 40%;">
+                <p style="text-align: left;">Enero 2025</p>
+                <p style="text-align: left;">Sujetos a cambio sin previo aviso.</p>
+                <p style="text-align: left;">MXN/USD/EU</p>
+                <p style="text-align: left;">60% anticipo y 40% contra aviso de entrega</p>
+                <p style="text-align: left;">Puebla, Pue.</p>
+                <p style="text-align: left;">A convenir con el cliente</p>
+            </td>
+            <td style="width: 45%;">
+                <img src="/assets/datos.png" style="width: 100%;">
+            </td>
+        </div></tr>
 
-        <div class="footer2">
-        	<p>LA REVISION FINAL DE LA PRESENTE COTIZACION ES RESPONSABILIDAD DEL CLIENTE, DESPUES DE ENTREGADA LA MERCANCIA NO SE ACEPTAN CAMBIOS NI DEVOLUCIONES</p>
-        </div>
-    
+        <tr>
+            <td colspan="6" style="background-color: yellow; line-height: 1;" class="vigencia">
+                <p>LA REVISION FINAL DE LA PRESENTE COTIZACION ES REPONSABILIDAD DEL CLIENTE, DESPUES DE ENTREGADA LA MERCANCIA NO SE ACEPTAN CAMBIOS NI DEVOLUCIONES </p>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
