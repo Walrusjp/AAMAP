@@ -40,6 +40,24 @@
     color: #555;
     margin-bottom: 20px;
 }
+/* Estilos específicos para el modal de observaciones */
+#observacionesModal .modal-content {
+    width: 50%; /* Ajustar el ancho si es necesario */
+}
+
+#observacionesModal textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: vertical; /* Permitir redimensionar verticalmente */
+}
+
+#observacionesModal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px; /* Espacio entre botones */
+}
 .close-btn {
     background-color: #f44336;
     color: white;

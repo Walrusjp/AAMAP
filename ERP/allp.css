@@ -1,0 +1,22 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e6e6fa;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.btn-primary {
+    background-color: #6a5acd;
+    border-color: #6a5acd;
+}
+.btn-primary:hover {
+    background-color: #483d8b;
+}

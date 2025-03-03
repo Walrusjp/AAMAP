@@ -8,6 +8,17 @@ if (!isset($_SESSION['username'])) {
 include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
 require 'generar_cot.php';
 
+// Verificar si se solicitó el cierre de sesión
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+
+$sql = "SELECT * FROM proyectos"; 
+$result = $conn->query($sql);
+
  ?>
 
 <!DOCTYPE html>
@@ -49,6 +60,15 @@ require 'generar_cot.php';
             font-size: 0.8em;
             line-height: 0.3;
         }
+        #nota {
+          word-wrap: break-word; /* Rompe palabras largas */
+          overflow-wrap: break-word; /* Asegura el salto de línea */
+          white-space: normal; /* Permite saltos de línea */
+          text-align: justify; /* Justifica el texto para un mejor ajuste */
+          font-size: 12px; /* Reduce el tamaño de la fuente si es necesario */
+          line-height: 1.1; /* Ajusta el interlineado para compactar el texto */
+          max-width: 100%; /* Asegura que no sobrepase el ancho asignado */
+        }
         table {
             width: 100%;
             padding: 10px;
@@ -72,6 +92,7 @@ require 'generar_cot.php';
         .vigencia {font-size: 0.7em;}
         .cifras {line-height: 0;}
 
+
         @media print {
             .interlineado {line-height: 0.3;}
             .interlineador {line-height: 0.1; font-size: 0.7em}
@@ -81,6 +102,15 @@ require 'generar_cot.php';
     </style>
 </head>
 <body style="padding: 10px; font-family: Arial;">
+    <?php while ($row = $result->fetch_assoc()): ?>
+        <?php if ($row['etapa'] == 'rechazado'): ?>
+            <div style="color: red; border: 4px solid red;">
+                <h2>NO CONCRETADO<?php //echo htmlspecialchars('Rechazado'); ?></h2>
+                <p><strong>Observaciones:</strong> <?php echo htmlspecialchars($row['observaciones']); ?></p>
+            </div>
+        <?php endif; ?>
+    <?php endwhile; ?>
+
     <!-- Primera tabla: Distribución 80%-20% -->
     <table style="margin-bottom: 10px;">
         <tr>
@@ -171,14 +201,14 @@ require 'generar_cot.php';
     <!--Tabla de totales y nota-->
     <table style="border-bottom: none;">
         <tr>
-            <td class="cols cifras" style="width: 10%;"><p><b>NOTA:</b></p></td>
-            <td class="cols cifras" style="width: 50%; padding-top: 5px; padding-bottom: 5px;"><p><?php echo $proyecto['descripcion']; ?></p></td>
+            <td rowspan="2" class="cols cifras" style="width: 10%;"><p><b>NOTA:</b></p></td>
+            <td rowspan="2" id="nota" class="cols cifras" style="width: 50%; padding-top: 5px; padding-bottom: 5px;"><p><?php echo $proyecto['descripcion']; ?></p></td>
             <td class="cols cifras" style="width: 15%;"><p><B>SUBTOTAL:</B></p></td>
             <td class="cols cifras" style="width: 25%;"><P>$<?php echo number_format($subtotal, 2); ?></P></td>
         </tr>
         <tr>
-            <td class="cliente cifras" style="width: 10%;"></td>
-            <td class="cliente cifras" style="width: 50%;"></td>
+            <!--<td class="cliente cifras" style="width: 10%;"></td>
+            <td class="cliente cifras" style="width: 50%;"></td>-->
             <td class="cols cifras" style="width: 15%;"><p><B>IVA:</B></p></td>
             <td class="cols cifras" style="width: 25%;"><P>$<?php echo number_format($subtotal * 0.16, 2); ?></P></td>
         </tr>
@@ -202,7 +232,7 @@ require 'generar_cot.php';
                 <p style="text-align: left;"><b>TPO. ENTR:</b></p>
             </td>
             <td class="interlineado vigencia" style="width: 40%;">
-                <p style="text-align: left;">Enero 2025</p>
+                <p style="text-align: left;"><?php setlocale(LC_TIME, "es_ES.UTF-8", "Spanish_Spain", "es_ES"); echo strftime("%B %Y"); ?></p>
                 <p style="text-align: left;">Sujetos a cambio sin previo aviso.</p>
                 <p style="text-align: left;">MXN/USD/EU</p>
                 <p style="text-align: left;">60% anticipo y 40% contra aviso de entrega</p>

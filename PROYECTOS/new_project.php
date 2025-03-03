@@ -17,6 +17,25 @@ if ($resultClientes->num_rows > 0) {
     }
 }
 
+// Generar el cod_fab inicial (YYYYMMDD)
+$fechaActual = date("Ymd");
+$codFabBase = $fechaActual;
+$cadenaBusqueda = $codFabBase . "%";
+$sufijo = 1;
+
+
+// Verificar si ya existe un proyecto con el mismo cod_fab base
+$sqlVerificar = "SELECT cod_fab FROM proyectos WHERE cod_fab LIKE ?";
+$stmtVerificar = $conn->prepare($sqlVerificar);
+$stmtVerificar->bind_param("s", $cadenaBusqueda);
+$stmtVerificar->execute();
+$resultVerificar = $stmtVerificar->get_result();
+
+while ($resultVerificar->fetch_assoc()) {
+    $cod_fab = $codFabBase . "-" . $sufijo;
+    $sufijo++;
+}
+
 // Verificar si se envió el formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cod_fab = $_POST['cod_fab'];
@@ -77,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form id="projectForm" method="POST" action="new_project.php">
         <div class="form-group">
             <label for="cod_fab">Número de Cotización</label>
-            <input type="text" class="form-control" id="cod_fab" name="cod_fab" required>
+            <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>" readonly required>
         </div>
         <div class="form-group">
             <label for="nombre">Nombre del Proyecto</label>
