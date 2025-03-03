@@ -71,7 +71,8 @@
 	<h1>ESCOGE UNA OPCION</h1>
         <button onclick="window.location.href='/PAPELERIA/index.php'">PAPELERIA</button>
         <button onclick="window.location.href='/PREDIEM/index.php'">VIATICOS</button>
-        <button onclick="window.location.href='/PROYECTOS/index.php'">PROYECTOS</button>
+        <button onclick="window.location.href='/PROYECTOS/index.php'">CRM PROYECTOS</button>
+        <button onclick="window.location.href='/ERP/index.php'">ERP PROYECTOS</button>
     </div>
 </body>
 </html>
