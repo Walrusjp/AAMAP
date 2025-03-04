@@ -16,8 +16,6 @@ if (isset($_POST['logout'])) {
     exit();
 }
 
-$sql = "SELECT * FROM proyectos"; 
-$result = $conn->query($sql);
 
  ?>
 
@@ -27,89 +25,17 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cotización_<?php echo $cotizacion_no;?></title>
+    <link rel="stylesheet" type="text/css" href="stcot.css">
     <link rel="icon" href="/assets/logo.ico">
-    <style>
-        p, h1, h2, h3, h4, .content {text-align: center;}
-        .interlineado {line-height: 0.4;}
-        .interlineador {line-height: 0.1;}
-        #cot {
-            display: flex;
-            font-size: 0.8em;
-            border: 1px solid;
-            border-bottom: none;
-            border-right: none;
-            line-height: 1.0;
-            text-align: center;
-            justify-content: center;
-            align-items: center;
-            margin-left: auto;
-            width: fit-content;
-            margin-top: -25px;
-        }
-        #cod1 {
-            font-size: 0.8em;
-            border-bottom: 1px solid;
-            line-height: 0.3;
-        }
-        #cod2 {
-            font-size: 0.8em;
-            border-bottom: 1px solid;
-            line-height: 0.3;
-        }
-        #cod3 {
-            font-size: 0.8em;
-            line-height: 0.3;
-        }
-        #nota {
-          word-wrap: break-word; /* Rompe palabras largas */
-          overflow-wrap: break-word; /* Asegura el salto de línea */
-          white-space: normal; /* Permite saltos de línea */
-          text-align: justify; /* Justifica el texto para un mejor ajuste */
-          font-size: 12px; /* Reduce el tamaño de la fuente si es necesario */
-          line-height: 1.1; /* Ajusta el interlineado para compactar el texto */
-          max-width: 100%; /* Asegura que no sobrepase el ancho asignado */
-        }
-        table {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid;
-            border-spacing: 0;
-            border-collapse: collapse;
-        }
-        .cols {
-            border: 1px solid; font-size: 0.8em;
-        }
-        .bg-cols {
-            background-color: lightgray;
-            padding-top: 8px;
-            padding-bottom: 8px;
-        }
-        .content {
-            padding-top: 3px;
-            padding-bottom: 3px;
-        }
-        .cliente {font-size: 0.8em;}
-        .vigencia {font-size: 0.7em;}
-        .cifras {line-height: 0;}
-
-
-        @media print {
-            .interlineado {line-height: 0.3;}
-            .interlineador {line-height: 0.1; font-size: 0.7em}
-
-        }
-        .cols {font-size: 0.7em}
-    </style>
 </head>
 <body style="padding: 10px; font-family: Arial;">
-    <?php while ($row = $result->fetch_assoc()): ?>
-        <?php if ($row['etapa'] == 'rechazado'): ?>
-            <div style="color: red; border: 4px solid red;">
-                <h2>NO CONCRETADO<?php //echo htmlspecialchars('Rechazado'); ?></h2>
-                <p><strong>Observaciones:</strong> <?php echo htmlspecialchars($row['observaciones']); ?></p>
-            </div>
-        <?php endif; ?>
-    <?php endwhile; ?>
+
+    <?php if ($proyecto['etapa'] == 'rechazado'): ?>
+        <div style="color: red; border: 4px solid red;">
+            <h2>NO CONCRETADO<?php //echo htmlspecialchars('Rechazado'); ?></h2>
+            <p><strong>Observaciones:</strong> <?php echo htmlspecialchars($proyecto['observaciones']); ?></p>
+        </div>
+    <?php endif; ?>
 
     <!-- Primera tabla: Distribución 80%-20% -->
     <table style="margin-bottom: 10px;">

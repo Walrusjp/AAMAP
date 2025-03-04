@@ -110,6 +110,10 @@ h1 {
     overflow-y: scroll;
 }
 
+.text-black {
+    color: black !important;
+}
+
 ::-webkit-scrollbar {
     display: none;
 }

@@ -34,11 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Registrar Cliente</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" href="/assets/logo.png" type="image/png">
 </head>
 <body>
 
 <div class="container mt-4">
     <h1>Registrar Cliente</h1>
+    <a href="ver_clientes.php" class="btn btn-secondary mb-3">Regresar</a>
     <form method="POST" action="reg_client.php">
         <div class="form-group">
             <label for="nombre_comercial">Nombre Comercial:</label> 

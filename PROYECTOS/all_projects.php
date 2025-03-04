@@ -36,7 +36,7 @@ $sql = "SELECT
             c.nombre_comercial AS cliente_nombre -- Usar nombre comercial del cliente
         FROM proyectos AS p
         INNER JOIN clientes_p AS c ON p.id_cliente = c.id
-        WHERE p.etapa IN ('creado', 'aprobado', 'rechazado')
+
         ORDER BY p.cod_fab ASC";
 
 $result = $conn->query($sql);
@@ -171,6 +171,7 @@ if ($mensaje !== "") {
                 <option value="creado">Creado</option>
                 <option value="aprobado">Aprobado</option>
                 <option value="rechazado">No Concretado</option>
+                <option value="en proceso,finalizado,facturacion">ERP</option>
             </select>
             <a href="new_project.php" class="btn btn-success chompa">Nueva Cotización</a>
             <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
@@ -193,7 +194,8 @@ if ($mensaje !== "") {
                     <a href="ver_cot.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">
                         <div class="card text-<?php 
                             echo ($proyecto['estatus'] == 'rechazado' ? 'danger' :  
-                                 ($proyecto['estatus'] == 'aprobado' ? 'success' : 'warning')); 
+                                  ($proyecto['estatus'] == 'aprobado' ? 'success' :  
+                                  ($proyecto['estatus'] == 'creado' ? 'warning' : 'dark')));
                         ?>">
                             <div class="card-body">
                                 <h5 class="card-title"><?php echo htmlspecialchars($proyecto['proyecto_id']); ?> - <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
@@ -236,10 +238,16 @@ if ($mensaje !== "") {
         const proyectos = document.querySelectorAll('.proyecto-card');
 
         proyectos.forEach(function (proyecto) {
-            if (selectedFilter === 'todos' || proyecto.dataset.estatus === selectedFilter) {
+            if (selectedFilter === 'todos') {
                 proyecto.style.display = 'block';
             } else {
-                proyecto.style.display = 'none';
+                // Convertir la lista de estados en un array
+                const estados = selectedFilter.split(','); 
+                if (estados.includes(proyecto.dataset.estatus)) {
+                    proyecto.style.display = 'block';
+                } else {
+                    proyecto.style.display = 'none';
+                }
             }
         });
     });

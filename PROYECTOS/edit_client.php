@@ -64,11 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     <meta charset="UTF-8">
     <title>Editar Cliente</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" href="/assets/logo.png" type="image/png">
 </head>
 <body>
 
 <div class="container mt-4">
     <h1>Editar Cliente</h1>
+    <a href="ver_clientes.php" class="btn btn-secondary mb-3">Regresar</a>
     <form method="POST" action="edit_client.php">
         <input type="hidden" name="id" value="<?php echo $clientId;?>">
 

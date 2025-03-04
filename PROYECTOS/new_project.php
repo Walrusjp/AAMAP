@@ -23,6 +23,9 @@ $codFabBase = $fechaActual;
 $cadenaBusqueda = $codFabBase . "%";
 $sufijo = 1;
 
+//Inicializar cod fab con el valor base
+$cod_fab = $codFabBase;
+
 
 // Verificar si ya existe un proyecto con el mismo cod_fab base
 $sqlVerificar = "SELECT cod_fab FROM proyectos WHERE cod_fab LIKE ?";
@@ -31,9 +34,11 @@ $stmtVerificar->bind_param("s", $cadenaBusqueda);
 $stmtVerificar->execute();
 $resultVerificar = $stmtVerificar->get_result();
 
-while ($resultVerificar->fetch_assoc()) {
-    $cod_fab = $codFabBase . "-" . $sufijo;
-    $sufijo++;
+if ($resultVerificar->num_rows > 0) {
+    while ($resultVerificar->fetch_assoc()) {
+        $cod_fab = $codFabBase . "-" . $sufijo;
+        $sufijo++;
+    }
 }
 
 // Verificar si se envió el formulario
@@ -87,6 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Nueva Cotización</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" href="/assets/logo.png" type="image/png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>

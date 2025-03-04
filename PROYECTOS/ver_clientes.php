@@ -19,6 +19,7 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <title>Ver Clientes</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" href="/assets/logo.png" type="image/png">
 </head>
 <body>
 
