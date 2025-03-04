@@ -136,7 +136,7 @@ if ($mensaje !== "") {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Proyectos</title>
+    <title>CRM Proyectos</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
@@ -156,14 +156,13 @@ if ($mensaje !== "") {
         </div>
     </div>
 <?php endif; ?>
-
+<img src="/assets/grupo_aamap.png" style="width: 20%; position: absolute; top: 50px; left: 30px;">
 <div class="sticky-header">
     <div class="header">
         <h1>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></h1>
     </div>
     <div class="container d-flex justify-content-between chompa">
-        <img src="/assets/grupo_aamap.png" style="width: 15%; display: flex;">
-        <!--<h2 class="text-center">Mis Proyectos</h2>-->
+        <h2 class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2>
         <div class="d-flex justify-content-center mb-3">
             <label for="filter" class="mr-2">Filtrar:</label>
             <select id="filter" class="form-control w-auto">
@@ -191,7 +190,7 @@ if ($mensaje !== "") {
         <?php if (!empty($proyectos)): ?>
             <?php foreach ($proyectos as $proyecto): ?>
                 <div class="mb-4 proyecto-card" data-estatus="<?php echo htmlspecialchars($proyecto['estatus']); ?>">
-                    <a href="ver_cot.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">
+                    <a href="ver_cot.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link " target="_blank">
                         <div class="card text-<?php 
                             echo ($proyecto['estatus'] == 'rechazado' ? 'danger' :  
                                   ($proyecto['estatus'] == 'aprobado' ? 'success' :  

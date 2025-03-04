@@ -38,6 +38,19 @@ $stmtPartidas->execute();
 $resultPartidas = $stmtPartidas->get_result();
 $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 
+//Consultar los datos de vigencia del proyecto
+$sqlVigencia = "SELECT vigencia, precios, moneda, condicion_pago, lab, tipo_entr from datos_vigencia WHERE cod_fab = ?";
+$stmtVigencia = $conn->prepare($sqlVigencia);
+$stmtVigencia->bind_param("s", $proyecto_id);
+$stmtVigencia->execute();
+$resultVigencia = $stmtVigencia->get_result();
+
+if ($resultVigencia->num_rows === 0) {
+    echo "No hay datos de vigencia registrados en este proyecto";
+    exit();
+}
+$datos_vigencia = $resultVigencia->fetch_assoc();
+
 // Generar el número de cotización (puedes usar tu propia lógica aquí)
 $cotizacion_no = $proyecto_id;
 ?>

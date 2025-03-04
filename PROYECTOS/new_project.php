@@ -26,7 +26,6 @@ $sufijo = 1;
 //Inicializar cod fab con el valor base
 $cod_fab = $codFabBase;
 
-
 // Verificar si ya existe un proyecto con el mismo cod_fab base
 $sqlVerificar = "SELECT cod_fab FROM proyectos WHERE cod_fab LIKE ?";
 $stmtVerificar = $conn->prepare($sqlVerificar);
@@ -49,6 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descripcion = $_POST['descripcion'];
     $fecha_entrega = $_POST['fecha_entrega'];
     $partidas = json_decode($_POST['partidas'], true);
+
+    //Capturar datos de vigencia
+    $vigencia = $_POST['vigencia'];
+    $precios = $_POST['precios'];
+    $moneda = $_POST['moneda'];
+    $condicion_pago = $_POST['condicion_pago'];
+    $lab = $_POST['lab'];
+    $tipo_entr = $_POST ['tipo_entr'];
 
     $conn->begin_transaction();
     try {
@@ -76,6 +83,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
             $stmtPartida->execute();
         }
+
+        //Insertar datos de vigencia
+        $sqlVigencia = "INSERT INTO datos_vigencia (cod_fab, vigencia, precios, moneda, condicion_pago, lab, tipo_entr)
+                    VALUES(?,?,?,?,?,?,?)";
+        $stmtVigencia = $conn->prepare($sqlVigencia);
+        $stmtVigencia->bind_param('sssssss', $cod_fab, $vigencia, $precios, $moneda, $condicion_pago, $lab, $tipo_entr);
+        $stmtVigencia->execute();
 
         $conn->commit();
         echo "<script>alert('Proyecto registrado exitosamente.'); window.location.href = 'all_projects.php';</script>";
@@ -124,6 +138,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label for="fecha_entrega">Fecha de Entrega</label>
             <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega" required>
+        </div>
+
+        <!-- Dentro del formulario existente -->
+        <h3>Datos de Vigencia</h3>
+        <div class="form-group">
+            <label for="vigencia">Vigencia</label>
+            <input type="text" class="form-control" id="vigencia" name="vigencia" value="<?php setlocale(LC_TIME, "es_ES.UTF-8", "Spanish_Spain", "es_ES"); echo strftime("%B %Y"); ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="precios">Precios</label>
+            <input type="text" class="form-control" id="precios" name="precios" value="Sujetos a cambio sin previo aviso" required>
+        </div>
+        <div class="form-group">
+            <label for="moneda">Moneda</label>
+            <input type="text" class="form-control" id="moneda" name="moneda" value="MXN/USD/EU" required>
+        </div>
+        <div class="form-group">
+            <label for="condicion_pago">Condición de Pago</label>
+            <input type="text" class="form-control" id="condicion_pago" name="condicion_pago" value="60% anticipo y 40% contra aviso de entrega" required>
+        </div>
+        <div class="form-group">
+            <label for="lab">L.a.b.</label>
+            <input type="text" class="form-control" id="lab" name="lab" value="Puebla, Pue." required>
+        </div>
+        <div class="form-group">
+            <label for="tipo_entr">Tipo de Entrega</label>
+            <input type="text" class="form-control" id="tipo_entr" name="tipo_entr" value="A convenir con el cliente" required>
         </div>
 
         <h3>Partidas</h3>

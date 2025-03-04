@@ -16,11 +16,10 @@ if (isset($_POST['logout'])) {
     exit();
 }
 
-
  ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -158,12 +157,12 @@ if (isset($_POST['logout'])) {
                 <p style="text-align: left;"><b>TPO. ENTR:</b></p>
             </td>
             <td class="interlineado vigencia" style="width: 40%;">
-                <p style="text-align: left;"><?php setlocale(LC_TIME, "es_ES.UTF-8", "Spanish_Spain", "es_ES"); echo strftime("%B %Y"); ?></p>
-                <p style="text-align: left;">Sujetos a cambio sin previo aviso.</p>
-                <p style="text-align: left;">MXN/USD/EU</p>
-                <p style="text-align: left;">60% anticipo y 40% contra aviso de entrega</p>
-                <p style="text-align: left;">Puebla, Pue.</p>
-                <p style="text-align: left;">A convenir con el cliente</p>
+                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['vigencia']); ?></p>
+                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['precios']); ?></p>
+                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['moneda']); ?></p>
+                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['condicion_pago']); ?></p>
+                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['lab']); ?></p>
+                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['tipo_entr']); ?></p>
             </td>
             <td style="width: 45%;">
                 <img src="/assets/datos.png" style="width: 100%;">
