@@ -34,6 +34,7 @@ $sql = "SELECT
             c.nombre_comercial AS cliente_nombre -- Usar nombre comercial del cliente
         FROM proyectos AS p
         INNER JOIN clientes_p AS c ON p.id_cliente = c.id
+        WHERE p.etapa IN ('en proceso', 'finalizado', 'facturacion')
         ORDER BY p.etapa ASC";
 
 $result = $conn->query($sql);
@@ -94,18 +95,17 @@ if (isset($_POST['aprobar_cotizacion'])) {
         </div>
     </div>
 <?php endif; ?>
-
+<img src="/assets/grupo_aamap.png" style="width: 20%; position: absolute; top: 50px; left: 30px;">
 <div class="sticky-header">
     <div class="header">
         <h1>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></h1>
     </div>
     <div class="container d-flex justify-content-between chompa">
-        <h2 class="text-center">Mis Proyectos</h2>
+        <h2 class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2>
         <div class="d-flex justify-content-center mb-3">
             <label for="filter" class="mr-2">Filtrar:</label>
             <select id="filter" class="form-control w-auto">
                 <option value="todos">Todos</option>
-                <option value="creado">Creado</option>
                 <option value="en proceso">En proceso</option>
                 <option value="finalizado">Finalizados</option>
                 <option value="facturacion">Facturación</option>
@@ -130,10 +130,10 @@ if (isset($_POST['aprobar_cotizacion'])) {
                         <div class="card text-<?php 
                             echo $proyecto['estatus'] == 'finalizado' ? 'success' : 
                                  ($proyecto['estatus'] == 'facturacion' ? 'primary' : 
-                                 ($proyecto['estatus'] == 'creado' ? 'danger' : 'warning')); 
+                                 ($proyecto['estatus'] == 'en proceso' ? 'warning' : 'dark')); 
                         ?>">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
+                                <h5 class="card-title"><?php echo htmlspecialchars($proyecto['proyecto_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
                                 <p class="card-text">
                                     Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
                                     Descripción: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
@@ -148,13 +148,6 @@ if (isset($_POST['aprobar_cotizacion'])) {
                             <button type="submit" name="facturar" class="btn btn-primary mt-2">Mandar a Facturar</button>
                         </form>
                     <?php endif; ?>
-
-                    <?php if ($proyecto['estatus'] == 'creado'):?>
-                        <form method="POST" action="">
-                            <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto['proyecto_id']);?>">
-                            <button type="submit" name="aprobar_cotizacion" class="btn btn-success mt-2">Aprobar Cotización</button>
-                        </form>
-                    <?php endif;?>
 
                 </div>
             <?php endforeach; ?>

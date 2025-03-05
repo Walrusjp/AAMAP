@@ -197,7 +197,7 @@ if ($mensaje !== "") {
                                   ($proyecto['estatus'] == 'creado' ? 'warning' : 'dark')));
                         ?>">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo htmlspecialchars($proyecto['proyecto_id']); ?> - <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
+                                <h5 class="card-title"><?php echo htmlspecialchars($proyecto['proyecto_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
                                 <p class="card-text">
                                     Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
                                     Nota: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>

@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <button type="submit" name="login">Iniciar Sesi&oacute;n</button>
         </form>
 
-        <form method="POST" action="/error404.html"><!-- cambiar a /laucn.php o error404.html-->
+        <form method="POST" action="/launch.php"><!-- cambiar a /laucn.php o error404.html-->
             <button type="submit" name="logout" class="logout-button push" id="main">Regresar</button>
         </form>
     </div>
