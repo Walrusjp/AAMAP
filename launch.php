@@ -118,7 +118,7 @@ body {
 <body>
     <!-- Navbar con logo -->
     <div class="navbar">
-        <img src="/assets/aamap.png" alt="Logo AAMAP">
+        <img src="/assets/grupo_aamap.png" alt="Logo AAMAP">
     </div>
 
     <!-- Contenedor centrado -->

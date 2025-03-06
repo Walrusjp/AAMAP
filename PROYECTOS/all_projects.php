@@ -156,13 +156,14 @@ if ($mensaje !== "") {
         </div>
     </div>
 <?php endif; ?>
-<img src="/assets/grupo_aamap.png" style="width: 20%; position: absolute; top: 50px; left: 30px;">
+<img src="/assets/grupo_aamap.png" style="width: 25%; position: absolute; top: 5px; left: 10px;">
 <div class="sticky-header">
     <div class="header">
-        <h1>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?></h1>
+        <h3 class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h3>
     </div>
     <div class="container d-flex justify-content-between chompa">
-        <h2 class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2>
+        <p class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        <div style="position: absolute; top: 120px; left: 15px;"><h4>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h4></div>
         <div class="d-flex justify-content-center mb-3">
             <label for="filter" class="mr-2">Filtrar:</label>
             <select id="filter" class="form-control w-auto">
@@ -172,14 +173,14 @@ if ($mensaje !== "") {
                 <option value="rechazado">No Concretado</option>
                 <option value="en proceso,finalizado,facturacion">ERP</option>
             </select>
-            <a href="new_project.php" class="btn btn-success chompa">Nueva Cotización</a>
+            <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</a>
             <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
             <!--<a href="lista_cot.php" class="btn btn-info chompa">Cotizaciones</a>-->
             <?php if ($username == 'admin'): ?>
                 <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
             <?php endif; ?>
             <form method="POST" action="">
-                <button type="submit" name="logout" class="btn btn-danger chompa">Cerrar sesión</button>
+                <button type="submit" name="logout" class="btn btn-secondary chompa">Cerrar sesión</button>
             </form>
         </div>
     </div>

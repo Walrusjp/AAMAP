@@ -16,15 +16,14 @@ if ($resultClientes->num_rows > 0) {
         $clientes[] = $row;
     }
 }
-
+date_default_timezone_set("America/Mexico_City");
 // Generar el cod_fab inicial (YYYYMMDD)
 $fechaActual = date("Ymd");
+$fechaH = date("Y-m-d H:i:s");
 $codFabBase = $fechaActual;
 $cadenaBusqueda = $codFabBase . "%";
-$sufijo = 1;
-
-//Inicializar cod fab con el valor base
-$cod_fab = $codFabBase;
+//echo $fechaH;
+//echo $fechaActual;
 
 // Verificar si ya existe un proyecto con el mismo cod_fab base
 $sqlVerificar = "SELECT cod_fab FROM proyectos WHERE cod_fab LIKE ?";
@@ -33,11 +32,26 @@ $stmtVerificar->bind_param("s", $cadenaBusqueda);
 $stmtVerificar->execute();
 $resultVerificar = $stmtVerificar->get_result();
 
+$sufijo = 1; // Inicializar el sufijo en 1
+
 if ($resultVerificar->num_rows > 0) {
-    while ($resultVerificar->fetch_assoc()) {
-        $cod_fab = $codFabBase . "-" . $sufijo;
-        $sufijo++;
+    $sufijos = []; // Array para almacenar los sufijos existentes
+    while ($row = $resultVerificar->fetch_assoc()) {
+        $cod_fab_existente = $row['cod_fab'];
+        // Extraer el sufijo si existe
+        if (preg_match('/^' . $codFabBase . '-(\d+)$/', $cod_fab_existente, $matches)) {
+            $sufijos[] = intval($matches[1]); // Almacenar el sufijo numérico
+        }
     }
+    // Si hay sufijos, calcular el siguiente
+    if (!empty($sufijos)) {
+        $sufijo = max($sufijos) + 1; // Incrementar el sufijo máximo encontrado
+    }
+    // Asignar el nuevo cod_fab con el sufijo
+    $cod_fab = $codFabBase . "-" . $sufijo;
+} else {
+    // Si no hay registros, usar el cod_fab base sin sufijo
+    $cod_fab = $codFabBase;
 }
 
 // Verificar si se envió el formulario
@@ -49,13 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_entrega = $_POST['fecha_entrega'];
     $partidas = json_decode($_POST['partidas'], true);
 
-    //Capturar datos de vigencia
+    // Capturar datos de vigencia
     $vigencia = $_POST['vigencia'];
     $precios = $_POST['precios'];
     $moneda = $_POST['moneda'];
     $condicion_pago = $_POST['condicion_pago'];
     $lab = $_POST['lab'];
-    $tipo_entr = $_POST ['tipo_entr'];
+    $tipo_entr = $_POST['tipo_entr'];
 
     $conn->begin_transaction();
     try {
@@ -84,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtPartida->execute();
         }
 
-        //Insertar datos de vigencia
+        // Insertar datos de vigencia
         $sqlVigencia = "INSERT INTO datos_vigencia (cod_fab, vigencia, precios, moneda, condicion_pago, lab, tipo_entr)
                     VALUES(?,?,?,?,?,?,?)";
         $stmtVigencia = $conn->prepare($sqlVigencia);
@@ -113,10 +127,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="container">
     <h1 class="text-center">Nueva Cotización</h1>
+    <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
     <form id="projectForm" method="POST" action="new_project.php">
         <div class="form-group">
             <label for="cod_fab">Número de Cotización</label>
-            <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>" readonly required>
+            <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required>
         </div>
         <div class="form-group">
             <label for="nombre">Nombre del Proyecto</label>
@@ -132,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </select>
         </div>
         <div class="form-group">
-            <label for="descripcion">Descripción</label>
+            <label for="descripcion">Nota:</label>
             <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
         </div>
         <div class="form-group">
@@ -209,7 +225,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <input type="hidden" name="partidas" id="partidas">
         <button type="submit" class="btn btn-success btn-block">Crear Cotización</button>
-        <a href="all_projects.php" class="btn btn-secondary btn-block">Regresar</a>
     </form>
 </div>
 

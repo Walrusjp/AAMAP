@@ -68,10 +68,10 @@ if (isset($_POST['logout'])) {
     <table>
         <tr>
             <td style="width: 20%; border: 1px solid; border-right: none;" class="interlineado cliente">
-                <p style="text-align: left;"><b><u>CLIENTE:</u></b></p>
-                <p style="text-align: left;"><b><u>UBICACIÓN:</u></b></p>
-                <p style="text-align: left;"><b><u>TEL:</u></b></p>
-                <p style="text-align: left;"><b><u>E-MAIL:</u></b></p>
+                <p style="text-align: left; margin-left: 30px;"><b><u>CLIENTE:</u></b></p>
+                <p style="text-align: left; margin-left: 30px;"><b><u>DIRECCIÓN:</u></b></p>
+                <p style="text-align: left; margin-left: 30px;"><b><u>TEL:</u></b></p>
+                <p style="text-align: left; margin-left: 30px;"><b><u>E-MAIL:</u></b></p>
             </td>
             <td style="width: 80%; border: 1px solid; border-left: none;" class="interlineado cliente">
                 <p style="text-align: left;"><?php echo $proyecto['nombre_cliente'];?></p>
@@ -81,7 +81,7 @@ if (isset($_POST['logout'])) {
             </td>
         </tr>
         <tr>
-            <td style="border: 1px solid; border-right: none; border-bottom: none;"><p style="text-align: left;" class="cliente"><b><u>ATENCIÓN:</u></b></p></td>
+            <td style="border: 1px solid; border-right: none; border-bottom: none; "><p style="text-align: left; margin-left: 30px;" class="cliente"><b><u>ATENCIÓN:</u></b></p></td>
             <td style="border-bottom: none;"><P style="text-align: left;"><?php echo $proyecto['atencion_cliente'];?></P></td>
         </tr>
         <tr>
@@ -148,15 +148,15 @@ if (isset($_POST['logout'])) {
     <!--tabla de daotos de vigencia y bancarios-->
     <table style="border-top: none">
         <tr><div id="data">
-            <td class="interlineado vigencia" style="width: 15%;">
-                <p style="text-align: left;"><b>VIGENCIA:</b></p>
-                <p style="text-align: left;"><b>PRECIOS</b></p>
-                <p style="text-align: left;"><b>MONEDA</b></p>
-                <p style="text-align: left;"><b>COND. PAGO</b></p>
-                <p style="text-align: left;"><b>L.A.B:</b></p>
-                <p style="text-align: left;"><b>TPO. ENTR:</b></p>
+            <td class="interlineado vigencia" style="width: 20%;">
+                <p style="text-align: left; margin-left: 30px;"><b>VIGENCIA:</b></p>
+                <p style="text-align: left; margin-left: 30px;"><b>PRECIOS</b></p>
+                <p style="text-align: left; margin-left: 30px;"><b>MONEDA</b></p>
+                <p style="text-align: left; margin-left: 30px;"><b>COND. PAGO</b></p>
+                <p style="text-align: left; margin-left: 30px;"><b>L.A.B:</b></p>
+                <p style="text-align: left; margin-left: 30px;"><b>TPO. ENTR:</b></p>
             </td>
-            <td class="interlineado vigencia" style="width: 40%;">
+            <td class="interlineado vigencia" style="width: 35%;">
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['vigencia']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['precios']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['moneda']); ?></p>
@@ -170,7 +170,7 @@ if (isset($_POST['logout'])) {
         </div></tr>
 
         <tr>
-            <td colspan="6" style="background-color: yellow; line-height: 1;" class="vigencia">
+            <td colspan="6" style="background-color: none; line-height: 1; font-size: 0.65em;" class="vigencia">
                 <p>LA REVISION FINAL DE LA PRESENTE COTIZACION ES REPONSABILIDAD DEL CLIENTE, DESPUES DE ENTREGADA LA MERCANCIA NO SE ACEPTAN CAMBIOS NI DEVOLUCIONES </p>
             </td>
         </tr>

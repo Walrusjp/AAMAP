@@ -17,7 +17,7 @@
     visibility: visible; /* Mostrar */
 }
 .modal-content {
-    background-color: #ffffff; /* Fondo blanco */
+    background-color: rgba(255, 255, 255, 0.7); /* Fondo blanco */
     border-radius: 10px; /* Bordes redondeados */
     margin: 15% auto;
     padding: 20px;
@@ -59,7 +59,7 @@
     gap: 10px; /* Espacio entre botones */
 }
 .close-btn {
-    background-color: #f44336;
+    background-color: slategray;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -69,7 +69,11 @@
     transition: background-color 0.3s ease;
 }
 .close-btn:hover {
-    background-color: #d32f2f;
+    background-color: darkslategray;
+}
+
+.sticky-header {
+    background-color: rgba(47, 79, 79, 0.3);
 }
 
 
@@ -123,10 +127,11 @@ h1 {
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     background-color: #f9f9f9;
     cursor: pointer;
+    background-color: rgba(211, 211, 211, 0.3);
 }
 
 /* Cada tarjeta individual */
@@ -164,13 +169,6 @@ h1 {
     margin: 5px 0;
 }
 
-
-/* Hover effect para las tarjetas */
-/*.proyecto-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    background-color: #f9f9f9;
-}*/
 
 /* Alineación responsiva */
 @media (max-width: 768px) {

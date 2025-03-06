@@ -36,13 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proyecto_id'])) {
         $stmt->bind_param("s", $proyectoId);
         $stmt->execute();
 
+        // 3. Eliminar de datos_vigencia (antes de eliminar proyectos)
+        $sqlDeleteVigencia = "DELETE FROM datos_vigencia WHERE cod_fab = ?";
+        $stmt = $conn->prepare($sqlDeleteVigencia);
+        $stmt->bind_param("s", $proyectoId);
+        $stmt->execute();
 
-        // 3. Eliminar de proyectos (después de eliminar partidas y registro_estatus)
+        // 4. Eliminar de proyectos (después de eliminar partidas y registro_estatus)
         $sqlDeleteProyecto = "DELETE FROM proyectos WHERE cod_fab = ?";
         $stmt = $conn->prepare($sqlDeleteProyecto);
         $stmt->bind_param("s", $proyectoId);
         $stmt->execute();
-
 
         $conn->commit();
         echo "<script>alert('Proyecto eliminado exitosamente.'); window.location.href = 'all_projects.php';</script>";
