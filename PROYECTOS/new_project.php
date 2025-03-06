@@ -123,16 +123,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="icon" href="/assets/logo.png" type="image/png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
-<body>
+<body style="background-color: rgba(211, 211, 211, 0.4) !important;">
 
-<div class="container">
+<div class="container" >
     <h1 class="text-center">Nueva Cotización</h1>
     <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
     <form id="projectForm" method="POST" action="new_project.php">
         <div class="form-group">
             <label for="cod_fab">Número de Cotización</label>
-            <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required>
+            <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required readonly>
         </div>
         <div class="form-group">
             <label for="nombre">Nombre del Proyecto</label>
@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script>
     const partidas = [];
 
-    $('#addPartida').click(function () {
+    function agregarPartida() {
         const descripcion = $('#descripcion_partida').val();
         const proceso = $('#proceso').val();
         const cantidad = $('#cantidad_partida').val();
@@ -256,7 +256,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $('#um_partida').val('');
             $('#precio_unitario_partida').val('');
         }
-    });
+    }
+
+    $('#addPartida').click(agregarPartida);
 
     $(document).on('click', '.removePartida', function () {
         const index = $(this).closest('tr').index();
@@ -266,6 +268,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $('#projectForm').submit(function () {
         $('#partidas').val(JSON.stringify(partidas));
+    });
+
+    // Prevenir el envío del formulario al presionar Enter en los campos de partidas
+    $('#descripcion_partida, #cantidad_partida, #um_partida, #precio_unitario_partida').keypress(function (e) {
+        if (e.which === 13) { // 13 es el código de la tecla Enter
+            e.preventDefault(); // Prevenir el envío del formulario
+            agregarPartida(); // Agregar la partida
+        }
     });
 </script>
 
