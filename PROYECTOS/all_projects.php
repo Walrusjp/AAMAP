@@ -215,7 +215,7 @@ if ($mensaje !== "") {
 
                     <!-- pasar a cis ERP-->
                     <?php if ($proyecto['estatus'] == 'aprobado'): ?>
-                        <button type="button" class="btn btn-success mt-2" onclick="confirmarAccion('cis', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">Mandar a PR</button>
+                        <button type="button" class="btn btn-success mt-2" onclick="confirmarAccion('cis', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">Mandar a OF</button>
                     <?php endif; ?>
 
                 </div>

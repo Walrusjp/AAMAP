@@ -5,7 +5,8 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
-include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
+require 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
+include 'C:/xampp/htdocs/PAPELERIA/role.php';
 
 // Obtener clientes para la lista desplegable
 $sqlClientes = "SELECT id, nombre_comercial FROM clientes_p";
@@ -106,10 +107,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtVigencia->execute();
 
         $conn->commit();
-        echo "<script>alert('Proyecto registrado exitosamente.'); window.location.href = 'all_projects.php';</script>";
+        echo "<script>alert('Cotización registrada exitosamente.'); window.location.href = 'all_projects.php';</script>";
     } catch (Exception $e) {
         $conn->rollback();
-        echo "<script>alert('Error al registrar el proyecto: " . $e->getMessage() . "');</script>";
+        echo "<script>alert('Error al registrar: " . $e->getMessage() . "');</script>";
     }
 }
 ?>
@@ -130,10 +131,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
     <form id="projectForm" method="POST" action="new_project.php">
-        <div class="form-group">
-            <label for="cod_fab">Número de Cotización</label>
-            <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required readonly>
-        </div>
+        <?php if($username == 'h.galicia'): ?>
+            <div class="form-group">
+                <label for="cod_fab">Número de Cotización</label>
+                <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required readonly>
+            </div>
+        <?php endif; ?>
+        <?php if($username == 'admin'): ?>
+            <div class="form-group">
+                <label for="cod_fab">Número de Cotización</label>
+                <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required>
+            </div>
+        <?php endif; ?>
         <div class="form-group">
             <label for="nombre">Nombre del Proyecto</label>
             <input type="text" class="form-control" id="nombre" name="nombre" required>

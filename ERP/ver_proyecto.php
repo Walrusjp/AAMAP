@@ -186,7 +186,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
     $(document).ready(function() {
         // Función para hacer la celda editable
         function makeEditable(td) {
-            var originalValue = td.text();
+            var originalValue = td.text().trim(); // Obtener el valor original y eliminar espacios en blanco
             var input = $("<input type='text'>").val(originalValue);
             td.html(input);
             input.focus();
@@ -194,9 +194,13 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
             // Guardar el cambio al presionar Enter
             input.on('keydown', function(e) {
                 if (e.which == 13) { // 13 es el código de la tecla Enter
-                    var newValue = $(this).val();
-                    var partidaId = td.data('id');
-                    updateEstatus(partidaId, newValue, td);
+                    var newValue = $(this).val().trim(); // Obtener el nuevo valor y eliminar espacios en blanco
+                    if (newValue !== originalValue) { // Solo actualizar si hay un cambio
+                        var partidaId = td.data('id');
+                        updateEstatus(partidaId, newValue, td);
+                    } else {
+                        td.html(originalValue); // Restaurar el valor original si no hay cambios
+                    }
                 }
             });
 

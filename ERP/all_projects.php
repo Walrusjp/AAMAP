@@ -110,8 +110,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                 <option value="finalizado">Finalizados</option>
                 <option value="facturacion">Facturación</option>
             </select>
-            <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</a>
-            <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
+            <a href="new_OF.php" class="btn btn-info chompa">Nueva OF</a>
             <!--<a href="lista_cot.php" class="btn btn-info chompa">Cotizaciones</a>-->
             <?php if ($username == 'admin'): ?>
                 <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>

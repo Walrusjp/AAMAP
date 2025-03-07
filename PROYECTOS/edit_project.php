@@ -86,6 +86,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtUpdateProyecto->bind_param('sisss', $nombre, $id_cliente, $descripcion, $fecha_entrega, $cod_fab);
         $stmtUpdateProyecto->execute();
 
+        // Eliminar registros dependientes en registro_estatus
+        $sqlDeleteRegistroEstatus = "DELETE FROM registro_estatus WHERE id_partida IN (SELECT id FROM partidas WHERE cod_fab = ?)";
+        $stmtDeleteRegistroEstatus = $conn->prepare($sqlDeleteRegistroEstatus);
+        $stmtDeleteRegistroEstatus->bind_param('s', $cod_fab);
+        $stmtDeleteRegistroEstatus->execute();
+
         // Eliminar partidas antiguas
         $sqlDeletePartidas = "DELETE FROM partidas WHERE cod_fab = ?";
         $stmtDeletePartidas = $conn->prepare($sqlDeletePartidas);
@@ -147,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <option value="">Seleccionar cotización</option>
             <?php foreach ($proyectos as $proy): ?>
                 <option value="<?php echo $proy['cod_fab']; ?>" <?php echo (isset($proyecto['cod_fab']) && $proy['cod_fab'] === $proyecto['cod_fab']) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($proy['cod_fab']); ?>
+                    <?php echo htmlspecialchars($proy['cod_fab']); ?> || <?php echo htmlspecialchars($proy['nombre']); ?>
                 </option>
             <?php endforeach; ?>
         </select>
