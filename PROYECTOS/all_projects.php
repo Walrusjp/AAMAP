@@ -156,7 +156,7 @@ if ($mensaje !== "") {
         </div>
     </div>
 <?php endif; ?>
-<img src="/assets/grupo_aamap.png" style="width: 25%; position: absolute; top: 5px; left: 10px;">
+<img src="/assets/grupo_aamap.png" style="width: 23%; position: absolute; top: 5px; left: 10px;">
 <div class="sticky-header">
     <div class="header">
         <h3 class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h3>
@@ -174,6 +174,7 @@ if ($mensaje !== "") {
                 <option value="en proceso,finalizado,facturacion">ERP</option>
             </select>
             <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</a>
+            <a href="edit_project.php" class="btn btn-info chompa">Editar Cotización</a>
             <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
             <!--<a href="lista_cot.php" class="btn btn-info chompa">Cotizaciones</a>-->
             <?php if ($username == 'admin'): ?>

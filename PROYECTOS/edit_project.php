@@ -7,126 +7,119 @@ if (!isset($_SESSION['username'])) {
 
 include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
 
-// Obtener el ID del proyecto desde la URL
-if (!isset($_GET['id']) || empty($_GET['id'])) {
-    echo "Proyecto no especificado.";
-    exit();
+// Obtener la lista de proyectos para el select
+$sqlProyectos = "SELECT cod_fab, nombre FROM proyectos";
+$resultProyectos = $conn->query($sqlProyectos);
+$proyectos = [];
+if ($resultProyectos->num_rows > 0) {
+    while ($row = $resultProyectos->fetch_assoc()) {
+        $proyectos[] = $row;
+    }
 }
 
-$proyecto_id = $_GET['id'];
-
-// Consultar datos del proyecto, partidas y artículos
-$sql = "SELECT 
-        p.cod_fab, 
-        p.nombre AS nombre_proyecto,
-        p.id_cliente,
-        c.nombre AS nombre_cliente, 
-        p.descripcion,
-        p.fecha_entrega,
-        p.unidad_medida,
-        p.etapa
-    FROM 
-        proyectos p
-    LEFT JOIN 
-        clientes_p c ON p.id_cliente = c.id
-    WHERE 
-        p.cod_fab = ?";
-
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $proyecto_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 0) {
-    echo "Proyecto no encontrado.";
-    exit();
+// Obtener clientes para la lista desplegable
+$sqlClientes = "SELECT id, nombre_comercial FROM clientes_p";
+$resultClientes = $conn->query($sqlClientes);
+$clientes = [];
+if ($resultClientes->num_rows > 0) {
+    while ($row = $resultClientes->fetch_assoc()) {
+        $clientes[] = $row;
+    }
 }
 
-$proyecto = $result->fetch_assoc();
+// Si se selecciona un proyecto, cargar sus datos
+$proyecto = null;
+$partidas = [];
+$datosVigencia = null;
+if (isset($_GET['cod_fab'])) {
+    $cod_fab = $_GET['cod_fab'];
 
-// Obtener partidas
-$sqlPartidas = "SELECT * FROM partidas WHERE cod_fab = ?";
-$stmtPartidas = $conn->prepare($sqlPartidas);
-$stmtPartidas->bind_param("s", $proyecto_id);
-$stmtPartidas->execute();
-$resultPartidas = $stmtPartidas->get_result();
-$partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
+    // Obtener datos del proyecto
+    $sqlProyecto = "SELECT * FROM proyectos WHERE cod_fab = ?";
+    $stmtProyecto = $conn->prepare($sqlProyecto);
+    $stmtProyecto->bind_param("s", $cod_fab);
+    $stmtProyecto->execute();
+    $resultProyecto = $stmtProyecto->get_result();
+    $proyecto = $resultProyecto->fetch_assoc();
 
-// Obtener artículos
-$sqlArticulos = "SELECT * FROM pedidos_p_detalle WHERE id_proyecto = ?";
-$stmtArticulos = $conn->prepare($sqlArticulos);
-$stmtArticulos->bind_param("s", $proyecto_id);
-$stmtArticulos->execute();
-$resultArticulos = $stmtArticulos->get_result();
-$articulos = $resultArticulos->fetch_all(MYSQLI_ASSOC);
+    // Obtener partidas del proyecto
+    $sqlPartidas = "SELECT * FROM partidas WHERE cod_fab = ?";
+    $stmtPartidas = $conn->prepare($sqlPartidas);
+    $stmtPartidas->bind_param("s", $cod_fab);
+    $stmtPartidas->execute();
+    $resultPartidas = $stmtPartidas->get_result();
+    while ($row = $resultPartidas->fetch_assoc()) {
+        $partidas[] = $row;
+    }
 
-// Procesar el formulario si se envió
+    // Obtener datos de vigencia del proyecto
+    $sqlVigencia = "SELECT * FROM datos_vigencia WHERE cod_fab = ?";
+    $stmtVigencia = $conn->prepare($sqlVigencia);
+    $stmtVigencia->bind_param("s", $cod_fab);
+    $stmtVigencia->execute();
+    $resultVigencia = $stmtVigencia->get_result();
+    $datosVigencia = $resultVigencia->fetch_assoc();
+}
+
+// Verificar si se envió el formulario de edición
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Obtener datos del formulario
     $cod_fab = $_POST['cod_fab'];
     $nombre = $_POST['nombre'];
     $id_cliente = $_POST['id_cliente'];
     $descripcion = $_POST['descripcion'];
     $fecha_entrega = $_POST['fecha_entrega'];
-    $unidad_medida = $_POST['unidad_medida'];
-    $etapa = $_POST['etapa'];
-    $partida_nombres = $_POST['partida_nombre'];
-    $partida_macs = isset($_POST['partida_mac']) ? $_POST['partida_mac'] : [];
-    $partida_mans = isset($_POST['partida_man']) ? $_POST['partida_man'] : [];
-    $partida_coms = isset($_POST['partida_com']) ? $_POST['partida_com'] : [];
-    $articulo_nombres = $_POST['articulo_nombre'];
-    $articulo_cantidades = $_POST['articulo_cantidad'];
-    $articulo_precios = $_POST['articulo_precio'];
-    $articulo_ums = $_POST['articulo_um'];
+    $partidas = json_decode($_POST['partidas'], true);
 
+    // Capturar datos de vigencia
+    $vigencia = $_POST['vigencia'];
+    $precios = $_POST['precios'];
+    $moneda = $_POST['moneda'];
+    $condicion_pago = $_POST['condicion_pago'];
+    $lab = $_POST['lab'];
+    $tipo_entr = $_POST['tipo_entr'];
+
+    $conn->begin_transaction();
     try {
-        $conn->begin_transaction();
-
         // Actualizar proyecto
-        $sqlProyecto = "UPDATE proyectos SET 
-            nombre = ?, 
-            id_cliente = ?, 
-            descripcion = ?, 
-            fecha_entrega = ?, 
-            unidad_medida = ?,
-            etapa = ?
-            WHERE cod_fab = ?";
-        $stmtProyecto = $conn->prepare($sqlProyecto);
-        $stmtProyecto->bind_param("sisssss", $nombre, $id_cliente, $descripcion, $fecha_entrega, $unidad_medida, $etapa, $cod_fab);
-        $stmtProyecto->execute();
+        $sqlUpdateProyecto = "UPDATE proyectos SET nombre = ?, id_cliente = ?, descripcion = ?, fecha_entrega = ? WHERE cod_fab = ?";
+        $stmtUpdateProyecto = $conn->prepare($sqlUpdateProyecto);
+        $stmtUpdateProyecto->bind_param('sisss', $nombre, $id_cliente, $descripcion, $fecha_entrega, $cod_fab);
+        $stmtUpdateProyecto->execute();
 
-        // Actualizar partidas
-        $sqlPartidaUpdate = "UPDATE partidas SET nombre = ?, mac = ?, man = ?, com = ? WHERE id = ?";
-        $stmtPartidaUpdate = $conn->prepare($sqlPartidaUpdate);
-        for ($i = 0; $i < count($partida_nombres); $i++) {
-            $partida_id = $partidas[$i]['id']; 
-            $partida_nombre = $partida_nombres[$i];
-            $partida_mac = in_array($i, $partida_macs) ? 1 : 0;
-            $partida_man = in_array($i, $partida_mans) ? 1 : 0;
-            $partida_com = in_array($i, $partida_coms) ? 1 : 0;
-            $stmtPartidaUpdate->bind_param("siiii", $partida_nombre, $partida_mac, $partida_man, $partida_com, $partida_id);
-            $stmtPartidaUpdate->execute();
+        // Eliminar partidas antiguas
+        $sqlDeletePartidas = "DELETE FROM partidas WHERE cod_fab = ?";
+        $stmtDeletePartidas = $conn->prepare($sqlDeletePartidas);
+        $stmtDeletePartidas->bind_param('s', $cod_fab);
+        $stmtDeletePartidas->execute();
+
+        // Insertar nuevas partidas
+        $sqlInsertPartida = "INSERT INTO partidas (cod_fab, descripcion, proceso, cantidad, unidad_medida, precio_unitario) 
+                             VALUES (?, ?, ?, ?, ?, ?)";
+        $stmtInsertPartida = $conn->prepare($sqlInsertPartida);
+        foreach ($partidas as $partida) {
+            $stmtInsertPartida->bind_param(
+                'sssiss', 
+                $cod_fab, 
+                $partida['descripcion'], 
+                $partida['proceso'], 
+                $partida['cantidad'], 
+                $partida['unidad_medida'], 
+                $partida['precio_unitario']
+            );
+            $stmtInsertPartida->execute();
         }
 
-        // Actualizar artículos
-        $sqlArticuloUpdate = "UPDATE pedidos_p_detalle SET articulos = ?, cantidad = ?, precio = ?, um = ? WHERE id = ?";
-        $stmtArticuloUpdate = $conn->prepare($sqlArticuloUpdate);
-        for ($i = 0; $i < count($articulo_nombres); $i++) {
-            $articulo_id = $articulos[$i]['id']; 
-            $articulo_nombre = $articulo_nombres[$i];
-            $articulo_cantidad = $articulo_cantidades[$i];
-            $articulo_precio = $articulo_precios[$i];
-            $articulo_um = $articulo_ums[$i];
-            $stmtArticuloUpdate->bind_param("sidsi", $articulo_nombre, $articulo_cantidad, $articulo_precio, $articulo_um, $articulo_id);
-            $stmtArticuloUpdate->execute();
-        }
+        // Actualizar datos de vigencia
+        $sqlUpdateVigencia = "UPDATE datos_vigencia SET vigencia = ?, precios = ?, moneda = ?, condicion_pago = ?, lab = ?, tipo_entr = ? WHERE cod_fab = ?";
+        $stmtUpdateVigencia = $conn->prepare($sqlUpdateVigencia);
+        $stmtUpdateVigencia->bind_param('sssssss', $vigencia, $precios, $moneda, $condicion_pago, $lab, $tipo_entr, $cod_fab);
+        $stmtUpdateVigencia->execute();
 
         $conn->commit();
-        echo "<script>alert('Proyecto actualizado exitosamente.'); window.location.href = 'ver_proyecto.php?id=" . urlencode($cod_fab) . "';</script>";
-
+        echo "<script>alert('Cotización actualizada exitosamente.'); window.location.href = 'all_projects.php';</script>";
     } catch (Exception $e) {
         $conn->rollback();
-        echo "<script>alert('Error al actualizar el proyecto: " . $e->getMessage() . "');</script>";
+        echo "<script>alert('Error al actualizar: " . $e->getMessage() . "');</script>";
     }
 }
 ?>
@@ -135,79 +128,108 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Editar Proyecto</title>
+    <title>Editar Cotización</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> </head>
+    <link rel="icon" href="/assets/logo.png" type="image/png">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
 <body>
 
-<div class="container mt-4">
-    <h1>Editar Proyecto</h1>
-    <form id="projectForm" method="POST" action="edit_project.php">
-        <input type="hidden" name="cod_fab" value="<?php echo htmlspecialchars($proyecto['cod_fab']); ?>">
+<div class="container">
+    <h1 class="text-center">Editar Cotización</h1>
+    <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
 
-        <div class="form-group">
-            <label for="nombre">Nombre del Proyecto</label>
-            <input type="text" class="form-control" id="nombre" name="nombre" value="<?php echo htmlspecialchars($proyecto['nombre_proyecto']); ?>" required>
-        </div>
+    <!-- Select para elegir proyecto -->
+    <div class="form-group">
+        <label for="selectProyecto">Seleccionar Cotización</label>
+        <select class="form-control" id="selectProyecto" onchange="cargarProyecto(this.value)">
+            <option value="">Seleccionar cotización</option>
+            <?php foreach ($proyectos as $proy): ?>
+                <option value="<?php echo $proy['cod_fab']; ?>" <?php echo (isset($proyecto['cod_fab']) && $proy['cod_fab'] === $proyecto['cod_fab']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($proy['cod_fab']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <!-- Formulario de edición -->
+    <form id="projectForm" method="POST" action="edit_project.php">
+        <input type="hidden" name="cod_fab" value="<?php echo $proyecto['cod_fab'] ?? ''; ?>">
         
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" value="<?php echo $proyecto['nombre'] ?? ''; ?>" required>
+        </div>
         <div class="form-group">
             <label for="id_cliente">Cliente</label>
             <select class="form-control" id="id_cliente" name="id_cliente" required>
                 <option value="">Seleccionar cliente</option>
-                <?php 
-                // Obtener clientes para el select
-                $sqlClientes = "SELECT id, nombre FROM clientes_p";
-                $resultClientes = $conn->query($sqlClientes);
-                while ($row = $resultClientes->fetch_assoc()) {
-                    $selected = ($row['id'] == $proyecto['id_cliente']) ? 'selected' : '';
-                    echo "<option value='" . $row['id'] . "' $selected>" . htmlspecialchars($row['nombre']) . "</option>";
-                }
-                ?>
+                <?php foreach ($clientes as $cliente): ?>
+                    <option value="<?php echo $cliente['id']; ?>" 
+                        <?php echo (isset($proyecto['id_cliente']) && $cliente['id'] == $proyecto['id_cliente']) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($cliente['nombre_comercial']); ?>
+                    </option>
+                <?php endforeach; ?>
             </select>
         </div>
-
         <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea class="form-control" id="descripcion" name="descripcion" rows="3"><?php echo htmlspecialchars($proyecto['descripcion']); ?></textarea>
+            <label for="descripcion">Nota:</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="3"><?php echo $proyecto['descripcion'] ?? ''; ?></textarea>
         </div>
         <div class="form-group">
             <label for="fecha_entrega">Fecha de Entrega</label>
-            <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega" value="<?php echo htmlspecialchars($proyecto['fecha_entrega']); ?>" required>
-        </div>
-        <div class="form-group">
-            <label for="unidad_medida">Unidad de Medida</label>
-            <input type="text" class="form-control" id="unidad_medida" name="unidad_medida" value="<?php echo htmlspecialchars($proyecto['unidad_medida']); ?>" required>
-        </div>
-        <div class="form-group">
-            <label for="etapa">Etapa</label>
-            <select class="form-control" id="etapa" name="etapa" required>
-                <option value="en proceso" <?php if ($proyecto['etapa'] == 'en proceso') echo 'selected'; ?>>En proceso</option>
-                <option value="finalizado" <?php if ($proyecto['etapa'] == 'finalizado') echo 'selected'; ?>>Finalizado</option>
-            </select>
+            <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega" value="<?php echo $proyecto['fecha_entrega'] ?? ''; ?>" required>
         </div>
 
+        <!-- Datos de Vigencia -->
+        <h3>Datos de Vigencia</h3>
+        <div class="form-group">
+            <label for="vigencia">Vigencia</label>
+            <input type="text" class="form-control" id="vigencia" name="vigencia" value="<?php echo $datosVigencia['vigencia'] ?? ''; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="precios">Precios</label>
+            <input type="text" class="form-control" id="precios" name="precios" value="<?php echo $datosVigencia['precios'] ?? ''; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="moneda">Moneda</label>
+            <input type="text" class="form-control" id="moneda" name="moneda" value="<?php echo $datosVigencia['moneda'] ?? ''; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="condicion_pago">Condición de Pago</label>
+            <input type="text" class="form-control" id="condicion_pago" name="condicion_pago" value="<?php echo $datosVigencia['condicion_pago'] ?? ''; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="lab">L.a.b.</label>
+            <input type="text" class="form-control" id="lab" name="lab" value="<?php echo $datosVigencia['lab'] ?? ''; ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="tipo_entr">Tipo de Entrega</label>
+            <input type="text" class="form-control" id="tipo_entr" name="tipo_entr" value="<?php echo $datosVigencia['tipo_entr'] ?? ''; ?>" required>
+        </div>
+
+        <!-- Partidas -->
         <h3>Partidas</h3>
         <div class="form-row">
             <div class="col">
-                <input type="text" class="form-control" id="nombre_partida" placeholder="Nombre de la Partida">
+                <input type="text" class="form-control" id="descripcion_partida" placeholder="Descripción de la Partida">
             </div>
             <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="mac">
-                    <label class="form-check-label" for="mac">Mac</label>
-                </div>
+                <select class="form-control" id="proceso">
+                    <option value="man">MAN</option>
+                    <option value="maq">MAQ</option>
+                    <option value="com">COM</option>
+                </select>
             </div>
             <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="man">
-                    <label class="form-check-label" for="man">Man</label>
-                </div>
+                <input type="number" class="form-control" id="cantidad_partida" placeholder="Cantidad">
             </div>
             <div class="col">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="com">
-                    <label class="form-check-label" for="com">Com</label>
-                </div>
+                <input type="text" class="form-control" id="um_partida" placeholder="Unidad de Medida">
+            </div>
+            <div class="col">
+                <input type="number" class="form-control" id="precio_unitario_partida" placeholder="Precio Unitario">
             </div>
             <div class="col">
                 <button type="button" class="btn btn-primary" id="addPartida">Agregar Partida</button>
@@ -217,138 +239,155 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <table class="table mt-3">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Mac</th>
-                    <th>Man</th>
-                    <th>Com</th>
+                    <th>Descripción</th>
+                    <th>Proceso</th>
+                    <th>Cantidad</th>
+                    <th>Unidad de Medida</th>
+                    <th>Precio Unitario</th>
                     <th>Acción</th>
                 </tr>
             </thead>
             <tbody id="partidasTable">
-                <?php foreach ($partidas as $partida): ?>
-                    <tr>
-                        <td><input type="text" class="form-control" name="partida_nombre[]" value="<?php echo htmlspecialchars($partida['nombre']); ?>"></td>
-                        <td><input type="checkbox" name="partida_mac[]" value="1" <?php if ($partida['mac']) echo 'checked'; ?>></td>
-                        <td><input type="checkbox" name="partida_man[]" value="1" <?php if ($partida['man']) echo 'checked'; ?>></td>
-                        <td><input type="checkbox" name="partida_com[]" value="1" <?php if ($partida['com']) echo 'checked'; ?>></td>
-                        <td><button type="button" class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
-                    </tr>
-                <?php endforeach; ?>
+                <?php if (!empty($partidas)): ?>
+                    <?php foreach ($partidas as $partida): ?>
+                        <tr>
+                            <td><?php echo $partida['descripcion']; ?></td>
+                            <td><?php echo $partida['proceso']; ?></td>
+                            <td><?php echo $partida['cantidad']; ?></td>
+                            <td><?php echo $partida['unidad_medida']; ?></td>
+                            <td><?php echo $partida['precio_unitario']; ?></td>
+                            <td><button class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
 
-        <h3>Artículos</h3>
-        <div class="form-row">
-            <div class="col">
-                <input type="text" class="form-control" id="nombre_articulo" placeholder="Nombre del Artículo">
-            </div>
-            <div class="col">
-                <input type="number" class="form-control" id="cantidad_articulo" placeholder="Cantidad">
-            </div>
-            <div class="col">
-                <input type="number" class="form-control" id="precio_articulo" placeholder="Precio">
-            </div>
-            <div class="col">
-                <input type="text" class="form-control" id="um_articulo" placeholder="Unidad de Medida">
-            </div>
-            <div class="col">
-                <button type="button" class="btn btn-primary" id="addArticulo">Agregar Artículo</button>
-            </div>
-        </div>
-
-        <table class="table mt-3">
-            <thead>
-                <tr>
-                    <th>Artículo</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                    <th>Unidad de Medida</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="articulosTable">
-                <?php foreach ($articulos as $articulo): ?>
-                    <tr>
-                        <td><input type="text" class="form-control" name="articulo_nombre[]" value="<?php echo htmlspecialchars($articulo['articulos']); ?>"></td>
-                        <td><input type="number" class="form-control" name="articulo_cantidad[]" value="<?php echo htmlspecialchars($articulo['cantidad']); ?>"></td>
-                        <td><input type="number" class="form-control" name="articulo_precio[]" value="<?php echo htmlspecialchars($articulo['precio']); ?>"></td>
-                        <td><input type="text" class="form-control" name="articulo_um[]" value="<?php echo htmlspecialchars($articulo['um']); ?>"></td>
-                        <td><button type="button" class="btn btn-danger btn-sm removeArticulo">Eliminar</button></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <?php
-        // Procesar el formulario si se envió
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            echo'<button type="submit" class="btn btn-success btn-block">Guardar Cambios</button>';
-        }
-        ?>
-        
+        <input type="hidden" name="partidas" id="partidas" value="<?php echo htmlspecialchars(json_encode($partidas)); ?>">
+        <button type="submit" class="btn btn-success btn-block">Guardar Cambios</button>
     </form>
 </div>
 
 <script>
-$(document).ready(function() {
-    // Agregar Partida
-    $('#addPartida').click(function() {
-        const nombre = $('#nombre_partida').val();
-        const mac = $('#mac').is(':checked') ? 1 : 0;
-        const man = $('#man').is(':checked') ? 1 : 0;
-        const com = $('#com').is(':checked') ? 1 : 0;
+const partidas = <?php echo json_encode($partidas); ?>;
 
-        if (nombre) {
+    // Función para agregar una partida
+    function agregarPartida() {
+        const descripcion = $('#descripcion_partida').val();
+        const proceso = $('#proceso').val();
+        const cantidad = $('#cantidad_partida').val();
+        const unidad_medida = $('#um_partida').val();
+        const precio_unitario = $('#precio_unitario_partida').val();
+
+        if (descripcion && cantidad && unidad_medida && precio_unitario) {
+            partidas.push({ descripcion, proceso, cantidad, unidad_medida, precio_unitario });
             $('#partidasTable').append(`
                 <tr>
-                    <td><input type="text" class="form-control" name="partida_nombre[]" value="${nombre}"></td>
-                    <td><input type="checkbox" name="partida_mac[]" value="1" ${mac ? 'checked' : ''}></td>
-                    <td><input type="checkbox" name="partida_man[]" value="1" ${man ? 'checked' : ''}></td>
-                    <td><input type="checkbox" name="partida_com[]" value="1" ${com ? 'checked' : ''}></td>
-                    <td><button type="button" class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
+                    <td>${descripcion}</td>
+                    <td>${proceso}</td>
+                    <td>${cantidad}</td>
+                    <td>${unidad_medida}</td>
+                    <td>${precio_unitario}</td>
+                    <td><button class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
                 </tr>
             `);
-            $('#nombre_partida').val('');
-            $('#mac').prop('checked', false);
-            $('#man').prop('checked', false);
-            $('#com').prop('checked', false);
+            // Limpiar campos
+            $('#descripcion_partida').val('');
+            $('#cantidad_partida').val('');
+            $('#um_partida').val('');
+            $('#precio_unitario_partida').val('');
         }
-    });
+    }
 
-    // Eliminar Partida
-    $(document).on('click', '.removePartida', function() {
+    // Agregar partida al hacer clic en el botón
+    $('#addPartida').click(agregarPartida);
+
+    // Eliminar partida
+    $(document).on('click', '.removePartida', function () {
+        const index = $(this).closest('tr').index();
+        partidas.splice(index, 1);
         $(this).closest('tr').remove();
     });
 
-    // Agregar Artículo
-    $('#addArticulo').click(function() {
-        const nombreArticulo = $('#nombre_articulo').val();
-        const cantidad = $('#cantidad_articulo').val();
-        const precio = $('#precio_articulo').val();
-        const um = $('#um_articulo').val();
-
-        if (nombreArticulo && cantidad && precio && um) {
-            $('#articulosTable').append(`
-                <tr>
-                    <td><input type="text" class="form-control" name="articulo_nombre[]" value="${nombreArticulo}"></td>
-                    <td><input type="number" class="form-control" name="articulo_cantidad[]" value="${cantidad}"></td>
-                    <td><input type="number" class="form-control" name="articulo_precio[]" value="${precio}"></td>
-                    <td><input type="text" class="form-control" name="articulo_um[]" value="${um}"></td>
-                    <td><button type="button" class="btn btn-danger btn-sm removeArticulo">Eliminar</button></td>
-                </tr>
-            `);
-            $('#nombre_articulo').val('');
-            $('#cantidad_articulo').val('');
-            $('#precio_articulo').val('');
-            $('#um_articulo').val('');
+    // Prevenir el envío del formulario al presionar Enter en los campos de partidas
+    $('#descripcion_partida, #cantidad_partida, #um_partida, #precio_unitario_partida').keypress(function (e) {
+        if (e.which === 13) { // 13 es el código de la tecla Enter
+            e.preventDefault(); // Prevenir el envío del formulario
+            agregarPartida(); // Agregar la partida
         }
     });
 
-    // Eliminar Artículo
-    $(document).on('click', '.removeArticulo', function() {
-        $(this).closest('tr').remove();
+    // Convertir partidas a JSON antes de enviar el formulario
+    $('#projectForm').submit(function () {
+        $('#partidas').val(JSON.stringify(partidas));
     });
-});
+
+    // Función para convertir una celda en un input editable
+        function hacerEditable(celda) {
+            const valorOriginal = celda.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = valorOriginal;
+            input.classList.add('form-control');
+
+            // Limpiar la celda y agregar el input
+            celda.textContent = '';
+            celda.appendChild(input);
+            input.focus();
+
+            // Guardar el valor al presionar Enter
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    const nuevoValor = input.value.trim();
+                    if (nuevoValor !== '') {
+                        celda.textContent = nuevoValor;
+                        actualizarPartida(celda);
+                    }
+                }
+            });
+
+            // Cancelar la edición al presionar Escape
+            input.addEventListener('keyup', function (e) {
+                if (e.key === 'Escape') {
+                    celda.textContent = valorOriginal;
+                }
+            });
+        }
+
+        // Función para actualizar el valor en el array partidas
+        function actualizarPartida(celda) {
+            const fila = celda.parentElement;
+            const index = Array.from(fila.parentElement.children).indexOf(fila);
+            const campo = Array.from(fila.children).indexOf(celda);
+
+            // Obtener los nuevos valores de la fila
+            const nuevaPartida = {
+                descripcion: fila.children[0].textContent,
+                proceso: fila.children[1].textContent,
+                cantidad: fila.children[2].textContent,
+                unidad_medida: fila.children[3].textContent,
+                precio_unitario: fila.children[4].textContent,
+            };
+
+            // Actualizar el array partidas
+            partidas[index] = nuevaPartida;
+        }
+
+        // Agregar evento de doble clic a las celdas de la tabla
+        document.querySelectorAll('#partidasTable td').forEach(celda => {
+            celda.addEventListener('dblclick', function () {
+                if (!celda.querySelector('input')) { // Evitar editar si ya hay un input
+                    hacerEditable(celda);
+                }
+            });
+        });
+
+    // Función para cargar los datos del proyecto seleccionado
+    function cargarProyecto(cod_fab) {
+        if (cod_fab) {
+            window.location.href = `edit_project.php?cod_fab=${cod_fab}`;
+        }
+    }
 </script>
 
 </body>
