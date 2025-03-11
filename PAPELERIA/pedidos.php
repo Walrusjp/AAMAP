@@ -1,13 +1,13 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: index.php");
+    header("Location: login.php");
     exit();
 }
 
 // Conectar a la base de datos
-include 'db_connect.php';
-include 'role.php';
+require 'C:\xampp\htdocs\db_connect.php';
+require 'C:\xampp\htdocs\role.php';
 
 // Inicializar filtro
 $filtro_tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'todos';

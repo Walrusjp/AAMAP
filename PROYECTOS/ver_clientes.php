@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: index.php");
+    header("Location: /login.php");
     exit();
 }
 
-include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
+require 'C:/xampp/htdocs/db_connect.php';
 
 // Obtener clientes de la base de datos (todas las columnas)
 $sql = "SELECT * FROM clientes_p"; 

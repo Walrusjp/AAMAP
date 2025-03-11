@@ -1,5 +1,5 @@
 <?php
-require 'db_connect.php';
+require 'C:\xampp\htdocs\db_connect.php';
 
 if (isset($_POST['register'])) {
     $username = $_POST['username'];

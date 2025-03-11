@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['user_id'] = $user['id']; // Guardar el user_id en la sesión
 
         // Redirigir al usuario a la página de bienvenida u otra página
-        header("Location: papeleria.php");// cambiar a papeleria.php o error404.html
+        header("Location: launch.php");// cambiar a papeleria.php o error404.html
         exit();
     } else {
         $error = "Nombre de usuario o contraseña incorrectos."; // Almacenar el error
@@ -54,11 +54,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <button type="submit" name="login">Iniciar Sesi&oacute;n</button>
         </form>
-
-        <form method="POST" action="/launch.php"><!-- cambiar a /laucn.php o error404.html-->
-            <button type="submit" name="logout" class="logout-button push" id="main">Regresar</button>
-        </form>
-    </div>
 
     <!-- Mostrar el alert si hay un error -->
     <?php if (!empty($error)): ?>

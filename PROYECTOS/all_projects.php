@@ -1,29 +1,12 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: index.php");
+    header("Location: /login.php");
     exit();
 }
 
-require 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
-require 'C:/xampp/htdocs/PAPELERIA/role.php';
-
-
-// Verificar si se solicitó el cierre de sesión
-if (isset($_POST['logout'])) {
-    session_unset();
-    session_destroy();
-    header("Location: index.php");
-    exit();
-}
-
-// Verificar si la ventana emergente ya se mostró
-if (!isset($_SESSION['welcome_shown'])) {
-    $_SESSION['welcome_shown'] = true;
-    $showModal = true; 
-} else {
-    $showModal = false;
-}
+require 'C:/xampp/htdocs/db_connect.php';
+require 'C:/xampp/htdocs/role.php';
 
 // Obtener los proyectos desde la base de datos
 $sql = "SELECT
@@ -140,30 +123,49 @@ if ($mensaje !== "") {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
+    <style>
+        .proyectos-container {
+            width: 100%; /* Asegura que el contenedor ocupe todo el ancho */
+            padding: 0; /* Elimina el padding si es necesario */
+            margin: 0; /* Elimina el margen si es necesario */
+        }
+
+        #proyectos-container {
+            width: 100%; /* Asegura que el contenedor interno ocupe todo el ancho */
+            padding: 0; /* Elimina el padding si es necesario */
+            margin: 0; /* Elimina el margen si es necesario */
+        }
+
+        .proyecto-card {
+            width: 100%; /* Asegura que la tarjeta ocupe todo el ancho */
+            margin-bottom: 10px; /* Espaciado entre tarjetas */
+        }
+
+        .card {
+            border: 1px solid #ddd; /* Borde para las tarjetas */
+            border-radius: 8px; /* Bordes redondeados */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+        }
+
+        .card-body {
+            padding: 0.8rem; /* Espaciado interno */
+        }
+
+        .card-title {
+            font-size: 1.25rem; /* Tamaño del título */
+            font-weight: bold; /* Negrita */
+        }
+
+        .card-text {
+            font-size: 1rem; /* Tamaño del texto */
+        }
+    </style>
 </head>
 <body>
-
-<?php if ($showModal): ?>
-    <div id="welcomeModal" class="modal show">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
-            </div>
-            <div class="modal-body">
-                <p>Inicio de sesión exitoso.</p>
-            </div>
-            <button class="close-btn" onclick="closeModal()">Cerrar</button>
-        </div>
-    </div>
-<?php endif; ?>
-<img src="/assets/grupo_aamap.png" style="width: 23%; position: absolute; top: 5px; left: 10px;">
+<img src="/assets/grupo_aamap.png" style="width: 18%; position: absolute; top: 5px; left: 10px;">
 <div class="sticky-header">
-    <div class="header">
-        <h3 class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h3>
-    </div>
     <div class="container d-flex justify-content-between chompa">
         <p class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-        <div style="position: absolute; top: 120px; left: 15px;"><h4>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h4></div>
         <div class="d-flex justify-content-center mb-3">
             <label for="filter" class="mr-2">Filtrar:</label>
             <select id="filter" class="form-control w-auto">
@@ -180,19 +182,21 @@ if ($mensaje !== "") {
             <?php if ($username == 'admin'): ?>
                 <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
             <?php endif; ?>
-            <form method="POST" action="">
+            <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
+            <!--<form method="POST" action="">
                 <button type="submit" name="logout" class="btn btn-secondary chompa">Cerrar sesión</button>
-            </form>
+            </form>-->
         </div>
     </div>
 </div>
 
 <div class="proyectos-container">
-    <div class="row" id="proyectos-container">
+    <div id="proyectos-container">
         <?php if (!empty($proyectos)): ?>
+            <br>
             <?php foreach ($proyectos as $proyecto): ?>
-                <div class="mb-4 proyecto-card" data-estatus="<?php echo htmlspecialchars($proyecto['estatus']); ?>">
-                    <a href="ver_cot.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link " target="_blank">
+                <div class="proyecto-card w-100 mb-3" data-estatus="<?php echo htmlspecialchars($proyecto['estatus']); ?>">
+                    <a href="ver_cot.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link" target="_blank">
                         <div class="card text-<?php 
                             echo ($proyecto['estatus'] == 'rechazado' ? 'danger' :  
                                   ($proyecto['estatus'] == 'aprobado' ? 'success' :  
@@ -208,25 +212,22 @@ if ($mensaje !== "") {
                         </div>
                     </a>
 
-                    <?php if ($proyecto['estatus'] == 'creado'):?>
-                        <button type="button" class="btn btn-success mt-2" onclick="confirmarAccion('aprobar', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">Aprobar Cot</button>
-                        <button type="button" class="btn btn-danger mt-2" onclick="confirmarAccion('rechazar', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">No Concretar</button>
-                    <?php endif;?>
-
-                    <!-- pasar a cis ERP-->
-                    <?php if ($proyecto['estatus'] == 'aprobado'): ?>
-                        <button type="button" class="btn btn-success mt-2" onclick="confirmarAccion('cis', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">Mandar a OF</button>
+                    <?php if ($proyecto['estatus'] == 'creado'): ?>
+                        <button type="button" class="btn btn-success mt-2 btn-card" onclick="confirmarAccion('aprobar', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">Aprobar Cot</button>
+                        <button type="button" class="btn btn-danger mt-2 btn-card" onclick="confirmarAccion('rechazar', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">No Concretar</button>
                     <?php endif; ?>
 
+                    <!-- Pasar a CIS ERP -->
+                    <?php if ($proyecto['estatus'] == 'aprobado'): ?>
+                        <button type="button" class="btn btn-success mt-2 btn-card" onclick="confirmarAccion('cis', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">Mandar a OF</button>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
-
         <?php else: ?>
             <div class="col-12">
                 <p class="text-muted text-center">No hay proyectos disponibles.</p>
             </div>
         <?php endif; ?>
-
     </div>
 </div>
 
@@ -252,14 +253,6 @@ if ($mensaje !== "") {
             }
         });
     });
-
-    function closeModal() {
-        const modal = document.getElementById('welcomeModal');
-        modal.classList.remove('show'); 
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 500);
-    }
 
     function confirmarAccion(accion, proyecto_id) {
         if (accion === 'aprobar') {

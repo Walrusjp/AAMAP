@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('db_connect.php'); // Asegúrate de que tu conexión a la base de datos esté bien establecida
+require ('C:\xampp\htdocs\db_connect.php'); // Asegúrate de que tu conexión a la base de datos esté bien establecida
 
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];

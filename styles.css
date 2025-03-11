@@ -106,6 +106,7 @@ button:hover {
     width: 80px;
 }
 
+
 /* Media Queries para hacerlo responsivo */
 @media (max-width: 768px) {
     .login-container {

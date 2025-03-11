@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: index.php");
+    header("Location: login.php");
     exit();
 }
 
-include 'db_connect.php';
+require 'C:\xampp\htdocs\db_connect.php';
 
 $error = ""; // Variable para almacenar errores
 $productExists = null; // Variable para comprobar si el producto existe
@@ -15,8 +15,7 @@ if (isset($_GET['product_id']) && isset($_GET['product_desc'])) {
     $productCode = $_GET['product_id'];
     $productDesc = urldecode($_GET['product_desc']); // Decodificar la descripción
 
-    // Verificar si el producto existe
-    include 'db_connect.php'; // Asegúrate de tener la conexión a la base de datos
+
     $query = "SELECT id, descripcion FROM productos WHERE id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $productCode);
@@ -65,8 +64,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitar Producto Personalizado</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="icon" href="assets/logo.ico" >
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="/styles.css">
     <link rel="stylesheet" type="text/css" href="solstyles.css">
 </head>
 <body>

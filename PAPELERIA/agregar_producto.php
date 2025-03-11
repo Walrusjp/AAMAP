@@ -1,12 +1,12 @@
 <?php
 	session_start();
 	if (!isset($_SESSION['username'])) {
-	    header("Location: index.php");
+	    header("Location: login.php");
 	    exit();
 	}
 
-	include 'db_connect.php';
-	include 'role.php';
+	require 'C:\xampp\htdocs\db_connect.php';
+	require 'C:\xampp\htdocs\role.php';
 
 	// Verificar si se solicitó el cierre de sesión
 	if (isset($_POST['logout'])) {
@@ -58,7 +58,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" type="text/css" href="/styles.css">
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 	<title>Agregar Producto</title>
 	<link rel="icon" href="assets/logo.ico">

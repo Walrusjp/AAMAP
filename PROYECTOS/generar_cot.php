@@ -1,5 +1,5 @@
 <?php
-include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
+require 'C:/xampp/htdocs/db_connect.php';
 // Validar y sanitizar la entrada del ID del proyecto
 $proyecto_id = filter_var($_GET['id'], FILTER_SANITIZE_STRING);
 if ($proyecto_id === false || empty($proyecto_id)) {

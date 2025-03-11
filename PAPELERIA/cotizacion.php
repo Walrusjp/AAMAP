@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: index.php");
+    header("Location: login.php");
     exit();
 }
-include 'db_connect.php';
-include 'role.php';
+require 'C:\xampp\htdocs\db_connect.php';
+require 'C:\xampp\htdocs\role.php';
 
 // Array de productos excluidos
 $productos_excluidos = ['PROD000']; // Aquí van los ID de los productos que quieres excluir

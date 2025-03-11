@@ -1,30 +1,14 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: index.php");
+    header("Location: login.php");
     exit();
 }
 
-include 'db_connect.php';
-include 'role.php';
+require 'C:\xampp\htdocs\db_connect.php';
+require 'C:\xampp\htdocs\role.php';
 require 'send_email.php';
 //include 'search_producto.php';
-
-// Verificar si se solicitó el cierre de sesión
-if (isset($_POST['logout'])) {
-    session_unset();
-    session_destroy();
-    header("Location: index.php");
-    exit();
-}
-
-// Verificar si la ventana emergente ya se mostró
-if (!isset($_SESSION['welcome_shown'])) {
-    $_SESSION['welcome_shown'] = true;
-    $showModal = true;
-} else {
-    $showModal = false;
-}
 
 // Inicializar el carrito si no está creado
 if (!isset($_SESSION['cart'])) {
@@ -227,27 +211,11 @@ $result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-<?php if ($showModal): ?>
-    <div id="welcomeModal" class="modal show">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Bienvenido, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
-            </div>
-            <div class="modal-body">
-                <p>Inicio de sesi&oacute;n exitoso.</p>
-            </div>
-            <button class="close-btn" onclick="closeModal()">Cerrar</button>
-        </div>
-    </div>
-<?php endif; ?>
-
-
 <div class="sticky-header">
-    <div class="header">
-        <h1>USUARIO #<?php echo $_SESSION['user_id'] . ': ' . htmlspecialchars($_SESSION['username']); ?></h1>
-    </div>
+    <img src="/assets/grupo_aamap.png" style="width: 17%; position: absolute; top: 0px; left: 0px;">
     <div class="container flex sopas">
         <div class="search-box">
+            <p>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</p>
             <form method="GET" action="">
                 <input type="text" name="search" class="form-control" id="psearch" placeholder="Buscar..." value="<?php echo htmlspecialchars($search); ?>">
             </form>
@@ -264,8 +232,9 @@ $result = $stmt->get_result();
                 <a href="pedidos.php" class="btn btn-secondary sec jiji">Pedidos</a>
                 <a href="cotizacion.php" class="btn btn-secondary sec jiji">Cotizaci&oacute;n</a>
             <?php endif; ?>
-            <form method="POST" action="">
-                <button type="submit" name="logout" class="logout-button push btn" id="logout">Cerrar sesi&oacute;n</button>
+            <form method="POST" action="/launch.php">
+                <button type="submit" name="salir" class="logout-button push btn" id="logout">Regresar</button>
+            </form>
         </div>
         </form>
     </div>

@@ -1,11 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: index.php");
+    header("Location: /login.php");
     exit();
 }
 
-include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
+require 'C:/xampp/htdocs/db_connect.php';
 
 // Obtener clientes para la lista desplegable
 $sqlClientes = "SELECT id, nombre_comercial FROM clientes_p";

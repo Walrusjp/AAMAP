@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+require 'C:\xampp\htdocs\db_connect.php';
 
 $search = "";
 if (isset($_GET['search'])) {

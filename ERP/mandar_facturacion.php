@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'C:/xampp/htdocs/PAPELERIA/db_connect.php';
+require 'C:/xampp/htdocs/db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $proyectoId = $_POST['id'];
