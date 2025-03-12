@@ -1,3 +1,11 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Ocupa toda la altura del viewport */
+}
+
 /* Estilos específicos para el modal de observaciones */
 #observacionesModal .modal-content {
     width: 50%; /* Ajustar el ancho si es necesario */
@@ -35,10 +43,13 @@
 }
 
 .sticky-header {
-    background-color: rgba(47, 79, 79, 0.3);
-    padding-top: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1000; /* Asegura que el header esté por encima de otros elementos */
+    background-color: rgba(47, 79, 79, 0.3); /* Fondo para que no se vea el contenido detrás */
+    padding: 0 0; /* Espaciado interno */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra para efecto de separación */
 }
-
 
 /* Estilo general para el contenedor principal */
 .chompa {
@@ -63,19 +74,22 @@ h1 {
 
 /* Contenedor de las tarjetas de proyectos */
 .proyectos-container {
+    flex-grow: 1; /* Ocupa el espacio restante */
     width: 90%;
-    height: 400px;
-    display: flex;
-    flex-wrap: wrap; /* Permite que las tarjetas se ajusten a varias filas */
-    padding-left: 10px;
-    padding-right: 10px;
-    justify-content: left; /* Alinea las tarjetas al centro */
-    gap: 20px; /* Espacio entre tarjetas */
-    padding: 15px;
     margin-left: 5%;
-    align-items: stretch;
-    overflow-y: scroll;
-    /*background-color: yellow;*/
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    overflow-y: auto; /* Scroll vertical si es necesario */
+    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño total */
+    /*background-color: #f9f9f9; /* Fondo para mejor visibilidad */
+}
+
+#proyectos-container {
+    width: 100%; /* Asegura que el contenedor interno ocupe todo el ancho */
+    padding: 0; /* Elimina el padding si es necesario */
+    margin: 0; /* Elimina el margen si es necesario */
 }
 
 .text-black {
@@ -87,8 +101,9 @@ h1 {
 }
 
 .card {
-    border: 0px;
-    max-height: 120px;
+    border: 1px solid #ddd; /* Borde para las tarjetas */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
 }
 
 .card:hover {
@@ -101,14 +116,26 @@ h1 {
 
 /* Cada tarjeta individual */
 .proyecto-card {
-    width: auto;
+    width: 100%;
     background-color: #ffffff;
     border-radius: 10px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
     padding: 0px 50px;
+    margin-bottom: 10px;
     height: auto;
     flex: 0 0 calc(33.33% - 20px); /* Ajusta el ancho de las tarjetas */
+}
+
+.card-body {
+    padding: 0.8rem; /* Espaciado interno */
+}
+.card-text {
+    font-size: 1rem; /* Tamaño del texto */
+}
+.card-title {
+    font-size: 1.25rem; /* Tamaño del título */
+    font-weight: bold; /* Negrita */
 }
 
 /* Enlace dentro de la tarjeta */

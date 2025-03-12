@@ -165,7 +165,7 @@ if (isset($_POST['logout'])) {
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['tipo_entr']); ?></p>
             </td>
             <td style="width: 45%;">
-                <img src="/assets/datos.png" style="width: 100%;">
+                <img src="/assets/datos.webp" style="width: 100%;">
             </td>
         </div></tr>
 

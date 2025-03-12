@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+    header("Location: /login.php");
     exit();
 }
 
@@ -10,12 +10,12 @@ require 'C:\xampp\htdocs\role.php';
 require 'send_email.php';
 //include 'search_producto.php';
 
-// Inicializar el carrito si no está creado
+// Inicializar el carrito si no estï¿½ creado
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-// Procesar la adición de productos al carrito
+// Procesar la adiciï¿½n de productos al carrito
 if (isset($_POST['add_to_cart'])) {
     $productId = $_POST['product_id'];
 
@@ -43,7 +43,7 @@ if (isset($_POST['add_to_cart'])) {
     }
 }
 
-// Procesar la reducción del contador
+// Procesar la reducciï¿½n del contador
 if (isset($_POST['remove_from_cart'])) {
     $productId = $_POST['product_id'];
     if (isset($_SESSION['cart'][$productId]) && $_SESSION['cart'][$productId] > 0) {
@@ -52,7 +52,7 @@ if (isset($_POST['remove_from_cart'])) {
             unset($_SESSION['cart'][$productId]);
         }
     }
-    // Redirigir después de modificar el carrito
+    // Redirigir despuï¿½s de modificar el carrito
     echo "<script>
         window.location.href='papeleria.php';
     </script>";
@@ -66,12 +66,12 @@ if (isset($_POST['save_order'])) {
 
     if (!empty($_SESSION['cart'])) {
         // Variable para almacenar el cuerpo del correo
-        $emailBody = "Usuario #$userId, $username solicitó:\n\n";
+        $emailBody = "Usuario #$userId, $username solicitï¿½:\n\n";
         $whatsappMessage = "Usuario: $username\nPedido:\n"; // Mensaje para WhatsApp
         $productsInfo = []; // Array para almacenar los productos con detalles
 
         foreach ($_SESSION['cart'] as $productId => $quantity) {
-            // Obtener detalles del producto (descripción, imagen)
+            // Obtener detalles del producto (descripciï¿½n, imagen)
             $query = "SELECT descripcion, imagen FROM productos WHERE id = ?";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("s", $productId);
@@ -81,7 +81,7 @@ if (isset($_POST['save_order'])) {
             $stmt->close();
 
             // Agregar detalles al cuerpo del correo
-            $emailBody .= "Producto: $productId\nDescripción: $descripcion\nCantidad: $quantity\n\n";
+            $emailBody .= "Producto: $productId\nDescripciï¿½n: $descripcion\nCantidad: $quantity\n\n";
 
             // Agregar detalles para WhatsApp
             $whatsappMessage .= "$productId: $descripcion - Cantidad: $quantity\n";
@@ -112,7 +112,7 @@ if (isset($_POST['save_order'])) {
         }
         $stmt->close();
 
-        // Generar el cuerpo del correo con imágenes
+        // Generar el cuerpo del correo con imï¿½genes
         $emailBodyHTML = "Pedido de $username:\n\n"; // Cuerpo para correo en HTML
         foreach ($productsInfo as $product) {
             $emailBodyHTML .= "<strong>Producto:</strong> {$product['descripcion']} - {$product['id']}<br>";
@@ -125,7 +125,7 @@ if (isset($_POST['save_order'])) {
 
         // Enviar el correo con el cuerpo en formato HTML
         $to = "papeleria.aamap@gmail.com";
-        $subject = "PAPELERÍA AAMAP - Pedido de stock";
+        $subject = "PAPELERï¿½A AAMAP - Pedido de stock";
         send_email_order($to, $subject, $emailBodyHTML); // Se pasa el cuerpo en HTML
 
         // Limpiar el carrito
@@ -134,7 +134,7 @@ if (isset($_POST['save_order'])) {
         exit;
     } else {
         echo "<script>
-            alert('El carrito está vacío. No se puede guardar el pedido.');
+            alert('El carrito estï¿½ vacï¿½o. No se puede guardar el pedido.');
             window.location.href='papeleria.php';
         </script>";
         exit;
@@ -143,7 +143,7 @@ if (isset($_POST['save_order'])) {
 
 
 
-// Procesar la acción de solicitud de producto
+// Procesar la acciï¿½n de solicitud de producto
 if (isset($_POST['request_product'])) {
     $userId = $_SESSION['user_id'];
     $productId = $_POST['product_id'];
@@ -180,8 +180,6 @@ if (isset($_POST['request_product'])) {
     exit;
 }
 
-
-
 //ocultar productos a op
 $productos_ocultos = ['PROD000', 'PROD001', 'PROD002', 'PROD003'];
 
@@ -212,7 +210,7 @@ $result = $stmt->get_result();
 </head>
 <body>
 <div class="sticky-header">
-    <img src="/assets/grupo_aamap.png" style="width: 17%; position: absolute; top: 0px; left: 0px;">
+    <img src="/assets/grupo_aamap.webp" style="width: 17%; position: absolute; top: 0px; left: 0px;">
     <div class="container flex sopas">
         <div class="search-box">
             <p>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</p>
@@ -245,11 +243,11 @@ $result = $stmt->get_result();
     <div class="row">
         <?php while ($row = $result->fetch_assoc()): ?>
             <?php if ($role === 'operador' && in_array($row['id'], $productos_ocultos)): ?>
-                <!-- Si el rol es operador y el producto está en la lista de productos ocultos, se omite -->
+                <!-- Si el rol es operador y el producto estï¿½ en la lista de productos ocultos, se omite -->
                 <?php continue; ?>
             <?php endif; ?>
 
-            <!-- Verificar si hay una solicitud específica para este producto -->
+            <!-- Verificar si hay una solicitud especï¿½fica para este producto -->
             <?php
             // Comprobamos si ya existe una solicitud de tipo "solicitud" para este producto
             $querySolicitud = "SELECT * FROM pedidos WHERE usuario_id = ? AND producto_id = ? AND tipo = 'solicitud' AND fecha > NOW() - INTERVAL 20 DAY";
@@ -265,7 +263,7 @@ $result = $stmt->get_result();
             $stmtPersonalizado->execute();
             $personalizadoExistente = $stmtPersonalizado->get_result()->fetch_assoc();
 
-            // Si el formulario de solicitud se envió
+            // Si el formulario de solicitud se enviï¿½
             if (isset($_POST['request_product'])) {
                 // Realizamos la solicitud para el producto
                 $query = "INSERT INTO pedidos (usuario_id, producto_id, tipo, fecha) VALUES (?, ?, 'solicitud', NOW())";
@@ -274,7 +272,7 @@ $result = $stmt->get_result();
                 $stmt->execute();
                 
                 // Ahora cambiamos la solicitud a tipo personalizado
-                // Mostramos el botón de "Solicitud Personalizada"
+                // Mostramos el botï¿½n de "Solicitud Personalizada"
                 $solicitudExistente = true;  // Indicamos que ahora existe la solicitud
             }
             ?>
@@ -289,7 +287,7 @@ $result = $stmt->get_result();
                             <strong>Stock:</strong> <?php echo htmlspecialchars($row['stock']); ?>
                         </p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <!-- Botones de añadir y quitar con AJAX -->
+                            <!-- Botones de aï¿½adir y quitar con AJAX -->
                             <div style="display:inline-flex;">
                                 <button type="button" class="btn btn-success add-to-cart btncard" 
                                     data-id="<?php echo $row['id']; ?>"

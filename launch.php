@@ -8,7 +8,7 @@ if (!isset($_SESSION['username'])) {
 require 'db_connect.php';
 require 'role.php';
 
-// Verificar si se solicitó el cierre de sesión
+// Verificar si se solicitï¿½ el cierre de sesiï¿½n
 if (isset($_POST['logout'])) {
     session_unset();
     session_destroy();
@@ -16,7 +16,7 @@ if (isset($_POST['logout'])) {
     exit();
 }
 
-// Verificar si la ventana emergente ya se mostró
+// Verificar si la ventana emergente ya se mostrï¿½
 if (!isset($_SESSION['welcome_shown'])) {
     $_SESSION['welcome_shown'] = true;
     $showModal = true; 
@@ -53,7 +53,7 @@ if (!isset($_SESSION['welcome_shown'])) {
 
     <!-- Navbar con logo -->
     <div class="navbar">
-        <img src="/assets/grupo_aamap.png" alt="Logo AAMAP">
+        <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP">
         <form method="POST" action="">
             <button type="submit" name="logout" class="btn btn-secondary chompa" id="logout">Cerrar sesi&oacute;n</button>
         </form>

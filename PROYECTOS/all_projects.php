@@ -7,6 +7,7 @@ if (!isset($_SESSION['username'])) {
 
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
+require 'send_email.php';
 
 // Obtener los proyectos desde la base de datos
 $sql = "SELECT
@@ -123,46 +124,9 @@ if ($mensaje !== "") {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
-    <style>
-        .proyectos-container {
-            width: 100%; /* Asegura que el contenedor ocupe todo el ancho */
-            padding: 0; /* Elimina el padding si es necesario */
-            margin: 0; /* Elimina el margen si es necesario */
-        }
-
-        #proyectos-container {
-            width: 100%; /* Asegura que el contenedor interno ocupe todo el ancho */
-            padding: 0; /* Elimina el padding si es necesario */
-            margin: 0; /* Elimina el margen si es necesario */
-        }
-
-        .proyecto-card {
-            width: 100%; /* Asegura que la tarjeta ocupe todo el ancho */
-            margin-bottom: 10px; /* Espaciado entre tarjetas */
-        }
-
-        .card {
-            border: 1px solid #ddd; /* Borde para las tarjetas */
-            border-radius: 8px; /* Bordes redondeados */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
-        }
-
-        .card-body {
-            padding: 0.8rem; /* Espaciado interno */
-        }
-
-        .card-title {
-            font-size: 1.25rem; /* Tamaño del título */
-            font-weight: bold; /* Negrita */
-        }
-
-        .card-text {
-            font-size: 1rem; /* Tamaño del texto */
-        }
-    </style>
 </head>
 <body>
-<img src="/assets/grupo_aamap.png" style="width: 18%; position: absolute; top: 5px; left: 10px;">
+<img src="/assets/grupo_aamap.webp" style="width: 18%; position: absolute; top: 25px; left: 10px;">
 <div class="sticky-header">
     <div class="container d-flex justify-content-between chompa">
         <p class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
