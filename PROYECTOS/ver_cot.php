@@ -12,7 +12,7 @@ require 'generar_cot.php';
 if (isset($_POST['logout'])) {
     session_unset();
     session_destroy();
-    header("Location: index.php");
+    header("Location: /login.php");
     exit();
 }
 
@@ -81,8 +81,8 @@ if (isset($_POST['logout'])) {
             </td>
         </tr>
         <tr>
-            <td style="border: 1px solid; border-right: none; border-bottom: none; "><p style="text-align: left; margin-left: 30px;" class="cliente"><b><u>ATENCIÓN:</u></b></p></td>
-            <td style="border-bottom: none;"><P style="text-align: left;"><?php echo $proyecto['atencion_cliente'];?></P></td>
+            <td class="cliente interlineado" style="border: 1px solid; border-right: none; border-bottom: none; "><p style="text-align: left; margin-left: 30px;" class="cliente"><b><u>ATENCIÓN:</u></b></p></td>
+            <td class="cliente interlineado" style="border-bottom: none;"><P style="text-align: left;"><?php echo $proyecto['atencion_cliente'];?></P></td>
         </tr>
         <tr>
             <td colspan="2" style="border-bottom: 1px solid;" class="cliente"><p>POR MEDIO DEL PRESENTE, DEJO A SUS ORDENES LA SIGUIENTE OFERTA.</p></td>

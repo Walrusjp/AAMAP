@@ -1,5 +1,6 @@
 <?php
 require 'C:/xampp/htdocs/db_connect.php';
+
 // Validar y sanitizar la entrada del ID del proyecto
 $proyecto_id = filter_var($_GET['id'], FILTER_SANITIZE_STRING);
 if ($proyecto_id === false || empty($proyecto_id)) {
@@ -7,13 +8,15 @@ if ($proyecto_id === false || empty($proyecto_id)) {
     exit();
 }
 
-// Consultar datos del proyecto y el cliente
-$sql = "SELECT p.cod_fab, p.descripcion AS descripcion, p.etapa, p.observaciones, p.nombre AS nombre_proyecto, c.nombre_comercial AS nombre_cliente, 
-               c.direccion AS ubicacion_cliente, c.comprador AS atencion_cliente, c.telefono AS telefono_cliente, 
-               c.correo AS email_cliente, p.fecha_entrega
+// Consultar datos del proyecto, el cliente y el comprador
+$sql = "SELECT p.cod_fab, p.descripcion AS descripcion, p.etapa, p.observaciones, p.nombre AS nombre_proyecto, 
+               c.nombre_comercial AS nombre_cliente, c.direccion AS ubicacion_cliente, 
+               co.nombre AS atencion_cliente, co.telefono AS telefono_cliente, co.correo AS email_cliente, 
+               p.fecha_entrega
         FROM proyectos p
         LEFT JOIN clientes_p c ON p.id_cliente = c.id
-        WHERE p.cod_fab =?";
+        LEFT JOIN compradores co ON p.id_comprador = co.id_comprador
+        WHERE p.cod_fab = ?";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $proyecto_id);
@@ -30,7 +33,7 @@ $proyecto = $result->fetch_assoc();
 // Consultar las partidas del proyecto
 $sqlPartidas = "SELECT pa.descripcion, pa.cantidad, pa.unidad_medida, pa.precio_unitario
                 FROM partidas pa
-                WHERE pa.cod_fab =?";
+                WHERE pa.cod_fab = ?";
 
 $stmtPartidas = $conn->prepare($sqlPartidas);
 $stmtPartidas->bind_param("s", $proyecto_id);
@@ -38,8 +41,10 @@ $stmtPartidas->execute();
 $resultPartidas = $stmtPartidas->get_result();
 $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 
-//Consultar los datos de vigencia del proyecto
-$sqlVigencia = "SELECT vigencia, precios, moneda, condicion_pago, lab, tipo_entr from datos_vigencia WHERE cod_fab = ?";
+// Consultar los datos de vigencia del proyecto
+$sqlVigencia = "SELECT vigencia, precios, moneda, condicion_pago, lab, tipo_entr 
+                FROM datos_vigencia 
+                WHERE cod_fab = ?";
 $stmtVigencia = $conn->prepare($sqlVigencia);
 $stmtVigencia->bind_param("s", $proyecto_id);
 $stmtVigencia->execute();

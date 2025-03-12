@@ -34,8 +34,14 @@ $datosVigencia = null;
 if (isset($_GET['cod_fab'])) {
     $cod_fab = $_GET['cod_fab'];
 
-    // Obtener datos del proyecto
-    $sqlProyecto = "SELECT * FROM proyectos WHERE cod_fab = ?";
+    // Obtener datos del proyecto, el cliente y el comprador
+    $sqlProyecto = "SELECT p.*, c.nombre_comercial AS nombre_cliente, c.direccion AS ubicacion_cliente, 
+    co.id_comprador AS id_comprador, co.nombre AS nombre_comprador, co.telefono AS telefono_comprador, 
+    co.correo AS email_comprador
+    FROM proyectos p
+    LEFT JOIN clientes_p c ON p.id_cliente = c.id
+    LEFT JOIN compradores co ON p.id_comprador = co.id_comprador
+    WHERE p.cod_fab = ?";
     $stmtProyecto = $conn->prepare($sqlProyecto);
     $stmtProyecto->bind_param("s", $cod_fab);
     $stmtProyecto->execute();
@@ -66,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cod_fab = $_POST['cod_fab'];
     $nombre = $_POST['nombre'];
     $id_cliente = $_POST['id_cliente'];
+    $id_comprador = $_POST['id_comprador'];
     $descripcion = $_POST['descripcion'];
     $fecha_entrega = $_POST['fecha_entrega'];
     $partidas = json_decode($_POST['partidas'], true);
@@ -81,9 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
     try {
         // Actualizar proyecto
-        $sqlUpdateProyecto = "UPDATE proyectos SET nombre = ?, id_cliente = ?, descripcion = ?, fecha_entrega = ? WHERE cod_fab = ?";
+        $sqlUpdateProyecto = "UPDATE proyectos SET nombre = ?, id_cliente = ?, id_comprador = ?, descripcion = ?, fecha_entrega = ? WHERE cod_fab = ?";
         $stmtUpdateProyecto = $conn->prepare($sqlUpdateProyecto);
-        $stmtUpdateProyecto->bind_param('sisss', $nombre, $id_cliente, $descripcion, $fecha_entrega, $cod_fab);
+        $stmtUpdateProyecto->bind_param('siisss', $nombre, $id_cliente, $id_comprador, $descripcion, $fecha_entrega, $cod_fab);
         $stmtUpdateProyecto->execute();
 
         // Eliminar registros dependientes en registro_estatus
@@ -177,6 +184,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php echo htmlspecialchars($cliente['nombre_comercial']); ?>
                     </option>
                 <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id_comprador">Comprador</label>
+            <select class="form-control" id="id_comprador" name="id_comprador" required>
+                <option value="">Seleccionar comprador</option>
+                <?php if (isset($proyecto['id_comprador'])): ?>
+                    <option value="<?php echo $proyecto['id_comprador']; ?>" selected>
+                        <?php echo htmlspecialchars($proyecto['nombre_comprador']); ?>
+                    </option>
+                <?php endif; ?>
             </select>
         </div>
         <div class="form-group">
@@ -394,6 +412,33 @@ const partidas = <?php echo json_encode($partidas); ?>;
             window.location.href = `edit_project.php?cod_fab=${cod_fab}`;
         }
     }
+
+    $(document).ready(function() {
+        // Cargar compradores cuando se selecciona un cliente
+        $('#id_cliente').change(function() {
+            var id_cliente = $(this).val();
+            if (id_cliente) {
+                $.ajax({
+                    url: 'get_compradores.php',
+                    type: 'POST',
+                    data: { id_cliente: id_cliente },
+                    success: function(response) {
+                        $('#id_comprador').html(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error en la solicitud AJAX:", error);
+                    }
+                });
+            } else {
+                $('#id_comprador').html('<option value="">Seleccionar comprador</option>');
+            }
+        });
+
+        // Cargar compradores al cargar la página si ya hay un cliente seleccionado
+        if ($('#id_cliente').val()) {
+            $('#id_cliente').trigger('change');
+        }
+    });
 </script>
 
 </body>

@@ -8,7 +8,7 @@ if (!isset($_SESSION['username'])) {
 require 'C:/xampp/htdocs/db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre_comercial = $_POST['nombre_comercial']; // Nombre del campo actualizado
+    $nombre_comercial = $_POST['nombre_comercial'];
     $razon_social = $_POST['razon_social'];
     $rfc = $_POST['rfc'];
     $direccion = $_POST['direccion'];
@@ -16,17 +16,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $telefono = $_POST['telefono'];
     $correo = $_POST['correo'];
 
-    $sql = "INSERT INTO clientes_p (nombre_comercial, razon_social, rfc, direccion, comprador, telefono, correo) 
-            VALUES (?,?,?,?,?,?,?)"; // Consulta actualizada
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssss", $nombre_comercial, $razon_social, $rfc, $direccion, $comprador, $telefono, $correo);
+    // Insertar en la tabla clientes_p
+    $sql_cliente = "INSERT INTO clientes_p (nombre_comercial, razon_social, rfc, direccion) 
+                    VALUES (?, ?, ?, ?)";
+    $stmt_cliente = $conn->prepare($sql_cliente);
+    $stmt_cliente->bind_param("ssss", $nombre_comercial, $razon_social, $rfc, $direccion);
 
-    if ($stmt->execute()) {
-        echo "<script>alert('Cliente registrado exitosamente.'); window.location.href = 'ver_clientes.php';</script>"; // Redirigir a ver_clientes.php
+    if ($stmt_cliente->execute()) {
+        $id_cliente = $stmt_cliente->insert_id; // Obtener el ID del cliente recién insertado
+
+        // Insertar en la tabla compradores
+        $sql_comprador = "INSERT INTO compradores (id_cliente, nombre, telefono, correo) 
+                          VALUES (?, ?, ?, ?)";
+        $stmt_comprador = $conn->prepare($sql_comprador);
+        $stmt_comprador->bind_param("isss", $id_cliente, $comprador, $telefono, $correo);
+
+        if ($stmt_comprador->execute()) {
+            echo "<script>alert('Cliente y comprador registrados exitosamente.'); window.location.href = 'ver_clientes.php';</script>";
+        } else {
+            echo "<script>alert('Error al registrar el comprador: " . $stmt_comprador->error . "');</script>";
+        }
     } else {
-        echo "<script>alert('Error al registrar el cliente: ". $stmt->error. "');</script>";
+        echo "<script>alert('Error al registrar el cliente: " . $stmt_cliente->error . "');</script>";
     }
-}?>
+}
+?>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -43,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="ver_clientes.php" class="btn btn-secondary mb-3">Regresar</a>
     <form method="POST" action="reg_client.php">
         <div class="form-group">
-            <label for="nombre_comercial">Nombre Comercial:</label> 
+            <label for="nombre_comercial">Nombre Comercial:</label>
             <input type="text" class="form-control" id="nombre_comercial" name="nombre_comercial" required>
         </div>
         <div class="form-group">

@@ -7,6 +7,7 @@ if (!isset($_SESSION['username'])) {
 
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
+require 'get_compradores.php';
 
 // Obtener clientes para la lista desplegable
 $sqlClientes = "SELECT id, nombre_comercial FROM clientes_p";
@@ -63,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descripcion = $_POST['descripcion'];
     $fecha_entrega = $_POST['fecha_entrega'];
     $partidas = json_decode($_POST['partidas'], true);
+    $id_comprador = $_POST['id_comprador'];
 
     // Capturar datos de vigencia
     $vigencia = $_POST['vigencia'];
@@ -75,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
     try {
         // Insertar proyecto
-        $sqlProyecto = "INSERT INTO proyectos (cod_fab, nombre, id_cliente, descripcion, etapa, fecha_entrega)
-                        VALUES (?, ?, ?, ?, 'creado', ?)";
+        $sqlProyecto = "INSERT INTO proyectos (cod_fab, nombre, id_cliente, id_comprador, descripcion, etapa, fecha_entrega)
+                VALUES (?, ?, ?, ?, ?, 'creado', ?)";
         $stmtProyecto = $conn->prepare($sqlProyecto);
-        $stmtProyecto->bind_param('ssiss', $cod_fab, $nombre, $id_cliente, $descripcion, $fecha_entrega);
+        $stmtProyecto->bind_param('ssiiss', $cod_fab, $nombre, $id_cliente, $id_comprador, $descripcion, $fecha_entrega);
         $stmtProyecto->execute();
         $id_proyecto = $stmtProyecto->insert_id;
 
@@ -131,18 +133,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
     <form id="projectForm" method="POST" action="new_project.php">
-        <?php if($username == 'h.galicia'): ?>
-            <div class="form-group">
+        <?php //if($username === 'h.galicia'): ?>
+            <!--<div class="form-group">
                 <label for="cod_fab">Número de Cotización</label>
                 <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required readonly>
-            </div>
-        <?php endif; ?>
-        <?php if($username == 'admin'): ?>
+            </div>-->
+        <?php //endif; ?>
+        <?php //if($username === 'admin'): ?>
             <div class="form-group">
                 <label for="cod_fab">Número de Cotización</label>
                 <input type="text" class="form-control" id="cod_fab" name="cod_fab" value="<?php echo $cod_fab; ?>"  required>
             </div>
-        <?php endif; ?>
+        <?php //endif; ?>
         <div class="form-group">
             <label for="nombre">Nombre del Proyecto</label>
             <input type="text" class="form-control" id="nombre" name="nombre" required>
@@ -154,6 +156,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php foreach ($clientes as $cliente): ?>
                     <option value="<?php echo $cliente['id']; ?>"><?php echo htmlspecialchars($cliente['nombre_comercial']); ?></option>
                 <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id_comprador">Comprador</label>
+            <select class="form-control" id="id_comprador" name="id_comprador" required>
+                <option value="">Seleccionar comprador</option>
             </select>
         </div>
         <div class="form-group">
@@ -286,7 +294,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             agregarPartida(); // Agregar la partida
         }
     });
-</script>
+
+    $(document).ready(function() {
+        // Cuando se cambia el cliente, cargar los compradores
+        $('#id_cliente').change(function() {
+            var id_cliente = $(this).val();
+            if (id_cliente) {
+                $.ajax({
+                    url: 'get_compradores.php', // Archivo PHP que devuelve los compradores
+                    type: 'POST',
+                    data: { id_cliente: id_cliente },
+                    success: function(response) {
+                        $('#id_comprador').html(response); // Actualizar el select de compradores
+                    }
+                });
+            } else {
+                $('#id_comprador').html('<option value="">Seleccionar comprador</option>');
+            }
+        });
+    });
+    </script>
 
 </body>
 </html>
