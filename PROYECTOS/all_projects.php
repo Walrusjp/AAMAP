@@ -89,21 +89,38 @@ if (isset($_POST['rechazar_cotizacion'])) {
           </script>";
 }
 
-//Manejar la solicitud de mandar a ERP
+// Manejar la solicitud de mandar a ERP
 if (isset($_POST['en_proceso'])) {
     $proyecto_id = $_POST['proyecto_id'];
 
-    echo "<script>
-            if (confirm('¿Estás seguro de que quieres rechazar esta cotización?')) {";
-                if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
-                    $mensaje = "Se mandó al ERP.";
-                    $redireccionar = true;
-                } else {
-                    $mensaje = "Error al enviar cotización.";
-                }
-            echo "}
-          </script>";
+    // Cambiar el estado del proyecto
+    if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
+        // Enviar correo de notificación
+        $subject = "Proyecto en Proceso";
+        $body = "El proyecto con ID $proyecto_id ha sido enviado a producción.";
+        $to = 'sistemas@aamap.net'; // Cambia esto por el correo al que deseas enviar la notificación
 
+        try {
+            send_email_order($to, $subject, $body);
+            $mensaje = "Se mandó al ERP y se notificó por correo.";
+        } catch (Exception $e) {
+            $mensaje = "Se mandó al ERP, pero hubo un error al enviar el correo: " . $e->getMessage();
+        }
+    } else {
+        $mensaje = "Error al cambiar el estado del proyecto.";
+    }
+
+    // Mostrar mensaje y redirigir
+    echo "<script>alert('" . addslashes($mensaje) . "'); window.location.href = 'all_projects.php';</script>";
+    exit();
+}
+
+if (isset($_POST['en_proceso'])) {
+    error_log("Solicitud 'en_proceso' recibida."); // Mensaje de depuración
+    $proyecto_id = $_POST['proyecto_id'];
+    error_log("Proyecto ID: $proyecto_id"); // Mensaje de depuración
+
+    // Resto del código...
 }
 
 // Mostrar el mensaje y redirigir solo si es necesario
