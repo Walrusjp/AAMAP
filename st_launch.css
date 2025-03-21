@@ -16,6 +16,10 @@ body {
     position: relative;
 }
 
+#logout {
+    border: none;
+}
+
 /* Estilos básicos para el modal */
 .modal {
     display: block; /* Para que sea visible inicialmente si está activado */

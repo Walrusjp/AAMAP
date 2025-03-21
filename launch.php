@@ -8,7 +8,7 @@ if (!isset($_SESSION['username'])) {
 require 'db_connect.php';
 require 'role.php';
 
-// Verificar si se solicit� el cierre de sesi�n
+// Verificar si se solicitó el cierre de sesión
 if (isset($_POST['logout'])) {
     session_unset();
     session_destroy();
@@ -16,14 +16,13 @@ if (isset($_POST['logout'])) {
     exit();
 }
 
-// Verificar si la ventana emergente ya se mostr�
+// Verificar si la ventana emergente ya se mostró
 if (!isset($_SESSION['welcome_shown'])) {
     $_SESSION['welcome_shown'] = true;
     $showModal = true; 
 } else {
     $showModal = false;
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -31,7 +30,7 @@ if (!isset($_SESSION['welcome_shown'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="icon" href="/assets/logo.png" type="image/png">
     <link rel="stylesheet" type="text/css" href="st_launch.css">
     <title>Launcher</title>
@@ -44,35 +43,54 @@ if (!isset($_SESSION['welcome_shown'])) {
                     <h2>Hola, <?php echo htmlspecialchars($user['nombre']); ?> <?php echo htmlspecialchars($user['apellido']); ?>!</h2>
                 </div>
                 <div class="modal-body">
-                    <p>Inicio de sesi&oacute;n exitoso.</p>
+                    <p>Inicio de sesión exitoso.</p>
                 </div>
-                <button class="close-btn btn-secondary" onclick="closeModal()">Cerrar</button>
+                <button class="close-btn btn-secondary" id="logout" onclick="closeModal()">Cerrar</button>
             </div>
         </div>
     <?php endif; ?>
 
     <!-- Navbar con logo -->
-    <div class="navbar">
-        <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP">
-        <form method="POST" action="">
-            <button type="submit" name="logout" class="btn btn-secondary chompa" id="logout">Cerrar sesi&oacute;n</button>
-        </form>
-        <div style="position: absolute; top: 70px; left: 430px;"><h4>Usuario: <b><?php echo htmlspecialchars($_SESSION['username']); ?></b></h4></div>
+    <div class="navbar" style="display: flex; align-items: center; justify-content: space-between;">
+        <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="height: 90px;">
+        <div style="display: flex; align-items: center;">
+            <img src="/assets/user.ico" alt="usuario" style="width: 20px; height: 20px; margin-right: 10px;">
+            <h4 style="margin: 0;" class="mr-3"><b>: <?php echo htmlspecialchars($_SESSION['username']); ?></b></h4>
+            <button type="button" class="btn btn-outline-secondary mr-3" id="logout" onclick="openLogoutModal()">
+                <img src="/assets/logout.ico" title="Cerrar Sesión" style="width: 40px; height: auto;">
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para cerrar sesión -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cerrar sesión</h2>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas cerrar sesión?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeLogoutModal()">Cancelar</button>
+                <form method="POST" action="">
+                    <button type="submit" name="logout" class="btn btn-danger">Cerrar sesión</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Contenedor centrado -->
     <div class="launcher-container">
-        <h1>ESCOGE UNA OPCION</h1>
-        <button onclick="window.location.href='/PAPELERIA/papeleria.php'">PAPELERIA</button>
-        <button onclick="window.location.href='/error404.html'">VIATICOS</button><!--/PREDIEM/index.php-->
-
+        <h1>ESCOGE UNA OPCIÓN</h1>
+        <button onclick="window.location.href='/PAPELERIA/papeleria.php'">PAPELERÍA</button>
+        <button onclick="window.location.href='/error404.html'">VIÁTICOS</button>
 
         <?php if($username === 'admin' || $username === 'h.galicia'): ?>
             <button onclick="window.location.href='/PROYECTOS/all_projects.php'">CRM PROYECTOS</button>
         <?php else: ?>
             <button onclick="window.location.href='/PROYECTOS/all_projects.php'" disabled>CRM PROYECTOS</button>
         <?php endif; ?>
-
 
         <?php if($role === 'admin' || $username === 'CIS'): ?>
             <button onclick="window.location.href='/ERP/all_projects.php'">ERP PROYECTOS</button>
@@ -82,6 +100,19 @@ if (!isset($_SESSION['welcome_shown'])) {
     </div>
 
     <script type="text/javascript">
+        // Función para abrir el modal de cierre de sesión
+        function openLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('show');
+        }
+
+        // Función para cerrar el modal de cierre de sesión
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('show');
+        }
+
+        // Función para cerrar el modal de bienvenida
         function closeModal() {
             const modal = document.getElementById('welcomeModal');
             modal.classList.remove('show'); 

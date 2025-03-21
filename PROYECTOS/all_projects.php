@@ -146,7 +146,7 @@ if (isset($_POST['en_proceso'])) {
             $subject = "Proyecto en ERP ";
             $body = "<p>Se da inicio al proyecto <b> $proyecto_nombre </b> con id: <b> $proyecto_id.</b>
                      <br>Favor de gestionar las actividaes correspondientes a su área.</p>";
-            $to = 'sistemas@aamap.net'; // a corporativo aamap (todos) cop.aamap@aamap.net
+            $to = 'cop.aamap@aamap.net'; // a corporativo aamap (todos) cop.aamap@aamap.net
 
             try {
                 send_email_order($to, $subject, $body);
