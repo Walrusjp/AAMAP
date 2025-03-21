@@ -2,50 +2,34 @@
 session_start();
 require 'C:/xampp/htdocs/db_connect.php';
 
+// Establecer la zona horaria de México
+date_default_timezone_set('America/Mexico_City');
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Obtener los datos enviados por AJAX
     $partidaId = $_POST['id'];
     $nuevoEstatus = $_POST['estatus'];
-    $id_proyecto = $_POST['id_proyecto'];
+    $id_fab = $_POST['id_fab']; // Ahora usamos id_fab en lugar de id_proyecto
     $id_usuario = $_POST['id_usuario'];
 
-    // Actualizar el estatus
-    $sqlUpdate = "UPDATE registro_estatus SET estatus_log =? WHERE id_partida =?";
-    $stmtUpdate = $conn->prepare($sqlUpdate);
-    $stmtUpdate->bind_param("si", $nuevoEstatus, $partidaId);
+    // Insertar el nuevo estatus en registro_estatus
+    $sql = "INSERT INTO registro_estatus (id_partida, estatus_log, id_fab, id_usuario, fecha_log) 
+            VALUES (?, ?, ?, ?, NOW())";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die("Error en la preparación de la consulta: " . $conn->error);
+    }
+    $stmt->bind_param("issi", $partidaId, $nuevoEstatus, $id_fab, $id_usuario);
 
-    if ($stmtUpdate->execute()) {
-        // Registrar el log (sin especificar fecha_log)
-        $sqlLog = "INSERT INTO registro_estatus (id_proyecto, estatus_log, id_usuario, id_partida) VALUES (?,?,?,?)";
-        $stmtLog = $conn->prepare($sqlLog);
-        $stmtLog->bind_param("ssii", $id_proyecto, $nuevoEstatus, $id_usuario, $partidaId); // Corregido: 4 parámetros
-
-        if ($stmtLog->execute()) {
-            // Obtener la fecha y hora del log recién insertado
-            $log_id = $stmtLog->insert_id;
-
-            $sqlFecha = "SELECT fecha_log FROM registro_estatus WHERE id =?";
-            $stmtFecha = $conn->prepare($sqlFecha);
-            $stmtFecha->bind_param('i', $log_id);
-            $stmtFecha->execute();
-            $resultFecha = $stmtFecha->get_result();
-
-            if ($resultFecha->num_rows > 0){
-                $rowFecha = $resultFecha->fetch_assoc();
-                $fecha_log = $rowFecha['fecha_log'];
-                echo $fecha_log;
-            } else {
-                echo "Error al obtener la fecha del log";
-            }
-        } else {
-            echo "Error al registrar el log: ". $stmtLog->error;
-        }
-
-        $stmtLog->close();
-        $stmtFecha->close(); // Cerrar la consulta de fecha
+    if ($stmt->execute()) {
+        // Devolver la fecha de actualización para mostrarla en la tabla
+        echo date("Y-m-d H:i:s");
     } else {
-        echo "Error al actualizar el estatus: ". $stmtUpdate->error;
+        // Si hay un error, devolver un mensaje de error
+        echo "Error al actualizar el estatus: " . $stmt->error;
     }
 
-    $stmtUpdate->close();
+    $stmt->close();
     $conn->close();
-}?>
+}
+?>

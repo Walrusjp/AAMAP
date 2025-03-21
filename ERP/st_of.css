@@ -1,0 +1,65 @@
+p, h1, h2, h3, h4, .content {text-align: center;}
+        .interlineado {line-height: 0.4;}
+        .interlineador {line-height: 0.1;}
+        #cot {
+            border-left: 1px solid;
+            font-size: 1em;
+            line-height: 0.8;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            width: fit-content;
+        }
+        #cod1 {
+            font-size: 0.8em;
+            border-bottom: 1px solid;
+            line-height: 0.3;
+        }
+        #cod2 {
+            font-size: 0.8em;
+            border-bottom: 1px solid;
+            line-height: 0.3;
+        }
+        #cod3 {
+            font-size: 0.8em;
+            line-height: 0.3;
+        }
+        #nota {
+          word-wrap: break-word; /* Rompe palabras largas */
+          overflow-wrap: break-word; /* Asegura el salto de línea */
+          white-space: normal; /* Permite saltos de línea */
+          text-align: justify; /* Justifica el texto para un mejor ajuste */
+          font-size: 12px; /* Reduce el tamaño de la fuente si es necesario */
+          line-height: 1.1; /* Ajusta el interlineado para compactar el texto */
+          max-width: 100%; /* Asegura que no sobrepase el ancho asignado */
+        }
+        table {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        .cols {
+            border: 1px solid; font-size: 0.8em;
+        }
+        .bg-cols {
+            background-color: lightgray;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+        .content {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+        .cliente {font-size: 0.8em;}
+        .vigencia {font-size: 0.8em;}
+        .cifras {line-height: 0;}
+
+
+        @media print {
+            .interlineado {line-height: 0.3;}
+            .interlineador {line-height: 0.1; font-size: 0.7em}
+
+        }
+        .cols {font-size: 0.7em}

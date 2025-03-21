@@ -7,49 +7,43 @@ if (!isset($_SESSION['username'])) {
 
 require 'C:/xampp/htdocs/db_connect.php';
 
-// Obtener proyectos para el select
-$sqlProyectos = "SELECT cod_fab, nombre FROM proyectos";
-$resultProyectos = $conn->query($sqlProyectos);
-$proyectos = [];
-if ($resultProyectos->num_rows > 0) {
-    while ($row = $resultProyectos->fetch_assoc()) {
-        $proyectos[] = $row;
+// Obtener órdenes de fabricación (orden_fab) para el select
+$sqlOrdenFab = "SELECT of.id_fab, p.nombre 
+                FROM orden_fab of
+                INNER JOIN proyectos p ON of.id_proyecto = p.cod_fab";
+$resultOrdenFab = $conn->query($sqlOrdenFab);
+$ordenesFab = [];
+if ($resultOrdenFab->num_rows > 0) {
+    while ($row = $resultOrdenFab->fetch_assoc()) {
+        $ordenesFab[] = $row;
     }
 }
 
-// Procesar la eliminación del proyecto
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proyecto_id'])) {
-    $proyectoId = $_POST['proyecto_id'];
+// Procesar la eliminación de la orden de fabricación
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_fab'])) {
+    $id_fab = $_POST['id_fab'];
 
     try {
         $conn->begin_transaction();
 
-        // 1. Eliminar de registro_estatus (usando INNER JOIN para mayor seguridad)
-        $sqlDeleteRegistros = "DELETE FROM registro_estatus WHERE id_partida IN (SELECT id FROM partidas WHERE cod_fab = ?)";
+        // 1. Eliminar registros de registro_estatus relacionados con orden_fab
+        $sqlDeleteRegistros = "DELETE FROM registro_estatus WHERE id_fab = ?";
         $stmt = $conn->prepare($sqlDeleteRegistros);
-        $stmt->bind_param("s", $proyectoId);
+        $stmt->bind_param("i", $id_fab);
         $stmt->execute();
 
-        // 2. Eliminar de partidas (antes de eliminar proyectos)
-        $sqlDeletePartidas = "DELETE FROM partidas WHERE cod_fab = ?";
-        $stmt = $conn->prepare($sqlDeletePartidas);
-        $stmt->bind_param("s", $proyectoId);
+        // 2. Eliminar registros de orden_fab
+        $sqlDeleteOrdenFab = "DELETE FROM orden_fab WHERE id_fab = ?";
+        $stmt = $conn->prepare($sqlDeleteOrdenFab);
+        $stmt->bind_param("i", $id_fab);
         $stmt->execute();
-
-
-        // 3. Eliminar de proyectos (después de eliminar partidas y registro_estatus)
-        $sqlDeleteProyecto = "DELETE FROM proyectos WHERE cod_fab = ?";
-        $stmt = $conn->prepare($sqlDeleteProyecto);
-        $stmt->bind_param("s", $proyectoId);
-        $stmt->execute();
-
 
         $conn->commit();
-        echo "<script>alert('Proyecto eliminado exitosamente.'); window.location.href = 'all_projects.php';</script>";
+        echo "<script>alert('Registros de orden_fab y logs eliminados exitosamente.'); window.location.href = 'all_projects.php';</script>";
 
     } catch (Exception $e) {
         $conn->rollback();
-        echo "<script>alert('Error al eliminar el proyecto: " . $e->getMessage() . "');</script>";
+        echo "<script>alert('Error al eliminar los registros: " . $e->getMessage() . "');</script>";
     }
 }
 ?>
@@ -58,25 +52,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proyecto_id'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Eliminar Proyecto</title>
+    <title>Eliminar Registros de Orden de Fabricación</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
 
 <div class="container mt-4">
-    <h1>Eliminar Proyecto</h1>
+    <h1>Eliminar Registros de Orden de Fabricación</h1>
     <form method="POST" action="delete_project.php">
         <div class="form-group">
-            <label for="proyecto_id">Seleccionar Proyecto:</label>
-            <select class="form-control" id="proyecto_id" name="proyecto_id" required>
-                <option value="">Seleccionar proyecto</option>
-                <?php foreach ($proyectos as $proyecto): ?>
-                    <option value="<?php echo $proyecto['cod_fab']; ?>"><?php echo htmlspecialchars($proyecto['cod_fab']) . " - " . htmlspecialchars($proyecto['nombre']); ?></option>
+            <label for="id_fab">Seleccionar Orden de Fabricación:</label>
+            <select class="form-control" id="id_fab" name="id_fab" required>
+                <option value="">Seleccionar orden de fabricación</option>
+                <?php foreach ($ordenesFab as $orden): ?>
+                    <option value="<?php echo $orden['id_fab']; ?>"><?php echo "OF-" . htmlspecialchars($orden['id_fab']) . " - " . htmlspecialchars($orden['nombre']); ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
         <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
-        <button type="submit" class="btn btn-danger">Eliminar Proyecto</button>
+        <button type="submit" class="btn btn-danger">Eliminar Registros</button>
     </form>
 </div>
 

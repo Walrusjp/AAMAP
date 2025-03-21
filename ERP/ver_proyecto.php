@@ -6,13 +6,14 @@ if (!isset($_SESSION['username'])) {
 }
 
 require 'C:/xampp/htdocs/db_connect.php';
+require 'C:/xampp/htdocs/role.php';
 
 // Procesar la actualización de la etapa si se presiona el botón
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['generar_cotizacion'])) {
     $proyecto_id = $_POST['proyecto_id'];
 
     // Actualizar la etapa a "en proceso"
-    $sqlUpdate = "UPDATE proyectos SET etapa = 'en proceso' WHERE cod_fab = ?";
+    $sqlUpdate = "UPDATE proyectos SET etapa = 'en proceso' WHERE cod_fab = (SELECT id_proyecto FROM orden_fab WHERE id_fab = ?)";
     $stmtUpdate = $conn->prepare($sqlUpdate);
     $stmtUpdate->bind_param("s", $proyecto_id);
 
@@ -35,10 +36,17 @@ if ($proyecto_id === false || empty($proyecto_id)) {
 }
 
 // Consultar datos del proyecto
-$sql = "SELECT p.cod_fab, p.nombre, c.nombre_comercial AS nombre_cliente, p.fecha_entrega, p.etapa
-        FROM proyectos p
-        LEFT JOIN clientes_p c ON p.id_cliente = c.id
-        WHERE p.cod_fab = ?";
+$sql = "SELECT 
+            of.id_fab AS proyecto_id,
+            p.cod_fab,
+            p.nombre AS nombre_proyecto,
+            c.nombre_comercial AS nombre_cliente,
+            p.fecha_entrega,
+            p.etapa
+        FROM orden_fab of
+        INNER JOIN proyectos p ON of.id_proyecto = p.cod_fab
+        INNER JOIN clientes_p c ON of.id_cliente = c.id
+        WHERE of.id_fab = ?";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
@@ -77,7 +85,7 @@ $sqlPartidas = "SELECT
                      FROM registro_estatus re
                      WHERE re.id_partida = pa.id) AS ultimo_registro
                 FROM partidas pa
-                WHERE pa.cod_fab = ?";
+                WHERE pa.cod_fab = (SELECT id_proyecto FROM orden_fab WHERE id_fab = ?)";
 
 $stmtPartidas = $conn->prepare($sqlPartidas);
 if (!$stmtPartidas) {
@@ -100,7 +108,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ver Proyecto</title>
+    <title>Proyecto OF-<?php echo htmlspecialchars($proyecto['proyecto_id']) ?></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
@@ -109,7 +117,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 
 <div class="container mt-4">
     <?php if ($proyecto['etapa'] != 'creado'): ?>
-    <?php echo "<h1>Proyecto: " . htmlspecialchars($proyecto['nombre']) . "</h1>";?>
+    <?php echo "<h1>Proyecto: " . htmlspecialchars($proyecto['nombre_proyecto']) . "</h1>";?>
     <table class="table table-bordered">
         <thead class="thead-dark">
             <tr>
@@ -127,20 +135,22 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
         </thead>
         <tbody>
         <?php
+        $pr = 1;
         $numRows = count($partidas);
         if (!empty($partidas)) {
             foreach ($partidas as $key => $row) {
                 echo "<tr>";
                 if ($key === 0) {
-                    echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['cod_fab']) . "</td>";
+                    echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . 'OF-' . htmlspecialchars($proyecto['proyecto_id']) . "</td>";
                     echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['nombre_cliente']) . "</td>";
                     echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['fecha_entrega']) . "</td>";
                 }
-                echo "<td>" . htmlspecialchars($row['partida_id']) . "</td>";
+                echo "<td>" . $pr . "</td>";
                 echo "<td>" . htmlspecialchars($row['nombre_partida']) . "</td>";
                 echo "<td>" . htmlspecialchars($row['proceso']) . "</td>";
                 echo "<td>" . htmlspecialchars($row['cantidad']) . "</td>";
                 echo "<td>" . htmlspecialchars($row['unidad_medida']) . "</td>";
+                $pr = $pr + 1;
                 if ($proyecto['etapa'] == 'en proceso'):
                     echo "<td data-id='" . htmlspecialchars($row['partida_id']) . "' class='editable'>" . htmlspecialchars($row['estatus']) . "</td>";
                     echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
@@ -164,22 +174,25 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
     </table>
     <?php endif; ?>
 
-    <?php if ($proyecto['etapa'] == 'creado'): ?>
-        <a href="ver_cot.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-info">Generar Cotización</a>
-    <?php endif; ?>
-
-
-    <div class="mt-4">
-        <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
+    <div class="mt-4 d-flex justify-content-center gap-3">
+        <a href="all_projects.php" class="btn btn-secondary mr-3">Regresar</a>
         <?php if ($proyecto['etapa'] != 'creado'): ?>
-        <a href="ver_logs.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-info">Logs</a>
+            <a href="ver_logs.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-info mr-3">Logs</a>
         <?php endif; ?>
-        <?php if ($proyecto['etapa'] == 'en proceso'): ?> 
-            <a href="finish_project.php?id=<?php echo urlencode($proyecto['cod_fab']); ?>" class="btn btn-success">Finalizar Proyecto</a>
-        <?php endif; ?>
+
+        <?php if($username == 'h.galicia' || $username == 'admin'):
+        if ($proyecto['etapa'] == 'facturacion'): ?> 
+            <a href="finish_project.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-info mr-3">Finalizar Proyecto</a>
+        <?php endif; 
+            endif; ?>
+
+        <?php if($username == 'CIS' || $username == 'admin'):
+        if ($proyecto['etapa'] == 'en proceso'): ?>
+            <a href="mandar_facturacion.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-info mr-3">Mandar a Facturar</a>
+        <?php endif; 
+        endif; ?>
     </div>
 </div>
-
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
@@ -218,7 +231,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
                 data: { 
                     id: partidaId, 
                     estatus: nuevoEstatus, 
-                    id_proyecto: '<?php echo htmlspecialchars($proyecto['cod_fab']); ?>', // Enviamos el id_proyecto
+                    id_fab: '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>', // Enviamos el id_proyecto
                     id_usuario: '<?php echo $_SESSION['user_id']; ?>' // Enviamos el id_usuario
                 },
                 success: function(response) {

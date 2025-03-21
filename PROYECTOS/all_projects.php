@@ -93,34 +93,82 @@ if (isset($_POST['rechazar_cotizacion'])) {
 if (isset($_POST['en_proceso'])) {
     $proyecto_id = $_POST['proyecto_id'];
 
-    // Cambiar el estado del proyecto
-    if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
-        // Enviar correo de notificación
-        $subject = "Proyecto en Proceso";
-        $body = "El proyecto con ID $proyecto_id ha sido enviado a producción.";
-        $to = 'sistemas@aamap.net'; // Cambia esto por el correo al que deseas enviar la notificación
+    // Iniciar una transacción
+    $conn->begin_transaction();
 
-        try {
-            send_email_order($to, $subject, $body);
-            $mensaje = "Se mandó al ERP y se notificó por correo.";
-        } catch (Exception $e) {
-            $mensaje = "Se mandó al ERP, pero hubo un error al enviar el correo: " . $e->getMessage();
+    try {
+        // Cambiar el estado del proyecto
+        if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
+            // Obtener el id_cliente del proyecto
+            $sql = "SELECT id_cliente, nombre FROM proyectos WHERE cod_fab = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("s", $proyecto_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $proyecto_data = $result->fetch_assoc();
+            $stmt->close();
+
+            if ($proyecto_data) {
+                $id_cliente = $proyecto_data['id_cliente'];
+                $proyecto_nombre = $proyecto_data['nombre'];
+
+                // Obtener id_partida desde la tabla partidas (asumiendo que hay una relación basada en cod_fab)
+                $sql = "SELECT id FROM partidas WHERE cod_fab = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("s", $proyecto_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $partida_data = $result->fetch_assoc();
+                $stmt->close();
+
+                if ($partida_data) {
+                    $id_partida = $partida_data['id'];
+
+                    // Insertar en la tabla orden_fab
+                    $sql = "INSERT INTO orden_fab (id_proyecto, id_cliente, id_partida, of_created) VALUES (?, ?, ?, NOW())";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("sii", $proyecto_id, $id_cliente, $id_partida);
+
+                    if ($stmt->execute()) {
+                        $mensaje = "Se mandó al ERP, se insertó la orden de fabricación y se notificó por correo.";
+                    } else {
+                        throw new Exception("Error al insertar la orden de fabricación.");
+                    }
+                    $stmt->close();
+                } else {
+                    throw new Exception("No se encontró la partida asociada al proyecto.");
+                }
+            } else {
+                throw new Exception("No se encontraron datos del proyecto.");
+            }
+
+            // Enviar correo de notificación
+            $subject = "Proyecto en ERP ";
+            $body = "<p>Se da inicio al proyecto <b> $proyecto_nombre </b> con id: <b> $proyecto_id.</b>
+                     <br>Favor de gestionar las actividaes correspondientes a su área.</p>";
+            $to = 'sistemas@aamap.net'; // a corporativo aamap (todos) cop.aamap@aamap.net
+
+            try {
+                send_email_order($to, $subject, $body);
+                $mensaje .= " Se notificó por correo.";
+            } catch (Exception $e) {
+                throw new Exception("Hubo un error al enviar el correo: " . $e->getMessage());
+            }
+
+            // Confirmar la transacción si todo está bien
+            $conn->commit();
+        } else {
+            throw new Exception("Error al cambiar el estado del proyecto.");
         }
-    } else {
-        $mensaje = "Error al cambiar el estado del proyecto.";
+    } catch (Exception $e) {
+        // Revertir la transacción en caso de error
+        $conn->rollback();
+        $mensaje = $e->getMessage();
     }
 
     // Mostrar mensaje y redirigir
     echo "<script>alert('" . addslashes($mensaje) . "'); window.location.href = 'all_projects.php';</script>";
     exit();
-}
-
-if (isset($_POST['en_proceso'])) {
-    error_log("Solicitud 'en_proceso' recibida."); // Mensaje de depuración
-    $proyecto_id = $_POST['proyecto_id'];
-    error_log("Proyecto ID: $proyecto_id"); // Mensaje de depuración
-
-    // Resto del código...
 }
 
 // Mostrar el mensaje y redirigir solo si es necesario
@@ -212,8 +260,6 @@ if ($mensaje !== "") {
     </div>
 </div>
 
-
-
 <script>
     // Filtrar proyectos dinámicamente por estado
     document.getElementById('filter').addEventListener('change', function () {
@@ -289,7 +335,7 @@ if ($mensaje !== "") {
                 form.submit();
             }
         } else if (accion === 'cis') {
-            if (confirm('¿Estás seguro de que quieres mandar a producción el proyecto?')) {
+            if (confirm('¿Estás seguro de que quieres mandar a OF?')) {
                 //Enviar el form de traspaso
                 var form = document.createElement('form');
                 form.method = 'POST';

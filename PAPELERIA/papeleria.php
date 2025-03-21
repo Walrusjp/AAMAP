@@ -66,22 +66,22 @@ if (isset($_POST['save_order'])) {
 
     if (!empty($_SESSION['cart'])) {
         // Variable para almacenar el cuerpo del correo
-        $emailBody = "Usuario #$userId, $username solicit�:\n\n";
+        $emailBody = "Usuario #$userId, $username solicitó:\n\n";
         $whatsappMessage = "Usuario: $username\nPedido:\n"; // Mensaje para WhatsApp
         $productsInfo = []; // Array para almacenar los productos con detalles
 
         foreach ($_SESSION['cart'] as $productId => $quantity) {
             // Obtener detalles del producto (descripci�n, imagen)
-            $query = "SELECT descripcion, imagen FROM productos WHERE id = ?";
+            $query = "SELECT id, imagen, descripcion, stock, created_at FROM productos WHERE activo = 1 AND (id LIKE ? OR descripcion LIKE ?) ORDER BY created_at ASC";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param("s", $productId);
+            $stmt->bind_param("ss", $productId, $productId); // Pasar $productId dos veces
             $stmt->execute();
-            $stmt->bind_result($descripcion, $imagen);
+            $stmt->bind_result($id, $imagen, $descripcion, $stock, $created_at); // Asegúrate de que todas las columnas estén en bind_result
             $stmt->fetch();
             $stmt->close();
 
             // Agregar detalles al cuerpo del correo
-            $emailBody .= "Producto: $productId\nDescripci�n: $descripcion\nCantidad: $quantity\n\n";
+            $emailBody .= "Producto: $productId\nDescripción: $descripcion\nCantidad: $quantity\n\n";
 
             // Agregar detalles para WhatsApp
             $whatsappMessage .= "$productId: $descripcion - Cantidad: $quantity\n";
@@ -125,7 +125,7 @@ if (isset($_POST['save_order'])) {
 
         // Enviar el correo con el cuerpo en formato HTML
         $to = "papeleria.aamap@gmail.com";
-        $subject = "PAPELER�A AAMAP - Pedido de stock";
+        $subject = "PAPELERIA AAMAP - Pedido de stock";
         send_email_order($to, $subject, $emailBodyHTML); // Se pasa el cuerpo en HTML
 
         // Limpiar el carrito
@@ -134,7 +134,7 @@ if (isset($_POST['save_order'])) {
         exit;
     } else {
         echo "<script>
-            alert('El carrito est� vac�o. No se puede guardar el pedido.');
+            alert('El carrito está vacío. No se puede guardar el pedido.');
             window.location.href='papeleria.php';
         </script>";
         exit;

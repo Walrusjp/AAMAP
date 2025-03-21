@@ -8,17 +8,18 @@ if (!isset($_SESSION['username'])) {
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 
-// Obtener los proyectos desde la base de datos
+// Obtener los proyectos desde la base de datos (ahora desde orden_fab)
 $sql = "SELECT
-            p.cod_fab AS proyecto_id,
+            of.id_fab AS proyecto_id,
             p.nombre AS proyecto_nombre,
             p.descripcion,
             p.etapa AS estatus,
             p.fecha_entrega,
             c.nombre_comercial AS cliente_nombre -- Usar nombre comercial del cliente
-        FROM proyectos AS p
-        INNER JOIN clientes_p AS c ON p.id_cliente = c.id
-        WHERE p.etapa IN ('en proceso', 'finalizado', 'facturacion')
+        FROM orden_fab AS of
+        INNER JOIN proyectos AS p ON of.id_proyecto = p.cod_fab
+        INNER JOIN clientes_p AS c ON of.id_cliente = c.id
+        WHERE p.etapa IN ('produccion', 'en proceso', 'finalizado', 'facturacion')
         ORDER BY p.etapa ASC";
 
 $result = $conn->query($sql);
@@ -31,7 +32,7 @@ if ($result->num_rows > 0) {
 
 // Función para actualizar el estatus del proyecto
 function actualizarEstatusProyecto($conn, $proyecto_id, $nuevo_estatus) {
-    $sql = "UPDATE proyectos SET etapa = ? WHERE cod_fab = ?";
+    $sql = "UPDATE proyectos SET etapa = ? WHERE cod_fab = (SELECT id_proyecto FROM orden_fab WHERE id_fab = ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ss", $nuevo_estatus, $proyecto_id);
     $stmt->execute();
@@ -73,6 +74,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
             <label for="filter" class="mr-2">Filtrar:</label>
             <select id="filter" class="form-control w-auto">
                 <option value="todos">Todos</option>
+                <option value="produccion">Producción</option>
                 <option value="en proceso">En proceso</option>
                 <option value="finalizado">Finalizados</option>
                 <option value="facturacion">Facturación</option>
@@ -94,11 +96,12 @@ if (isset($_POST['aprobar_cotizacion'])) {
                     <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">
                         <div class="card text-<?php 
                             echo $proyecto['estatus'] == 'finalizado' ? 'success' : 
-                                 ($proyecto['estatus'] == 'facturacion' ? 'primary' : 
-                                 ($proyecto['estatus'] == 'en proceso' ? 'warning' : 'dark')); 
+                                 ($proyecto['estatus'] == 'facturacion' ? 'primary' :
+                                 ($proyecto['estatus'] == 'produccion' ? 'secondary' : 
+                                 ($proyecto['estatus'] == 'en proceso' ? 'warning' : 'dark'))); 
                         ?>">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo htmlspecialchars($proyecto['proyecto_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
+                                <h5 class="card-title">OF-<?php echo htmlspecialchars($proyecto['proyecto_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
                                 <p class="card-text">
                                     Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
                                     Descripción: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
@@ -106,12 +109,9 @@ if (isset($_POST['aprobar_cotizacion'])) {
                             </div>
                         </div>
                     </a>
-
-                    <?php if ($proyecto['estatus'] == 'finalizado'): ?>
-                        <form method="POST" action="">
-                            <input type="hidden" name="proyecto_id" value="<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>">
-                            <button type="submit" name="facturar" class="btn btn-primary mt-2 btn-card">Mandar a Facturar</button>
-                        </form>
+                    
+                    <?php if ($proyecto['estatus'] == 'produccion'): ?>
+                        <a href="complete_reg.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-secondary mt-2 btn-card">Completar Registro</a>
                     <?php endif; ?>
 
                 </div>

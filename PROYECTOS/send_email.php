@@ -30,3 +30,5 @@ function send_email_order($to, $subject, $body) {
         echo "<script>alert('Error al enviar el correo: {$mail->ErrorInfo}');</script>";
     }
 }
+
+?>
