@@ -20,7 +20,7 @@ $sql = "SELECT
             c.nombre_comercial AS cliente_nombre -- Usar nombre comercial del cliente
         FROM proyectos AS p
         INNER JOIN clientes_p AS c ON p.id_cliente = c.id
-
+        WHERE p.etapa != 'directo' -- Excluir proyectos con etapa 'directo'
         ORDER BY p.cod_fab ASC";
 
 $result = $conn->query($sql);
@@ -191,30 +191,36 @@ if ($mensaje !== "") {
     <link rel="icon" href="/assets/logo.ico">
 </head>
 <body>
-<img src="/assets/grupo_aamap.webp" style="width: 18%; position: absolute; top: 25px; left: 10px;">
-<div class="sticky-header">
-    <div class="container d-flex justify-content-between chompa">
-        <p class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-        <div class="d-flex justify-content-center mb-3">
-            <label for="filter" class="mr-2">Filtrar:</label>
-            <select id="filter" class="form-control w-auto">
-                <option value="todos">Todos</option>
-                <option value="creado">Creado</option>
-                <option value="aprobado">Aprobado</option>
-                <option value="rechazado">No Concretado</option>
-                <option value="en proceso,finalizado,facturacion">ERP</option>
-            </select>
-            <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</a>
-            <a href="edit_project.php" class="btn btn-info chompa">Editar Cotización</a>
-            <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
-            <!--<a href="lista_cot.php" class="btn btn-info chompa">Cotizaciones</a>-->
-            <?php if ($username == 'admin'): ?>
-                <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
-            <?php endif; ?>
-            <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
-            <!--<form method="POST" action="">
-                <button type="submit" name="logout" class="btn btn-secondary chompa">Cerrar sesión</button>
-            </form>-->
+<div class="navbar" style="display: flex; align-items: center; justify-content: space-between; padding: 0px; background-color: #f8f9fa; position: relative;">
+    <!-- Logo -->
+    <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 18%; position: absolute; top: 25px; left: 10px;">
+
+    <!-- Contenedor de elementos alineados a la derecha -->
+    <div class="sticky-header" style="width: 100%;">
+        <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
+            <!-- Filtro y botones -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <!-- Filtro -->
+                <div style="display: flex; align-items: center;">
+                    <label for="filter" style="margin-right: 10px;">Filtrar:</label>
+                    <select id="filter" class="form-control" style="width: auto;">
+                        <option value="todos">Todos</option>
+                        <option value="creado">Creado</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="rechazado">No Concretado</option>
+                        <option value="en proceso,finalizado,facturacion">ERP</option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</a>
+                <a href="edit_project.php" class="btn btn-info chompa">Editar Cotización</a>
+                <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
+                <?php if ($username == 'admin'): ?>
+                    <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
+                <?php endif; ?>
+                <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
+            </div>
         </div>
     </div>
 </div>

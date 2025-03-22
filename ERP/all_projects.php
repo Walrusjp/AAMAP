@@ -8,6 +8,7 @@ if (!isset($_SESSION['username'])) {
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 
+
 // Obtener los proyectos desde la base de datos (ahora desde orden_fab)
 $sql = "SELECT
             of.id_fab AS proyecto_id,
@@ -19,7 +20,7 @@ $sql = "SELECT
         FROM orden_fab AS of
         INNER JOIN proyectos AS p ON of.id_proyecto = p.cod_fab
         INNER JOIN clientes_p AS c ON of.id_cliente = c.id
-        WHERE p.etapa IN ('produccion', 'en proceso', 'finalizado', 'facturacion')
+        WHERE p.etapa IN ('directo', 'en proceso', 'finalizado', 'facturacion')
         ORDER BY p.etapa ASC";
 
 $result = $conn->query($sql);
@@ -66,24 +67,33 @@ if (isset($_POST['aprobar_cotizacion'])) {
     <link rel="icon" href="/assets/logo.ico">
 </head>
 <body>
-<img src="/assets/grupo_aamap.webp" style="width: 18%; position: absolute; top: 25px; left: 10px;">
-<div class="sticky-header">
-    <div class="container d-flex justify-content-between chompa">
-        <p class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-        <div class="d-flex justify-content-center mb-3">
-            <label for="filter" class="mr-2">Filtrar:</label>
-            <select id="filter" class="form-control w-auto">
-                <option value="todos">Todos</option>
-                <option value="produccion">Producción</option>
-                <option value="en proceso">En proceso</option>
-                <option value="finalizado">Finalizados</option>
-                <option value="facturacion">Facturación</option>
-            </select>
-            <!--<a href="new_OF.php" class="btn btn-info chompa">Nueva OF</a>-->
-            <?php if ($username == 'admin'): ?>
-                <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
-            <?php endif; ?>
-            <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
+<div class="navbar" style="display: flex; align-items: center; justify-content: space-between; padding: 0px; background-color: #f8f9fa; position: relative;">
+    <!-- Logo -->
+    <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 18%; position: absolute; top: 25px; left: 10px;">
+
+    <!-- Contenedor de elementos alineados a la derecha -->
+    <div class="sticky-header" style="width: 100%;">
+        <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
+            <!-- Filtro y botones -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <!-- Filtro -->
+                <div style="display: flex; align-items: center;">
+                    <label for="filter" style="margin-right: 10px;">Filtrar:</label>
+                    <select id="filter" class="form-control" style="width: auto;">
+                        <option value="todos">Todos</option>
+                        <option value="directo">directo</option>
+                        <option value="en proceso">En proceso</option>
+                        <option value="finalizado">Finalizados</option>
+                        <option value="facturacion">Facturación</option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <?php if ($username == 'admin'): ?>
+                    <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
+                <?php endif; ?>
+                <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
+            </div>
         </div>
     </div>
 </div>
@@ -97,7 +107,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                         <div class="card text-<?php 
                             echo $proyecto['estatus'] == 'finalizado' ? 'success' : 
                                  ($proyecto['estatus'] == 'facturacion' ? 'primary' :
-                                 ($proyecto['estatus'] == 'produccion' ? 'secondary' : 
+                                 ($proyecto['estatus'] == 'directo' ? 'warning' : 
                                  ($proyecto['estatus'] == 'en proceso' ? 'warning' : 'dark'))); 
                         ?>">
                             <div class="card-body">
@@ -109,7 +119,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                             </div>
                         </div>
                     </a>
-                    
+            <!--ucbeiubacnneiondioenon-->
                     <?php if ($proyecto['estatus'] == 'produccion'): ?>
                         <a href="complete_reg.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-secondary mt-2 btn-card">Completar Registro</a>
                     <?php endif; ?>

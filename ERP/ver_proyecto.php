@@ -151,7 +151,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
                 echo "<td>" . htmlspecialchars($row['cantidad']) . "</td>";
                 echo "<td>" . htmlspecialchars($row['unidad_medida']) . "</td>";
                 $pr = $pr + 1;
-                if ($proyecto['etapa'] == 'en proceso'):
+                if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo'):
                     echo "<td data-id='" . htmlspecialchars($row['partida_id']) . "' class='editable'>" . htmlspecialchars($row['estatus']) . "</td>";
                     echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
                     echo "</tr>";
@@ -187,7 +187,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
             endif; ?>
 
         <?php if($username == 'CIS' || $username == 'admin'):
-        if ($proyecto['etapa'] == 'en proceso'): ?>
+        if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo'): ?>
             <a href="mandar_facturacion.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-info mr-3">Mandar a Facturar</a>
         <?php endif; 
         endif; ?>

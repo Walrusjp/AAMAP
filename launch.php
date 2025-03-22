@@ -54,10 +54,10 @@ if (!isset($_SESSION['welcome_shown'])) {
     <div class="navbar" style="display: flex; align-items: center; justify-content: space-between;">
         <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="height: 90px;">
         <div style="display: flex; align-items: center;">
-            <img src="/assets/user.ico" alt="usuario" style="width: 20px; height: 20px; margin-right: 10px;">
+            <img src="/assets/user.ico" alt="usuario" style="width: 30px; height: auto; margin-right: 10px;">
             <h4 style="margin: 0;" class="mr-3"><b>: <?php echo htmlspecialchars($_SESSION['username']); ?></b></h4>
             <button type="button" class="btn btn-outline-secondary mr-3" id="logout" onclick="openLogoutModal()">
-                <img src="/assets/logout.ico" title="Cerrar Sesión" style="width: 40px; height: auto;">
+                <img src="/assets/logout.ico" title="Cerrar Sesión" style="width: 35px; height: auto;">
             </button>
         </div>
     </div>
@@ -88,11 +88,13 @@ if (!isset($_SESSION['welcome_shown'])) {
 
         <?php if($username === 'admin' || $username === 'h.galicia'): ?>
             <button onclick="window.location.href='/PROYECTOS/all_projects.php'">CRM PROYECTOS</button>
+        <?php elseif($username === 'CIS' || $username === 'atencionaclientes'): ?>
+            <button onclick="window.location.href='/PROYECTOS/direct_projects.php'">CRM PROYECTOS</button>
         <?php else: ?>
             <button onclick="window.location.href='/PROYECTOS/all_projects.php'" disabled>CRM PROYECTOS</button>
         <?php endif; ?>
 
-        <?php if($role === 'admin' || $username === 'CIS'): ?>
+        <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes'): ?>
             <button onclick="window.location.href='/ERP/all_projects.php'">ERP PROYECTOS</button>
         <?php else: ?>
             <button onclick="window.location.href='/ERP/all_projects.php'" disabled>ERP PROYECTOS</button>
