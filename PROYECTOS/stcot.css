@@ -38,6 +38,7 @@ p, h1, h2, h3, h4, .content {text-align: center;}
           line-height: 1.1; /* Ajusta el interlineado para compactar el texto */
           max-width: 100%; /* Asegura que no sobrepase el ancho asignado */
         }
+        #c_pago {line-height: 1em;}
         table {
             width: 100%;
             padding: 10px;
@@ -58,7 +59,7 @@ p, h1, h2, h3, h4, .content {text-align: center;}
             padding-bottom: 3px;
         }
         .cliente {font-size: 0.8em;}
-        .vigencia {font-size: 0.8em;}
+        .vigencia {font-size: 0.8em; line-height: 0.5em;}
         .cifras {line-height: 0;}
 
 

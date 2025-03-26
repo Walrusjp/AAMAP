@@ -1,0 +1,33 @@
+>>RESTRICCIONES EN SISTEMA AAMAP<<
+.- Papeleria
+    - Acceso a a usuarios generales
+    - botones de reportes dedicados a superadmin
+.- CRM
+    - Acceso solo a ventas y atencion a clientes
+    - atencion a clientes solo puede visualizar las cotizaciones
+.- CRM (OF directas)
+    - Acceso solo a CIS y compras
+    - Solo CIS puede crear una OF directa
+.- ERP
+    - Acceso a ventas, CIS, manufactura, proyectos, compras
+    - Solo ventas puede finalizar un proyecto
+    - Solo CIS puede mandar a facturacion un proyecto
+    - Solo CIS puede actualizar los logs de cada proyecto
+
+
+
+NOTAS:
+.- PAPELERÍA
+    - 
+.- CRM:
+    - despues de 2 meses mandar cot de 'creado' a 'rechazado'
+    - al mandar correo incluir los datos en texto plano omitiendo numeros
+    - añadir un distintivo a proveedores favoritos
+    - Cuentas registra los datos bancarios del cliente
+.- CRM (OF directas)
+    - que se pueda editar y guardar logs
+.- ERP
+    - al mandar correo incluir los datos en texto plano (toda la info)
+
+OF actual 250, empezar en 251 (empezar en 300)
+cambiar de com a manufactura en proyecto OF-201

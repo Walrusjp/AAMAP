@@ -116,6 +116,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 <body>
 
 <div class="container mt-4">
+<img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 18%; position: absolute; top: 8px; left: 10px;">
     <?php if ($proyecto['etapa'] != 'creado'): ?>
     <?php echo "<h1>Proyecto: " . htmlspecialchars($proyecto['nombre_proyecto']) . "</h1>";?>
     <table class="table table-bordered">
@@ -124,7 +125,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
                 <th>OF</th>
                 <th>Cliente</th>
                 <th>F.E</th>
-                <th>ID partida</th>
+                <th>ID P</th>
                 <th>Descrip Partida</th>
                 <th>Proceso</th>
                 <th>Cantidad</th>

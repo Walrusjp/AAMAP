@@ -16,7 +16,8 @@ $sql = "SELECT
             p.descripcion,
             p.etapa AS estatus,
             p.fecha_entrega,
-            c.nombre_comercial AS cliente_nombre -- Usar nombre comercial del cliente
+            p.cod_fab,
+            c.nombre_comercial AS cliente_nombre
         FROM orden_fab AS of
         INNER JOIN proyectos AS p ON of.id_proyecto = p.cod_fab
         INNER JOIN clientes_p AS c ON of.id_cliente = c.id
@@ -74,6 +75,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
     <!-- Contenedor de elementos alineados a la derecha -->
     <div class="sticky-header" style="width: 100%;">
         <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
+        <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>E R P</b></p></div>
             <!-- Filtro y botones -->
             <div style="display: flex; align-items: center; gap: 10px;">
                 <!-- Filtro -->
@@ -90,7 +92,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
 
                 <!-- Botones -->
                 <?php if ($username == 'admin'): ?>
-                    <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
+                    <a href="delete_project.php" class="btn btn-danger chompa"><img src="/assets/delete.ico" style="width: 30px; height: auto; alt=""></a>
                 <?php endif; ?>
                 <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
@@ -115,6 +117,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                                 <p class="card-text">
                                     Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
                                     Descripción: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
+                                    <small class="text-muted"><b>Basado en cot: <?php echo htmlspecialchars($proyecto['cod_fab']); ?></b></small>
                                 </p>
                             </div>
                         </div>

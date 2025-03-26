@@ -148,23 +148,23 @@ if (isset($_POST['logout'])) {
     <!--tabla de daotos de vigencia y bancarios-->
     <table style="border-top: none">
         <tr><div id="data">
-            <td class="interlineado vigencia" style="width: 20%;">
+            <td class=" vigencia" style="width: 20%;">
                 <p style="text-align: left; margin-left: 30px;"><b>VIGENCIA:</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>PRECIOS</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>MONEDA</b></p>
-                <p style="text-align: left; margin-left: 30px;"><b>COND. PAGO</b></p>
+                <p style="text-align: left; margin-left: 30px;" ><b>COND. PAGO</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>L.A.B:</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>TPO. ENTR:</b></p>
             </td>
-            <td class="interlineado vigencia" style="width: 35%;">
+            <td class=" vigencia" style="width: 38%;">
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['vigencia']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['precios']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['moneda']); ?></p>
-                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['condicion_pago']); ?></p>
+                <p style="text-align: left;" ><?php echo htmlspecialchars($datos_vigencia['condicion_pago']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['lab']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['tipo_entr']); ?></p>
             </td>
-            <td style="width: 45%;">
+            <td style="width: 42%;">
                 <img src="/assets/datos.webp" style="width: 100%;">
             </td>
         </div></tr>

@@ -8,6 +8,7 @@ if (!isset($_SESSION['username'])) {
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 require 'get_compradores.php';
+require 'send_email.php';
 
 // Obtener clientes para la lista desplegable
 $sqlClientes = "SELECT id, nombre_comercial FROM clientes_p";
@@ -40,9 +41,10 @@ if ($resultUltimoCodFab->num_rows > 0) {
 $cod_fab = 'OF-' . $ultimoNumero; // Formato OF-1000, OF-1001, etc.
 
 // Verificar si se envió el formulario
+// Verificar si se envió el formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    error_log("Formulario enviado"); // Depuración
-    var_dump($_POST); // Depuración: Verifica los datos enviados por el formulario
+    error_log("Formulario enviado");
+    var_dump($_POST);
 
     $cod_fab = $_POST['cod_fab'];
     $nombre = $_POST['nombre'];
@@ -52,24 +54,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $partidas = json_decode($_POST['partidas'], true);
     $id_comprador = $_POST['id_comprador'];
 
-    error_log("Datos recibidos: cod_fab=$cod_fab, nombre=$nombre, id_cliente=$id_cliente, descripcion=$descripcion, fecha_entrega=$fecha_entrega, id_comprador=$id_comprador"); // Depuración
-
     $conn->begin_transaction();
     try {
-        // Insertar proyecto
+        // 1. Insertar proyecto
         $sqlProyecto = "INSERT INTO proyectos (cod_fab, nombre, id_cliente, id_comprador, descripcion, etapa, fecha_entrega)
                 VALUES (?, ?, ?, ?, ?, 'directo', ?)";
         $stmtProyecto = $conn->prepare($sqlProyecto);
         $stmtProyecto->bind_param('ssiiss', $cod_fab, $nombre, $id_cliente, $id_comprador, $descripcion, $fecha_entrega);
         $stmtProyecto->execute();
 
-        error_log("Proyecto insertado correctamente"); // Depuración
-
-        // Insertar partidas y obtener sus IDs
+        // 2. Insertar partidas
         $sqlPartida = "INSERT INTO partidas (cod_fab, descripcion, proceso, cantidad, unidad_medida, precio_unitario) 
                        VALUES (?, ?, ?, ?, ?, ?)";
         $stmtPartida = $conn->prepare($sqlPartida);
-        $id_partida = null; // Variable para almacenar el ID de la partida
+        $id_partida = null;
 
         foreach ($partidas as $partida) {
             $stmtPartida->bind_param(
@@ -82,29 +80,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $partida['precio_unitario']
             );
             $stmtPartida->execute();
-            $id_partida = $stmtPartida->insert_id; // Obtener el ID de la partida recién insertada
-            error_log("Partida insertada: " . print_r($partida, true) . ", ID: $id_partida"); // Depuración
+            $id_partida = $stmtPartida->insert_id;
         }
 
-        // Insertar en orden_fab (usar el ID de la partida)
+        // 3. Insertar en orden_fab
         if ($id_partida !== null) {
             $sqlOrdenFab = "INSERT INTO orden_fab (id_proyecto, id_cliente, id_partida, of_created) 
                             VALUES (?, ?, ?, NOW())";
             $stmtOrdenFab = $conn->prepare($sqlOrdenFab);
             $stmtOrdenFab->bind_param('sii', $cod_fab, $id_cliente, $id_partida);
             $stmtOrdenFab->execute();
-
-            error_log("Orden de fabricación insertada correctamente"); // Depuración
         } else {
             throw new Exception("No se pudo obtener el ID de la partida.");
         }
 
+        // 4. Preparar y enviar correo (debe ser exitoso para hacer commit)
+        $to = 'cop.aamap@aamap.net';
+        $subject = "Nueva Orden de Fabricacion Directa: $cod_fab";
+
+        // Obtener nombre del cliente
+        $sqlCliente = "SELECT nombre_comercial FROM clientes_p WHERE id = ?";
+        $stmtCliente = $conn->prepare($sqlCliente);
+        $stmtCliente->bind_param('i', $id_cliente);
+        $stmtCliente->execute();
+        $resultCliente = $stmtCliente->get_result();
+        $nombre_cliente = $resultCliente->fetch_assoc()['nombre_comercial'];
+        $stmtCliente->close();
+        
+        // Construir cuerpo del mensaje
+        $body = "<h3>Orden de Fabricación Directa: $cod_fab</h3>";
+        $body .= "<p><strong>Proyecto:</strong> $nombre</p>";
+        $body .= "<p><strong>Cliente ID:</strong> $nombre_cliente</p>";
+        $body .= "<p><strong>Fecha Entrega:</strong> $fecha_entrega</p>";
+        $body .= "<p><strong>Descripción:</strong> $descripcion</p>";
+        
+        $body .= "<h4>Partidas:</h4>";
+        $body .= "<table border='1' cellpadding='5'><tr><th>#</th><th>Descripción</th><th>Cantidad</th><th>Unidad</th><th>Proceso</th></tr>";
+        
+        foreach ($partidas as $i => $partida) {
+            $body .= "<tr>
+                <td>".($i+1)."</td>
+                <td>{$partida['descripcion']}</td>
+                <td>{$partida['cantidad']}</td>
+                <td>{$partida['unidad_medida']}</td>
+                <td>{$partida['proceso']}</td>
+            </tr>";
+        }
+        $body .= "</table>";
+        
+        // Intento de envío de correo (si falla, lanzará excepción)
+        send_email_order($to, $subject, $body);
+        
+        // Si todo sale bien, hacer commit
         $conn->commit();
-        echo "<script>alert('Orden de fabricación directa registrada exitosamente.'); window.location.href = 'direct_projects.php';</script>";
+        echo "<script>alert('Orden de fabricación directa registrada y notificada exitosamente.'); window.location.href = 'direct_projects.php';</script>";
+        
     } catch (Exception $e) {
         $conn->rollback();
-        error_log("Error en la transacción: " . $e->getMessage()); // Depuración
-        echo "<script>alert('Error al registrar: " . $e->getMessage() . "');</script>";
+        error_log("Error en la transacción: " . $e->getMessage());
+        echo "<script>alert('Error al registrar: " . addslashes($e->getMessage()) . "');</script>";
     }
 }
 ?>
@@ -122,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="container">
     <h1 class="text-center">Nueva Orden de Fabricación Directa</h1>
-    <a href="all_projects.php" class="btn btn-secondary">Regresar</a>
+    <a href="direct_projects.php" class="btn btn-secondary">Regresar</a>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;</p>
     <form id="projectForm" method="POST" action="new_of.php">
         <div class="form-group">
@@ -139,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <option value="">Seleccionar cliente</option>
                 <?php
                 // IDs de clientes válidos
-                $clientesValidos = [100, 105];
+                $clientesValidos = [113, 114];
                 foreach ($clientes as $cliente):
                     if (in_array($cliente['id'], $clientesValidos)): // Solo mostrar clientes con ID 100 y 105
                 ?>
@@ -168,9 +202,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" class="form-control" id="descripcion_partida" placeholder="Descripción de la Partida">
             </div>
             <div class="col">
-                <!-- Campo oculto para el proceso, siempre será "MAN" -->
+                <!-- Campo oculto para el proceso, siempre será "MAN"
                 <input type="hidden" id="proceso" value="com">
-                <input type="text" class="form-control" value="COM" readonly>
+                <input type="text" class="form-control" value="COM" readonly>-->
+                <select class="form-control" id="proceso">
+                    <option value="com">COM</option>
+                    <option value="man">MAN</option>
+                    <option value="maq">MAQ</option>
+                </select>
             </div>
             <div class="col">
                 <input type="number" class="form-control" id="cantidad_partida" placeholder="Cantidad">
@@ -217,10 +256,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (descripcion && cantidad && unidad_medida && precio_unitario) {
             partidas.push({ descripcion, proceso, cantidad, unidad_medida, precio_unitario });
-            $('#partidasTable').append(`
+            /*$('#partidasTable').append(`
                 <tr>
                     <td>${descripcion}</td>
                     <td>MAN</td> <!-- Mostrar "MAN" directamente -->
+                    <td>${cantidad}</td>
+                    <td>${unidad_medida}</td>
+                    <td>${precio_unitario}</td>
+                    <td><button class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
+                </tr>
+            `);*/
+            $('#partidasTable').append(`
+                <tr>
+                    <td>${descripcion}</td>
+                    <td>${proceso.toUpperCase()}</td> <!-- Mostrar el proceso seleccionado -->
                     <td>${cantidad}</td>
                     <td>${unidad_medida}</td>
                     <td>${precio_unitario}</td>

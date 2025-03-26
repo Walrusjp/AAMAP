@@ -11,17 +11,19 @@ require 'send_email.php';
 
 // Obtener los proyectos desde la base de datos
 $sql = "SELECT
-            p.cod_fab AS proyecto_id,
-            p.nombre AS proyecto_nombre,
-            p.descripcion,
-            p.etapa AS estatus,
-            p.observaciones,
-            p.fecha_entrega,
-            c.nombre_comercial AS cliente_nombre -- Usar nombre comercial del cliente
-        FROM proyectos AS p
-        INNER JOIN clientes_p AS c ON p.id_cliente = c.id
-        WHERE p.etapa != 'directo' -- Excluir proyectos con etapa 'directo'
-        ORDER BY p.cod_fab ASC";
+    p.cod_fab AS proyecto_id,
+    p.nombre AS proyecto_nombre,
+    p.descripcion,
+    p.etapa AS estatus,
+    p.observaciones,
+    p.fecha_entrega,
+    c.nombre_comercial AS cliente_nombre
+FROM proyectos AS p
+INNER JOIN clientes_p AS c ON p.id_cliente = c.id
+WHERE p.etapa != 'directo'
+ORDER BY 
+    FIELD(p.etapa, 'creado', 'aprobado', 'rechazado', 'en proceso', 'facturacion', 'finalizado'),
+    p.cod_fab ASC";
 
 $result = $conn->query($sql);
 $proyectos = [];
@@ -90,84 +92,71 @@ if (isset($_POST['rechazar_cotizacion'])) {
 }
 
 // Manejar la solicitud de mandar a ERP
+// En la sección donde manejas el envío a ERP (dentro del if (isset($_POST['en_proceso'])))
 if (isset($_POST['en_proceso'])) {
     $proyecto_id = $_POST['proyecto_id'];
-
-    // Iniciar una transacción
     $conn->begin_transaction();
 
     try {
-        // Cambiar el estado del proyecto
         if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
-            // Obtener el id_cliente del proyecto
-            $sql = "SELECT id_cliente, nombre FROM proyectos WHERE cod_fab = ?";
-            $stmt = $conn->prepare($sql);
+            // Obtener datos básicos del proyecto (sin consulta adicional)
+            $proyecto_data = $proyectos[array_search($proyecto_id, array_column($proyectos, 'proyecto_id'))];
+            
+            // Consulta optimizada para partidas
+            $sql_partidas = "SELECT descripcion, cantidad, unidad_medida 
+                            FROM partidas 
+                            WHERE cod_fab = ? LIMIT 20"; // Limitar para evitar emails demasiado largos
+            $stmt = $conn->prepare($sql_partidas);
             $stmt->bind_param("s", $proyecto_id);
             $stmt->execute();
-            $result = $stmt->get_result();
-            $proyecto_data = $result->fetch_assoc();
+            $partidas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
 
-            if ($proyecto_data) {
-                $id_cliente = $proyecto_data['id_cliente'];
-                $proyecto_nombre = $proyecto_data['nombre'];
-
-                // Obtener id_partida desde la tabla partidas (asumiendo que hay una relación basada en cod_fab)
-                $sql = "SELECT id FROM partidas WHERE cod_fab = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("s", $proyecto_id);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $partida_data = $result->fetch_assoc();
-                $stmt->close();
-
-                if ($partida_data) {
-                    $id_partida = $partida_data['id'];
-
-                    // Insertar en la tabla orden_fab
-                    $sql = "INSERT INTO orden_fab (id_proyecto, id_cliente, id_partida, of_created) VALUES (?, ?, ?, NOW())";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bind_param("sii", $proyecto_id, $id_cliente, $id_partida);
-
-                    if ($stmt->execute()) {
-                        $mensaje = "Se mandó al ERP, se insertó la orden de fabricación y se notificó por correo.";
-                    } else {
-                        throw new Exception("Error al insertar la orden de fabricación.");
-                    }
-                    $stmt->close();
-                } else {
-                    throw new Exception("No se encontró la partida asociada al proyecto.");
+            // Configuración del correo
+            $to = 'cop.aamap@aamap.net'; // Destinatario fijo
+            $subject = "Nuevo Proyecto en ERP: " . $proyecto_data['proyecto_nombre'];
+            
+            // Cuerpo del correo en HTML (compatible con tu función existente)
+            $body = "<h3>Se inicia proyecto {$proyecto_data['proyecto_id']}: {$proyecto_data['proyecto_nombre']}</h3>";
+            $body .= "<p><strong>Cliente:</strong> {$proyecto_data['cliente_nombre']}</p>";
+            $body .= "<p><strong>Entrega:</strong> {$proyecto_data['fecha_entrega']}</p>";
+            
+            if (!empty($partidas)) {
+                $body .= "<h4>Partidas:</h4><table border='1' cellpadding='5'>";
+                $body .= "<tr><th>#</th><th>Descripción</th><th>Cantidad</th><th>Unidad</th></tr>";
+                
+                foreach ($partidas as $i => $partida) {
+                    $body .= "<tr>
+                        <td>".($i+1)."</td>
+                        <td>{$partida['descripcion']}</td>
+                        <td>{$partida['cantidad']}</td>
+                        <td>{$partida['unidad_medida']}</td>
+                    </tr>";
                 }
-            } else {
-                throw new Exception("No se encontraron datos del proyecto.");
+                $body .= "</table>";
             }
 
-            // Enviar correo de notificación
-            $subject = "Proyecto en ERP ";
-            $body = "<p>Se da inicio al proyecto <b> $proyecto_nombre </b> con id: <b> $proyecto_id.</b>
-                     <br>Favor de gestionar las actividaes correspondientes a su área.</p>";
-            $to = 'cop.aamap@aamap.net'; // a corporativo aamap (todos) cop.aamap@aamap.net
+            $body .= "<p>Favor de gestionar las actividades correspondientes.</p>";
 
+            // Envío con manejo de errores
             try {
                 send_email_order($to, $subject, $body);
-                $mensaje .= " Se notificó por correo.";
+                $mensaje = "Proyecto enviado a ERP y notificado correctamente";
+                $conn->commit();
             } catch (Exception $e) {
-                throw new Exception("Hubo un error al enviar el correo: " . $e->getMessage());
+                // Fallback a mensaje simple si falla el envío detallado
+                $body_simple = "<p>Se inicia proyecto {$proyecto_data['proyecto_id']}. Ver detalles en sistema.</p>";
+                send_email_order($to, $subject, $body_simple);
+                $mensaje = "Proyecto enviado (notificación básica)";
+                $conn->commit();
             }
-
-            // Confirmar la transacción si todo está bien
-            $conn->commit();
-        } else {
-            throw new Exception("Error al cambiar el estado del proyecto.");
         }
     } catch (Exception $e) {
-        // Revertir la transacción en caso de error
         $conn->rollback();
-        $mensaje = $e->getMessage();
+        $mensaje = "Error: " . $e->getMessage();
     }
 
-    // Mostrar mensaje y redirigir
-    echo "<script>alert('" . addslashes($mensaje) . "'); window.location.href = 'all_projects.php';</script>";
+    echo "<script>alert('".addslashes($mensaje)."'); window.location.href='all_projects.php';</script>";
     exit();
 }
 
@@ -198,11 +187,12 @@ if ($mensaje !== "") {
     <!-- Contenedor de elementos alineados a la derecha -->
     <div class="sticky-header" style="width: 100%;">
         <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
+        <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>C R M</b></p></div>
             <!-- Filtro y botones -->
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 0px;">
                 <!-- Filtro -->
                 <div style="display: flex; align-items: center;">
-                    <label for="filter" style="margin-right: 10px;">Filtrar:</label>
+                    <label for="filter" style="margin-right: 5px; margin-top: 5px;">Filtrar:</label>
                     <select id="filter" class="form-control" style="width: auto;">
                         <option value="todos">Todos</option>
                         <option value="creado">Creado</option>
@@ -217,7 +207,7 @@ if ($mensaje !== "") {
                 <a href="edit_project.php" class="btn btn-info chompa">Editar Cotización</a>
                 <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
                 <?php if ($username == 'admin'): ?>
-                    <a href="delete_project.php" class="btn btn-danger chompa">Eliminar Proyecto</a>
+                    <a href="delete_project.php" class="btn btn-danger chompa"><img src="/assets/delete.ico" style="width: 30px; height: auto; alt=""></a>
                 <?php endif; ?>
                 <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
             </div>

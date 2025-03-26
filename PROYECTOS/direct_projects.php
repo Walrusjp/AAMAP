@@ -104,7 +104,7 @@ if ($mensaje !== "") {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Órdenes de Fabricación Directas</title>
+    <title>OF Directas</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
@@ -113,7 +113,7 @@ if ($mensaje !== "") {
 <div class="navbar" style="display: flex; align-items: center; justify-content: space-between; padding: 0px; background-color: #f8f9fa; position: relative;">
     <!-- Logo -->
     <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 18%; position: absolute; top: 25px; left: 10px;">
-
+    <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.3em; font-family: 'Verdana';"><b>C R M</b></p></div>
     <!-- Contenedor de elementos alineados a la derecha -->
     <div class="sticky-header" style="width: 100%;">
         <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
