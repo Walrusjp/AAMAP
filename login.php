@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Consulta para verificar el nombre de usuario y contraseña
+    // Consulta para verificar el nombre de usuario y contraseÃ±a
     $query = "SELECT id, username, password FROM users WHERE username = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $username);
@@ -17,15 +17,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = $result->fetch_assoc();
 
     if ($user && password_verify($password, $user['password'])) {
-        // Si las credenciales son válidas, almacenar el user_id en la sesión
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['user_id'] = $user['id']; // Guardar el user_id en la sesión
+        // Obtener la IP del cliente
+        $ip_address = $_SERVER['REMOTE_ADDR'];
 
-        // Redirigir al usuario a la página de bienvenida u otra página
-        header("Location: launch.php");// cambiar a papeleria.php o error404.html
+        // Registrar el acceso en la tabla login_logs
+        $log_query = "INSERT INTO login_logs (user_id, username, ip_address) VALUES (?, ?, ?)";
+        $log_stmt = $conn->prepare($log_query);
+        $log_stmt->bind_param("iss", $user['id'], $user['username'], $ip_address);
+        $log_stmt->execute();
+        $log_stmt->close();
+
+        // Guardar datos en la sesiÃ³n
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['user_id'] = $user['id'];
+
+        // Redirigir al usuario
+        header("Location: launch.php");
         exit();
     } else {
-        $error = "Nombre de usuario o contraseña incorrectos."; // Almacenar el error
+        $error = "Nombre de usuario o contraseÃ±a incorrectos.";
     }
 
     $stmt->close();

@@ -83,8 +83,9 @@ if (isset($_POST['aprobar_cotizacion'])) {
                     <label for="filter" style="margin-right: 10px;">Filtrar:</label>
                     <select id="filter" class="form-control" style="width: auto;">
                         <option value="todos">Todos</option>
-                        <option value="directo">directo</option>
-                        <option value="en proceso">En proceso</option>
+                        <option value="directo">directas</option>
+                        <option value="en proceso">proyectos</option>
+                        <option value="en proceso,directo">En proceso</option>
                         <option value="finalizado">Finalizados</option>
                         <option value="facturacion">Facturación</option>
                     </select>
@@ -146,10 +147,16 @@ if (isset($_POST['aprobar_cotizacion'])) {
         const proyectos = document.querySelectorAll('.proyecto-card');
 
         proyectos.forEach(function (proyecto) {
-            if (selectedFilter === 'todos' || proyecto.dataset.estatus === selectedFilter) {
+            if (selectedFilter === 'todos') {
                 proyecto.style.display = 'block';
             } else {
-                proyecto.style.display = 'none';
+                // Convertir la lista de estados en un array
+                const estados = selectedFilter.split(','); 
+                if (estados.includes(proyecto.dataset.estatus)) {
+                    proyecto.style.display = 'block';
+                } else {
+                    proyecto.style.display = 'none';
+                }
             }
         });
     });

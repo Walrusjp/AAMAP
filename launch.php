@@ -94,7 +94,7 @@ if (!isset($_SESSION['welcome_shown'])) {
             <button onclick="window.location.href='/PROYECTOS/all_projects.php'" disabled>CRM PROYECTOS</button>
         <?php endif; ?>
 
-        <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes'): ?>
+        <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes' || $username === 'calidad'): ?>
             <button onclick="window.location.href='/ERP/all_projects.php'">ERP PROYECTOS</button>
         <?php else: ?>
             <button onclick="window.location.href='/ERP/all_projects.php'" disabled>ERP PROYECTOS</button>
