@@ -90,7 +90,6 @@ if (isset($_POST['aprobar_cotizacion'])) {
                         <option value="facturacion">Facturación</option>
                     </select>
                 </div>
-
                 <!-- Botones -->
                 <?php if ($username == 'admin'): ?>
                     <a href="delete_project.php" class="btn btn-danger chompa"><img src="/assets/delete.ico" style="width: 30px; height: auto; alt=""></a>
