@@ -33,14 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-function closeModal() {
-    const modal = document.getElementById('welcomeModal');
-    modal.classList.remove('show'); // Quita la clase "show" para la animación de salida
-    setTimeout(() => {
-        modal.style.display = 'none'; // Oculta completamente el modal después de la animación
-    }, 500); // 500ms coincide con la duración de la transición
-}
-
 
 function searchProduct(query) {
     const suggestionsDiv = document.getElementById("suggestions");

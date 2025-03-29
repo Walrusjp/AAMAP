@@ -22,7 +22,7 @@ $sql = "SELECT
         INNER JOIN proyectos AS p ON of.id_proyecto = p.cod_fab
         INNER JOIN clientes_p AS c ON of.id_cliente = c.id
         WHERE p.etapa IN ('directo', 'en proceso', 'finalizado', 'facturacion')
-        ORDER BY p.etapa ASC";
+        ORDER BY of.id_fab DESC";
 
 $result = $conn->query($sql);
 $proyectos = [];
@@ -116,7 +116,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                                 <h5 class="card-title">OF-<?php echo htmlspecialchars($proyecto['proyecto_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
                                 <p class="card-text">
                                     Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
-                                    Descripción: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
+                                    Nota: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
                                     <small class="text-muted"><b>Basado en cot: <?php echo htmlspecialchars($proyecto['cod_fab']); ?></b></small>
                                 </p>
                             </div>
