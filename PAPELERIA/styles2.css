@@ -7,48 +7,33 @@ body {
     color: #2c3e50;
 }
 
-/* Estilos básicos para el modal */
-.modal {
-    display: block; /* Para que sea visible inicialmente si está activado */
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
-    opacity: 0; /* Para animación */
-    visibility: hidden; /* Oculta cuando no se muestra */
-    transition: opacity 0.5s ease, visibility 0.5s ease; /* Transiciones suaves */
+.search-form {
+    display: flex;
+    align-items: center;
 }
-.modal.show {
-    opacity: 1; /* Hacer visible */
-    visibility: visible; /* Mostrar */
+
+.search-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
 }
-.modal-content {
-    background-color: #ffffff; /* Fondo blanco */
-    border-radius: 10px; /* Bordes redondeados */
-    margin: 15% auto;
-    padding: 20px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombra elegante */
-    width: 40%; /* Ancho */
-    transform: scale(0.9); /* Efecto de entrada */
-    transition: transform 0.5s ease; /* Animación al escalar */
-}
-.modal.show .modal-content {
-    transform: scale(1); /* Escalar a tamaño normal */
-}
-.modal-header {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-}
-.modal-body {
-    font-size: 1rem;
+
+.search-button svg {
     color: #555;
-    margin-bottom: 20px;
+    transition: color 0.3s;
 }
+
+.search-button:hover svg {
+    color: #000;
+}
+
+.clear-search {
+    margin-right: 5px;
+}
+
+
 .close-btn {
     background-color: #f44336;
     color: white;
@@ -113,10 +98,6 @@ body {
 .search-box .form-control {
     width: 250px;
     margin-right: 5px;
-}
-
-.sec {
-    /*margin-left: 60px;/**/
 }
 
 .btn {

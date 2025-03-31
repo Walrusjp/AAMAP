@@ -10,7 +10,7 @@ require 'C:\xampp\htdocs\role.php';
 require 'send_email.php';
 //include 'search_producto.php';
 
-// Inicializar el carrito si no est� creado
+// Inicializar el carrito si no está creado
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
@@ -52,13 +52,12 @@ if (isset($_POST['remove_from_cart'])) {
             unset($_SESSION['cart'][$productId]);
         }
     }
-    // Redirigir despu�s de modificar el carrito
+    // Redirigir después de modificar el carrito
     echo "<script>
         window.location.href='papeleria.php';
     </script>";
     exit;
 }
-
 
 if (isset($_POST['save_order'])) {
     $userId = $_SESSION['user_id'];
@@ -141,14 +140,10 @@ if (isset($_POST['save_order'])) {
     }
 }
 
-
-
-// Procesar la acci�n de solicitud de producto
+// Procesar la accion de solicitud de producto
 if (isset($_POST['request_product'])) {
     $userId = $_SESSION['user_id'];
     $productId = $_POST['product_id'];
-    //var_dump($productId);
-    //exit;
 
     // Verificar si el producto existe en la tabla productos
     $checkQuery = "SELECT COUNT(*) FROM productos WHERE id = ?";
@@ -212,14 +207,27 @@ $result = $stmt->get_result();
 <div class="sticky-header">
     <img src="/assets/grupo_aamap.webp" style="width: 17%; position: absolute; top: 0px; left: 0px;">
     <div class="container flex sopas">
-        <div class="search-box">
-            <p>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</p>
-            <form method="GET" action="">
-                <input type="text" name="search" class="form-control" id="psearch" placeholder="Buscar..." value="<?php echo htmlspecialchars($search); ?>">
-            </form>
-            <div id="searchResults"></div>
-            <button type="submit" class="btn btn-primary mt-2" id="search">Buscar</button>
-        </div>
+    <div class="search-box">
+        <p>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;</p>
+        <form method="GET" action="papeleria.php" class="search-form">
+            <?php if(isset($_GET['search']) && !empty($_GET['search'])): ?>
+                <a href="papeleria.php" class="clear-search" title="Cancelar búsqueda">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                </a>
+            <?php endif; ?>
+            <input type="text" name="search" class="form-control" id="psearch" 
+                placeholder="Buscar..." value="<?php echo htmlspecialchars($search ?? ''); ?>">
+            <button type="submit" class="search-button" title="Buscar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+            </button>
+        </form>
+        <div id="searchResults"></div>
+    </div>
         <div class="bpanel">
             <form method="POST" action="">
                 <button type="submit" name="save_order" class="btn btn-success push">Enviar pedido</button>
@@ -238,16 +246,15 @@ $result = $stmt->get_result();
     </div>
 </div>
 
-
 <div class="container mt-5">
     <div class="row">
         <?php while ($row = $result->fetch_assoc()): ?>
             <?php if ($role === 'operador' && in_array($row['id'], $productos_ocultos)): ?>
-                <!-- Si el rol es operador y el producto est� en la lista de productos ocultos, se omite -->
+                <!-- Si el rol es operador y el producto está en la lista de productos ocultos, se omite -->
                 <?php continue; ?>
             <?php endif; ?>
 
-            <!-- Verificar si hay una solicitud espec�fica para este producto -->
+            <!-- Verificar si hay una solicitud específica para este producto -->
             <?php
             // Comprobamos si ya existe una solicitud de tipo "solicitud" para este producto
             $querySolicitud = "SELECT * FROM pedidos WHERE usuario_id = ? AND producto_id = ? AND tipo = 'solicitud' AND fecha > NOW() - INTERVAL 20 DAY";
@@ -263,7 +270,7 @@ $result = $stmt->get_result();
             $stmtPersonalizado->execute();
             $personalizadoExistente = $stmtPersonalizado->get_result()->fetch_assoc();
 
-            // Si el formulario de solicitud se envi�
+            // Si el formulario de solicitud se envió
             if (isset($_POST['request_product'])) {
                 // Realizamos la solicitud para el producto
                 $query = "INSERT INTO pedidos (usuario_id, producto_id, tipo, fecha) VALUES (?, ?, 'solicitud', NOW())";
@@ -272,8 +279,8 @@ $result = $stmt->get_result();
                 $stmt->execute();
                 
                 // Ahora cambiamos la solicitud a tipo personalizado
-                // Mostramos el bot�n de "Solicitud Personalizada"
-                $solicitudExistente = true;  // Indicamos que ahora existe la solicitud
+                // Mostramos el botón de "Solicitud Personalizada"
+                $solicitudExistente = true;
             }
             ?>
 
@@ -295,7 +302,6 @@ $result = $stmt->get_result();
 
                                 <button type="button" class="btn btn-danger remove-from-cart btncard" 
                                     data-id="<?php echo $row['id']; ?>">-</button>
-
 
 
                                 <?php if ($row['stock'] == 0): ?>
