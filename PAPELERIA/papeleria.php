@@ -71,7 +71,7 @@ if (isset($_POST['save_order'])) {
 
         foreach ($_SESSION['cart'] as $productId => $quantity) {
             // Obtener detalles del producto (descripci�n, imagen)
-            $query = "SELECT id, imagen, descripcion, stock, created_at FROM productos WHERE activo = 1 AND (id LIKE ? OR descripcion LIKE ?) ORDER BY created_at ASC";
+            $query = "SELECT id, imagen, descripcion, stock, created_at FROM productos WHERE activo = 1 AND (id LIKE ? OR descripcion LIKE ?) ORDER BY created_at DESC";
             $stmt = $conn->prepare($query);
             $stmt->bind_param("ss", $productId, $productId); // Pasar $productId dos veces
             $stmt->execute();
