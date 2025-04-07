@@ -113,18 +113,16 @@ if (isset($_POST['en_proceso'])) {
 
     try {
         if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
-            // 1. Insertar en orden_fab (nueva funcionalidad)
+            // 1. Insertar en orden_fab (nueva versión sin id_partida)
             $sql_insert = "INSERT INTO orden_fab 
-                         (of_created, id_proyecto, id_cliente, id_partida, updated_at)
-                         SELECT 
-                             NOW(), 
-                             p.cod_fab, 
-                             p.id_cliente, 
-                             pt.id, 
-                             NOW()
-                         FROM proyectos p
-                         JOIN partidas pt ON p.cod_fab = pt.cod_fab
-                         WHERE p.cod_fab = ?";
+            (of_created, id_proyecto, id_cliente, updated_at)
+            SELECT 
+                NOW(), 
+                p.cod_fab, 
+                p.id_cliente,
+                NOW()
+            FROM proyectos p
+            WHERE p.cod_fab = ?";
             $stmt_insert = $conn->prepare($sql_insert);
             $stmt_insert->bind_param("s", $proyecto_id);
             $stmt_insert->execute();

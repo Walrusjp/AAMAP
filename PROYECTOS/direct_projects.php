@@ -119,6 +119,7 @@ if ($mensaje !== "") {
         <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
             <!-- Botones -->
             <div style="display: flex; align-items: center; gap: 10px;">
+                <!--<a href="ver_proyecto.php?id=<?php //echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">-->
                 <a href="new_of.php" class="btn btn-info chompa">Nueva OF Directa</a>
                 <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
             </div>

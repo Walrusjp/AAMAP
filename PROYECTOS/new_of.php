@@ -83,16 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_partida = $stmtPartida->insert_id;
         }
 
-        // 3. Insertar en orden_fab
-        if ($id_partida !== null) {
-            $sqlOrdenFab = "INSERT INTO orden_fab (id_proyecto, id_cliente, id_partida, of_created) 
-                            VALUES (?, ?, ?, NOW())";
-            $stmtOrdenFab = $conn->prepare($sqlOrdenFab);
-            $stmtOrdenFab->bind_param('sii', $cod_fab, $id_cliente, $id_partida);
-            $stmtOrdenFab->execute();
-        } else {
-            throw new Exception("No se pudo obtener el ID de la partida.");
-        }
+        // 3. Insertar en orden_fab (sin id_partida)
+        $sqlOrdenFab = "INSERT INTO orden_fab (id_proyecto, id_cliente, of_created) 
+        VALUES (?, ?, NOW())";
+        $stmtOrdenFab = $conn->prepare($sqlOrdenFab);
+        $stmtOrdenFab->bind_param('si', $cod_fab, $id_cliente);
+        $stmtOrdenFab->execute();
 
         // 4. Preparar y enviar correo (debe ser exitoso para hacer commit)
         $to = 'cop.aamap@aamap.net';
@@ -202,9 +198,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" class="form-control" id="descripcion_partida" placeholder="Descripción de la Partida">
             </div>
             <div class="col">
-                <!-- Campo oculto para el proceso, siempre será "MAN"
-                <input type="hidden" id="proceso" value="com">
-                <input type="text" class="form-control" value="COM" readonly>-->
                 <select class="form-control" id="proceso">
                     <option value="com">COM</option>
                     <option value="man">MAN</option>
@@ -256,16 +249,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (descripcion && cantidad && unidad_medida && precio_unitario) {
             partidas.push({ descripcion, proceso, cantidad, unidad_medida, precio_unitario });
-            /*$('#partidasTable').append(`
-                <tr>
-                    <td>${descripcion}</td>
-                    <td>MAN</td> <!-- Mostrar "MAN" directamente -->
-                    <td>${cantidad}</td>
-                    <td>${unidad_medida}</td>
-                    <td>${precio_unitario}</td>
-                    <td><button class="btn btn-danger btn-sm removePartida">Eliminar</button></td>
-                </tr>
-            `);*/
             $('#partidasTable').append(`
                 <tr>
                     <td>${descripcion}</td>
