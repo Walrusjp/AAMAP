@@ -151,7 +151,7 @@ $conn->close();
                             ?>
                         </td>
                         <td>
-                            <!--<a href="editar_prod_directo.php?id=<?php echo $producto['id_pd']; ?>" class="btn btn-primary btn-sm btn-action">Editar</a>-->
+                            <a href="editar_prod_directo.php?id=<?php echo $producto['id_pd']; ?>" class="btn btn-primary btn-sm btn-action">Editar</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
