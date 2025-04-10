@@ -45,13 +45,28 @@ function actualizarEstatusProyecto($conn, $proyecto_id, $nuevo_estatus, $observa
         $stmt->bind_param("ss", $nuevo_estatus, $proyecto_id);
     }
     
-    if ($stmt->execute()) {
-        return true; // Éxito al actualizar
-    } else {
-        return false; // Error al actualizar
-    }
-
+    $result = $stmt->execute();
     $stmt->close();
+    
+    return $result;
+}
+
+// Función para insertar orden de fabricación
+function insertarOrdenFab($conn, $proyecto_id) {
+    $sql_insert = "INSERT INTO orden_fab 
+        (of_created, id_proyecto, id_cliente, updated_at)
+        SELECT 
+            NOW(), 
+            p.cod_fab, 
+            p.id_cliente,
+            NOW()
+        FROM proyectos p
+        WHERE p.cod_fab = ?";
+    $stmt_insert = $conn->prepare($sql_insert);
+    $stmt_insert->bind_param("s", $proyecto_id);
+    $result = $stmt_insert->execute();
+    $stmt_insert->close();
+    return $result;
 }
 
 // Variables para almacenar el mensaje y la redirección
@@ -61,12 +76,19 @@ $redireccionar = false;
 // Manejar la solicitud de mandar a ERP sin notificación (solo admin)
 if (isset($_POST['en_proceso_sin_correo'])) {
     $proyecto_id = $_POST['proyecto_id'];
+    $conn->begin_transaction();
     
-    if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
-        $mensaje = "Proyecto enviado a ERP sin notificación";
-        $redireccionar = true;
-    } else {
-        $mensaje = "Error al actualizar el proyecto";
+    try {
+        if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso') && insertarOrdenFab($conn, $proyecto_id)) {
+            $conn->commit();
+            $mensaje = "Proyecto enviado a OF sin notificación";
+            $redireccionar = true;
+        } else {
+            throw new Exception("Error al procesar la orden de fabricación");
+        }
+    } catch (Exception $e) {
+        $conn->rollback();
+        $mensaje = "Error: " . $e->getMessage();
     }
     
     echo "<script>alert('".addslashes($mensaje)."'); window.location.href='all_projects.php';</script>";
@@ -79,11 +101,18 @@ if (isset($_POST['aprobar_cotizacion'])) {
     
     echo "<script>
             if (confirm('¿Estás seguro de que quieres aprobar esta cotización?')) {";
-                if (actualizarEstatusProyecto($conn, $proyecto_id, 'aprobado')) {
-                    $mensaje = "Cotización aprobada con éxito.";
-                    $redireccionar = true;
-                } else {
-                    $mensaje = "Error al aprobar la cotización.";
+                $conn->begin_transaction();
+                try {
+                    if (actualizarEstatusProyecto($conn, $proyecto_id, 'aprobado') && insertarOrdenFab($conn, $proyecto_id)) {
+                        $conn->commit();
+                        $mensaje = "Cotización aprobada con éxito.";
+                        $redireccionar = true;
+                    } else {
+                        throw new Exception("Error al aprobar la cotización");
+                    }
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    $mensaje = $e->getMessage();
                 }
             echo "}
           </script>";
@@ -112,23 +141,8 @@ if (isset($_POST['en_proceso'])) {
     $conn->begin_transaction();
 
     try {
-        if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso')) {
-            // 1. Insertar en orden_fab (nueva versión sin id_partida)
-            $sql_insert = "INSERT INTO orden_fab 
-            (of_created, id_proyecto, id_cliente, updated_at)
-            SELECT 
-                NOW(), 
-                p.cod_fab, 
-                p.id_cliente,
-                NOW()
-            FROM proyectos p
-            WHERE p.cod_fab = ?";
-            $stmt_insert = $conn->prepare($sql_insert);
-            $stmt_insert->bind_param("s", $proyecto_id);
-            $stmt_insert->execute();
-            $stmt_insert->close();
-
-            // 2. Obtener datos para el correo (manteniendo tu estructura original)
+        if (actualizarEstatusProyecto($conn, $proyecto_id, 'en proceso') && insertarOrdenFab($conn, $proyecto_id)) {
+            // Obtener datos para el correo
             $proyecto_data = $proyectos[array_search($proyecto_id, array_column($proyectos, 'proyecto_id'))];
             
             $sql_partidas = "SELECT descripcion, cantidad, unidad_medida 
@@ -140,7 +154,7 @@ if (isset($_POST['en_proceso'])) {
             $partidas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();
 
-            // Configuración del correo (igual que tu versión)
+            // Configuración del correo
             $to = 'cop.aamap@aamap.net';
             $subject = "Nuevo Proyecto en ERP: " . $proyecto_data['proyecto_nombre'];
             
@@ -165,7 +179,7 @@ if (isset($_POST['en_proceso'])) {
 
             $body .= "<p>Favor de gestionar las actividades correspondientes.</p>";
 
-            // Envío con manejo de errores (igual que tu versión)
+            // Envío con manejo de errores
             try {
                 send_email_order($to, $subject, $body);
                 $mensaje = "Proyecto enviado a ERP y notificado correctamente";
@@ -176,6 +190,8 @@ if (isset($_POST['en_proceso'])) {
                 $mensaje = "Proyecto enviado (notificación básica)";
                 $conn->commit();
             }
+        } else {
+            throw new Exception("Error al procesar la orden de fabricación");
         }
     } catch (Exception $e) {
         $conn->rollback();
@@ -309,104 +325,71 @@ if ($mensaje !== "") {
     });
 
     function confirmarAccion(accion, proyecto_id) {
-    if (accion === 'aprobar') {
-        if (confirm('¿Estás seguro de que quieres aprobar esta cotización?')) {
-            // Enviar formulario de aprobación
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = ''; // La misma página
+        const acciones = {
+            'aprobar': {
+                confirmacion: '¿Estás seguro de que quieres aprobar esta cotización?',
+                formData: {
+                    'proyecto_id': proyecto_id,
+                    'aprobar_cotizacion': '1'
+                }
+            },
+            'rechazar': {
+                confirmacion: 'Por favor, ingresa las observaciones para el rechazo:',
+                necesitaInput: true,
+                formData: (observaciones) => ({
+                    'proyecto_id': proyecto_id,
+                    'rechazar_cotizacion': '1',
+                    'observaciones': observaciones
+                })
+            },
+            'cis': {
+                confirmacion: '¿Estás seguro de que quieres mandar a OF?',
+                formData: {
+                    'proyecto_id': proyecto_id,
+                    'en_proceso': '1'
+                }
+            },
+            'cis_sin_correo': {
+                confirmacion: '¿Estás seguro de que quieres mandar a OF sin enviar notificación?',
+                formData: {
+                    'proyecto_id': proyecto_id,
+                    'en_proceso_sin_correo': '1'
+                }
+            }
+        };
 
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'proyecto_id';
-            input.value = proyecto_id;
-            form.appendChild(input);
+        const config = acciones[accion];
+        
+        if (!config) return;
 
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'aprobar_cotizacion';
-            input.value = '1'; 
-            form.appendChild(input);
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-    } else if (accion === 'rechazar') {
-        var observaciones = prompt("Por favor, ingresa las observaciones para el rechazo:");
-        if (observaciones !== null) { 
-            // Enviar formulario de rechazo con observaciones
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = ''; // La misma página
-
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'proyecto_id';
-            input.value = proyecto_id;
-            form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'rechazar_cotizacion';
-            input.value = '1'; 
-            form.appendChild(input);
-
-            // Agregar input para las observaciones
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'observaciones';
-            input.value = observaciones;
-            form.appendChild(input);
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-    } else if (accion === 'cis') {
-        if (confirm('¿Estás seguro de que quieres mandar a OF?')) {
-            //Enviar el form de traspaso
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '';
-
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'proyecto_id';
-            input.value = proyecto_id;
-            form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'en_proceso';
-            input.value = '1';
-            form.appendChild(input);
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-    } else if (accion === 'cis_sin_correo') {
-        if (confirm('¿Estás seguro de que quieres mandar a OF sin enviar notificación?')) {
-            //Enviar el form de traspaso sin correo
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '';
-
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'proyecto_id';
-            input.value = proyecto_id;
-            form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'en_proceso_sin_correo';
-            input.value = '1';
-            form.appendChild(input);
-
-            document.body.appendChild(form);
-            form.submit();
+        if (config.necesitaInput) {
+            const observaciones = prompt(config.confirmacion);
+            if (observaciones !== null) {
+                enviarFormulario(typeof config.formData === 'function' 
+                    ? config.formData(observaciones) 
+                    : config.formData);
+            }
+        } else if (confirm(config.confirmacion)) {
+            enviarFormulario(config.formData);
         }
     }
-}
+
+    function enviarFormulario(data) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '';
+        
+        Object.entries(data).forEach(([name, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
 </script>
 
 </body>
