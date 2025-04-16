@@ -94,7 +94,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                 <?php if ($username == 'admin'): ?>
                     <a href="delete_project.php" class="btn btn-danger chompa"><img src="/assets/delete.ico" style="width: 30px; height: auto; alt=""></a>
                 <?php endif; ?>
-                <?php if ($username === 'admin'): ?>
+                <?php if ($username === 'admin' || $username === "CIS"): ?>
                     <a href="ver_prod_directos.php" class="btn btn-info chompa">Productos Directos</a>
                 <?php endif; ?>
                 <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>

@@ -22,7 +22,7 @@ $sql = "SELECT
         INNER JOIN clientes_p AS c ON p.id_cliente = c.id
         INNER JOIN orden_fab AS of ON p.cod_fab = of.id_proyecto  -- Unir con orden_fab
         WHERE p.etapa = 'directo'  -- Filtrar solo proyectos en etapa 'directo'
-        ORDER BY of.id_fab ASC";
+        ORDER BY of.id_fab DESC";
 
 $result = $conn->query($sql);
 $proyectos = [];
