@@ -187,7 +187,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
         <?php endif; 
             endif; ?>
 
-        <?php if($username == 'CIS' || $username == 'admin'):
+        <?php if($username == 'CIS' || $username == 'admin' || $username == 'l.aca'):
         if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo'): ?>
             <a href="mandar_facturacion.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-info mr-3">Mandar a Facturar</a>
         <?php endif; 

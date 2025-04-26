@@ -22,12 +22,14 @@ if (isset($_POST['logout'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Cotización_<?php echo $cotizacion_no;?></title>
-    <link rel="stylesheet" type="text/css" href="stcot.css">
     <link rel="icon" href="/assets/logo.ico">
+    <style>
+        <?php include 'stcot.css'; ?>
+    </style>
 </head>
-<body style="padding: 10px; font-family: Arial;">
+<body style="padding: 10px; font-family: DejaVu Sans, Arial, sans-serif;">
 
     <?php if ($proyecto['etapa'] == 'rechazado'): ?>
         <div style="color: red; border: 4px solid red;">
@@ -147,27 +149,27 @@ if (isset($_POST['logout'])) {
 
     <!--tabla de daotos de vigencia y bancarios-->
     <table style="border-top: none">
-        <tr><div id="data">
-            <td class=" vigencia" style="width: 20%;">
+        <tr id="data">
+            <td class=" vigencia" style="width: 18%;">
                 <p style="text-align: left; margin-left: 30px;"><b>VIGENCIA:</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>PRECIOS</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>MONEDA</b></p>
-                <p style="text-align: left; margin-left: 30px;" ><b>COND. PAGO</b></p>
+                <p style="text-align: left; margin-left: 30px; line-height: 1.1em;" ><b>COND. PAGO</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>L.A.B:</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>TPO. ENTR:</b></p>
             </td>
-            <td class=" vigencia" style="width: 38%;">
+            <td class=" vigencia" style="width: 40%;">
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['vigencia']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['precios']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['moneda']); ?></p>
-                <p style="text-align: left;" ><?php echo htmlspecialchars($datos_vigencia['condicion_pago']); ?></p>
+                <p style="text-align: left; line-height: 1.1em;" ><?php echo htmlspecialchars($datos_vigencia['condicion_pago']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['lab']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['tipo_entr']); ?></p>
             </td>
             <td style="width: 42%;">
                 <img src="/assets/datos.webp" style="width: 100%;">
             </td>
-        </div></tr>
+        </tr>
 
         <tr>
             <td colspan="6" style="background-color: none; line-height: 1; font-size: 0.65em;" class="vigencia">

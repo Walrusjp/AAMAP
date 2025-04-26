@@ -64,8 +64,25 @@ if (isset($_POST['aprobar_cotizacion'])) {
     <meta charset="UTF-8">
     <title>ERP Proyectos</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" type="text/css" href="stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
+    <style>
+        /* Soporte para submenú en dropdown Bootstrap */
+        .dropdown-submenu > .dropdown-menu {
+        display: none;
+        margin-top: 0;
+        }
+
+        .dropdown-submenu:hover > .dropdown-menu {
+        display: block;
+        }
+
+        .disabled-item {
+            pointer-events: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 <div class="navbar" style="display: flex; align-items: center; justify-content: space-between; padding: 0px; background-color: #f8f9fa; position: relative;">
@@ -91,11 +108,38 @@ if (isset($_POST['aprobar_cotizacion'])) {
                     </select>
                 </div>
                 <!-- Botones -->
+                <?php if ($username === 'admin' || $username === 'l.aca'): ?>
+                    <a href="new_project_direct.php" class="btn btn-info chompa">Nuevo proyecto</a>
+                <?php endif; ?>
                 <?php if ($username == 'admin'): ?>
                     <a href="delete_project.php" class="btn btn-danger chompa"><img src="/assets/delete.ico" style="width: 30px; height: auto; alt=""></a>
                 <?php endif; ?>
-                <?php if ($username === 'admin' || $username === "CIS"): ?>
+                <?php if ($role == 'admin' || $username === "CIS"): ?>
                     <a href="ver_prod_directos.php" class="btn btn-info chompa">Productos Directos</a>
+                <?php endif; ?>
+
+                <?php if ($role == 'admin'): ?>
+                <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="almacenDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Gestión de Suministros
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/launch.php" data-value="almacen" data-url='almacen/ver_almacen.php'>Almacén</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="compras" data-url='compras/ver_ordenes_compra.php'>Compras</a></li>
+                    <li><a class="dropdown-item" href="#" data-value="proveedores" data-url='proveedores/ver_proveedores.php'>Proveedores</a></li>
+
+                <!--Submenú para Reportes-->
+                    <li class="dropdown-submenu position-relative" >
+                        <a class="dropdown-item disabled-item">Reportes</a>
+                        <ul class="dropdown-menu position-absolute start-100 top-0" style="top: -10px; left: 160px;">
+                            <li><a class="dropdown-item" href="#" data-value="reporte_inventario" data-url="reportes/reporte_inventario.php">Inventario</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="reporte_consumos" data-url="reportes/reporte_consumos.php">Consumos</a></li>
+                            <li><a class="dropdown-item" href="#" data-value="reporte_compras" data-url="reportes/reporte_compras.php">Compras</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <input type="hidden" id="almacenValor" name="almacenValor">
+                </div>
                 <?php endif; ?>
                 <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
@@ -143,6 +187,22 @@ if (isset($_POST['aprobar_cotizacion'])) {
 </div>
 
 <script>
+    const almacenDropdown = document.getElementById('almacenDropdown');
+    const almacenValor = document.getElementById('almacenValor');
+    const almacenOpciones = document.querySelectorAll('.dropdown-menu .dropdown-item');
+
+    almacenOpciones.forEach(opcion => {
+        opcion.addEventListener('click', function (e) {
+        e.preventDefault();
+        const texto = this.textContent;
+        const valor = this.getAttribute('data-value');
+        const url = this.getAttribute('data-url');
+        almacenDropdown.textContent = texto;
+        almacenValor.value = valor;
+        window.location.href = url;
+        });
+    });
+
     // Filtrar proyectos dinámicamente por estado
     document.getElementById('filter').addEventListener('change', function () {
         const selectedFilter = this.value;
@@ -162,6 +222,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
             }
         });
     });
+
 </script>
 
 </body>

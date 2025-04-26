@@ -1,0 +1,2 @@
+INVENTARIO
+hola mundo!
