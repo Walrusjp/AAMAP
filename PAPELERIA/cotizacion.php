@@ -7,8 +7,14 @@ if (!isset($_SESSION['username'])) {
 require 'C:\xampp\htdocs\db_connect.php';
 require 'C:\xampp\htdocs\role.php';
 
+// Configurar locale para español de México
+setlocale(LC_TIME, 'es_MX.utf8', 'es_MX', 'spanish', 'es_ES', 'es');
+
+// Obtener el nombre del mes en español
+$mes_actual = strftime('%B');
+
 // Array de productos excluidos
-$productos_excluidos = ['PROD000']; // Aquí van los ID de los productos que quieres excluir
+$productos_excluidos = ['PROD000'];
 
 // Recuperar las fechas del formulario
 $fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
@@ -21,38 +27,36 @@ SELECT
     pr.descripcion,
     pr.presentacion,
     SUM(p.cantidad) AS total_cantidad,
-    p.tipo,
     p.producto_id
 FROM 
     pedidos p
 JOIN 
     productos pr ON p.producto_id = pr.id
 WHERE 
-    p.tipo = 'solicitud'
-GROUP BY 
-    pr.imagen, pr.descripcion, pr.presentacion, p.producto_id, p.tipo
-";
+    p.tipo IN ('solicitud', 'personalizado')";
 
-$result = $conn->query($query);
-
-// Array de pedidos filtrados
-$pedidos_filtrados = [];
-
-// Filtrar los resultados en PHP
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        // Verificar condiciones: tipo solicitud, rango de fechas, exclusión de productos
-        $fecha_valida = true;
-        if ($fecha_inicio && $fecha_fin) {
-            $fecha_valida = $row['fecha'] >= $fecha_inicio . " 00:00:00" && $row['fecha'] <= $fecha_fin . " 23:59:59";
-        }
-
-        // Verificar si el producto está en el array de excluidos
-        if (!in_array($row['producto_id'], $productos_excluidos) && $row['tipo'] === 'solicitud' && $fecha_valida) {
-            $pedidos_filtrados[] = $row;
-        }
-    }
+if ($fecha_inicio && $fecha_fin) {
+    $query .= " AND p.fecha >= '" . $conn->real_escape_string($fecha_inicio . " 00:00:00") . "' 
+                AND p.fecha <= '" . $conn->real_escape_string($fecha_fin . " 23:59:59") . "'";
 }
+
+if (!empty($productos_excluidos)) {
+    $placeholders = implode(',', array_fill(0, count($productos_excluidos), '?'));
+    $query .= " AND p.producto_id NOT IN ($placeholders)";
+}
+
+$query .= " GROUP BY pr.imagen, pr.descripcion, pr.presentacion, p.producto_id";
+
+$stmt = $conn->prepare($query);
+
+if (!empty($productos_excluidos)) {
+    $types = str_repeat('s', count($productos_excluidos));
+    $stmt->bind_param($types, ...$productos_excluidos);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
+$pedidos_filtrados = $result->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -70,6 +74,39 @@ if ($result->num_rows > 0) {
             border: none;
             cursor: pointer;
         }
+            /* Oculta elementos al imprimir */
+    @media print {
+        /* Oculta el botón de regresar */
+        #back {
+            display: none !important;
+        }
+        
+        /* Oculta el formulario de filtros */
+        form.mb-4 {
+            display: none !important;
+        }
+        
+        /* Opcional: Ajusta márgenes para mejor impresión */
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* Opcional: Evita que las imágenes se corten en varias páginas */
+        img {
+            max-width: 100%;
+            page-break-inside: avoid;
+        }
+        
+        /* Opcional: Evita que las filas de la tabla se dividan en páginas */
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    }
     </style>
     <title>Resumen de Pedidos</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -78,7 +115,7 @@ if ($result->num_rows > 0) {
 <?php if ($role === 'admin'): ?>
     <a href="papeleria.php" class="btn btn-danger" id="back">REGRESAR</a>
 <div class="container mt-5">
-    <h1 class="text-center mb-4">Requerimientos de papelería Enero</h1>
+    <h1 class="text-center mb-4">Requerimientos de papelería <?php echo strftime('%B'); ?></h1>
 
     <!-- Formulario para seleccionar rango de fechas -->
     <form method="get" class="mb-4">

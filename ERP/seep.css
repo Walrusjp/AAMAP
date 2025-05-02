@@ -1,0 +1,61 @@
+.main-table, .thead, .tbody, .title {
+    border: 0.1em solid;
+    padding: 0px 5px;
+  }
+  .title {background-color: #341ca8;}
+  .text-title {color: white;}
+  .text-title, #header {
+    text-align: center;
+  }
+  .tbody {font-size: 0.8em;}
+  .info {
+    height: auto;
+    font-size: 0.8em;
+    margin-top: 5px;
+    border-bottom: 1px solid;
+    line-height: 0.1;
+  }
+  #title {
+    color: darkblue;
+    text-align: center;
+    padding: 10px 0px;
+  }
+
+
+    /* Oculta elementos al imprimir */
+    @media print {
+        /* Oculta el botón de regresar */
+        .btn {
+            display: none !important;
+        }
+        
+        /* Oculta el formulario de filtros */
+        form.mb-4 {
+            display: none !important;
+        }
+        
+        @page {
+            size: landscape;
+        }
+
+        /* Opcional: Ajusta márgenes para mejor impresión */
+        body {
+            padding: 15px;
+            margin: 0;
+        }
+        
+        /* Opcional: Evita que las imágenes se corten en varias páginas */
+        img {
+            max-width: 100%;
+            page-break-inside: avoid;
+        }
+        
+        /* Opcional: Evita que las filas de la tabla se dividan en páginas */
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    }

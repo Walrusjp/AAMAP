@@ -110,28 +110,54 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
     <meta charset="UTF-8">
     <title>Proyecto OF-<?php echo htmlspecialchars($proyecto['proyecto_id']) ?></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="stprojects.css">
+    <link rel="stylesheet" type="text/css" href="seep.css">
     <link rel="icon" href="/assets/logo.ico">
+    <style>
+      
+    </style>
 </head>
 <body>
 
 <div class="container mt-4">
-<img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 18%; position: absolute; top: 8px; left: 10px;">
+<table id="header" style="width: 100%; border-collapse: collapse;">
+    <tr>
+        <td rowspan="3" style="width: 20%; height: auto; border: 1px solid;">
+            <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 100%;">
+        </td>
+        <td rowspan="3" style="width: 60%; height: auto; border: 1px solid; vertical-align: middle;">
+            <h2>Orden de fabricación/servicio</h2>
+        </td>
+        <td class="info" style="width: 20%; height: auto; border: 1px solid; padding: 5px; text-align: left;">
+            Código: AAMAP-CS-F-08
+        </td>
+    </tr>
+    <tr>
+        <td class="info" style="width: 20%; height: auto; border: 1px solid; padding: 5px; text-align: left;">
+            Fecha de revisión: 24/03/2025
+        </td>
+    </tr>
+    <tr>
+        <td class="info" style="width: 20%; height: auto; border: 1px solid; padding: 5px; text-align: left;">
+            Revisión: 02
+        </td>
+    </tr>
+</table>
+
     <?php if ($proyecto['etapa'] != 'creado'): ?>
-    <?php echo "<h1>Proyecto: " . htmlspecialchars($proyecto['nombre_proyecto']) . "</h1>";?>
-    <table class="table table-bordered">
-        <thead class="thead-dark">
+    <?php echo "<div id='title'><h4>Proyecto: " . htmlspecialchars($proyecto['nombre_proyecto']) . "</h4></div>";?>
+    <table class="main-table">
+        <thead class="thead">
             <tr>
-                <th>OF</th>
-                <th>Cliente</th>
-                <th>F.E</th>
-                <th>ID P</th>
-                <th>Descrip Partida</th>
-                <th>Proceso</th>
-                <th>Cantidad</th>
-                <th>UM</th>
-                <th>Estatus</th>
-                <th>Última Fecha de Registro</th>
+                <th class="title"><p class="text-title">OF</p></th>
+                <th class="title"><p class="text-title">Cliente</p></th>
+                <th class="title"><p class="text-title">F.E</p></th>
+                <!--<th>ID P</th>-->
+                <th class="title"><p class="text-title">Descrip Partida</p></th>
+                <th class="title"><p class="text-title">Proceso</p></th>
+                <th class="title"><p class="text-title">Cantidad</p></th>
+                <th class="title"><p class="text-title">UM</p></th>
+                <th class="title"><p class="text-title">Estatus</p></th>
+                <th class="title"><p class="text-title">Fecha de Registro</p></th>
             </tr>
         </thead>
         <tbody>
@@ -142,26 +168,26 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
             foreach ($partidas as $key => $row) {
                 echo "<tr>";
                 if ($key === 0) {
-                    echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . 'OF-' . htmlspecialchars($proyecto['proyecto_id']) . "</td>";
-                    echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['nombre_cliente']) . "</td>";
-                    echo "<td rowspan='" . $numRows . "' class='text-center align-middle'>" . htmlspecialchars($proyecto['fecha_entrega']) . "</td>";
+                    echo "<td style='width: 6%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . 'OF-' . htmlspecialchars($proyecto['proyecto_id']) . "</td>";
+                    echo "<td style='width: 9%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . htmlspecialchars($proyecto['nombre_cliente']) . "</td>";
+                    echo "<td style='width: 8%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . htmlspecialchars($proyecto['fecha_entrega']) . "</td>";
                 }
-                echo "<td>" . $pr . "</td>";
-                echo "<td>" . htmlspecialchars($row['nombre_partida']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['proceso']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['cantidad']) . "</td>";
-                echo "<td>" . htmlspecialchars($row['unidad_medida']) . "</td>";
+                //echo "<td>" . $pr . "</td>";
+                echo "<td style='width: 35%;' class='tbody'>" . htmlspecialchars($row['nombre_partida']) . "</td>";
+                echo "<td style='width: 5%;' class='tbody'>" . htmlspecialchars($row['proceso']) . "</td>";
+                echo "<td style='width: 6%;' class='tbody'>" . htmlspecialchars($row['cantidad']) . "</td>";
+                echo "<td style='width: 3%;' class='tbody'>" . htmlspecialchars($row['unidad_medida']) . "</td>";
                 $pr = $pr + 1;
                 if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo'):
-                    echo "<td data-id='" . htmlspecialchars($row['partida_id']) . "' class='editable'>" . htmlspecialchars($row['estatus']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
+                    echo "<td style='width: 18%;' data-id='" . htmlspecialchars($row['partida_id']) . "' class='editable tbody'>" . htmlspecialchars($row['estatus']) . "</td>";
+                    echo "<td style='width: 10%;' class='tbody'>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
                     echo "</tr>";
                 endif;
 
                 if ($proyecto['etapa'] == 'finalizado' or $proyecto['etapa'] == 'facturacion'):
                     echo '
-                        <td data-id="'. htmlspecialchars($row['partida_id']). '">'. htmlspecialchars($row['estatus']). '</td>
-                        <td>'. htmlspecialchars($row['ultimo_registro']). '</td>
+                        <td class="tbody" data-id="'. htmlspecialchars($row['partida_id']). '">'. htmlspecialchars($row['estatus']). '</td>
+                        <td class="tbody">'. htmlspecialchars($row['ultimo_registro']). '</td>
                     ';
                 endif;
             }
