@@ -15,7 +15,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $proyecto_id = $_GET['id']; // Este es el id_fab de orden_fab
 
-// Consultar los logs del proyecto, incluyendo el nombre de usuario y la descripción de la partida
+// Consultar los logs del proyecto
 $sql = "SELECT 
             re.id, 
             u.username AS nombre_usuario, 
@@ -25,7 +25,7 @@ $sql = "SELECT
         FROM registro_estatus re
         INNER JOIN partidas p ON re.id_partida = p.id
         INNER JOIN users u ON re.id_usuario = u.id
-        WHERE re.id_fab = ?  -- Filtrar por id_fab de orden_fab
+        WHERE re.id_fab = ?
         ORDER BY re.fecha_log DESC";
 
 $stmt = $conn->prepare($sql);
@@ -43,43 +43,45 @@ $result = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <title>Logs OF- <?php echo htmlspecialchars($proyecto_id) ?></title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="icon" href="/assets/logo.ico">
+    <link rel="stylesheet" href="slogs.css">
 </head>
 <body>
 
-<div class="container mt-4">
+<div class="container">
     <h1>Logs del Proyecto <b>OF-<?php echo htmlspecialchars($proyecto_id); ?></b></h1>
-    <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto_id); ?>" class="btn btn-secondary mt-3" style="margin-bottom: 10px;">Regresar</a>
+    <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto_id); ?>" class="btn">Regresar</a>
 
-    <table class="table table-bordered">
-        <thead class="thead-dark">
-            <tr>
-                <th>ID Log</th>
-                <th>Usuario</th>
-                <th>Partida</th>
-                <th>Estatus</th>
-                <th>Fecha de Registro</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                echo "<tr>";
-                echo "<td>" . $row["id"] . "</td>";
-                echo "<td>" . htmlspecialchars($row["nombre_usuario"]) . "</td>";
-                echo "<td>" . htmlspecialchars($row["nombre_partida"]) . "</td>";
-                echo "<td>" . htmlspecialchars($row["estatus_log"]) . "</td>";
-                echo "<td>" . htmlspecialchars($row["fecha_log"]) . "</td>";
-                echo "</tr>";
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr id="thead">
+                    <th>ID Log</th>
+                    <th>Usuario</th>
+                    <th>Partida</th>
+                    <th>Estatus</th>
+                    <th>Fecha de Registro</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . $row["id"] . "</td>";
+                    echo "<td>" . htmlspecialchars($row["nombre_usuario"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["nombre_partida"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["estatus_log"]) . "</td>";
+                    echo "<td>" . htmlspecialchars($row["fecha_log"]) . "</td>";
+                    echo "</tr>";
+                }
+            } else {
+                echo "<tr><td colspan='5' class='text-center'>No hay logs registrados para este proyecto.</td></tr>";
             }
-        } else {
-            echo "<tr><td colspan='5' class='text-center'>No hay logs registrados para este proyecto.</td></tr>";
-        }
-        ?>
-        </tbody>
-    </table>
+            ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 </body>

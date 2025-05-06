@@ -1,0 +1,116 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.btn {
+    position: absolute;
+    top: 30px;
+    padding: 5px 16px;
+    background-color: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.btn:hover {
+    background-color: #5a6268;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 12px;
+    text-align: left;
+}
+
+thead th {
+    background-color: #341ca8;
+    color: white;
+    font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+    background-color: #e9e9e9;
+}
+
+.text-center {
+    text-align: center;
+}
+#thead { font-size: 1.2em;}
+tbody { font-size: 0.9em;}
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    /*border: 1px solid;*/
+}
+
+
+ /* Oculta elementos al imprimir */
+@media print {
+/* Oculta el botón de regresar */
+.btn {
+    display: none !important;
+}
+
+/* Oculta el formulario de filtros */
+form.mb-4 {
+    display: none !important;
+}
+
+@page {
+    size: landscape;
+}
+
+/* Opcional: Ajusta márgenes para mejor impresión */
+body {
+    padding: 15px;
+    margin: 0;
+}
+
+/* Opcional: Evita que las imágenes se corten en varias páginas */
+img {
+    max-width: 100%;
+    page-break-inside: avoid;
+}
+
+/* Opcional: Evita que las filas de la tabla se dividan en páginas */
+table {
+    page-break-inside: auto;
+}
+tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+}
+.table-container {
+    overflow-y: visible;
+    max-height: none;
+}
+}

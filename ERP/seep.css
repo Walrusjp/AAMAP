@@ -16,7 +16,9 @@
     line-height: 0.1;
   }
   #title {
-    color: darkblue;
+    /*color: darkblue;*/
+    color: #000;
+    text-decoration: underline black;
     text-align: center;
     padding: 10px 0px;
   }
