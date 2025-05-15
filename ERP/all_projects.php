@@ -118,7 +118,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                     <a href="ver_prod_directos.php" class="btn btn-info chompa">Productos Directos</a>
                 <?php endif; ?>
 
-                <?php if ($role == 'admin'): ?>
+                <?php if ($role == 'admin' || $username == "CIS" || $username == 'atencionaclientes'): ?>
                 <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="almacenDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     Gestión de Suministros

@@ -111,14 +111,14 @@ if (isset($_POST['save_order'])) {
         }
         $stmt->close();
 
-        // Generar el cuerpo del correo con im�genes
+        // Generar el cuerpo del correo con imagenes
         $emailBodyHTML = "Pedido de $username:\n\n"; // Cuerpo para correo en HTML
         foreach ($productsInfo as $product) {
             $emailBodyHTML .= "<strong>Producto:</strong> {$product['descripcion']} - {$product['id']}<br>";
             $emailBodyHTML .= "<strong>Cantidad:</strong> {$product['cantidad']}<br>";
-            if (!empty($product['imagen'])) {
+            /*if (!empty($product['imagen'])) {
                 $emailBodyHTML .= "<img src='{$product['imagen']}' alt='{$product['descripcion']}' width='100'><br><br>"; // Incluir imagen
-            }
+            }*/
             $emailBodyHTML .= "<hr>";
         }
 

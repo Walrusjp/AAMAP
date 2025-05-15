@@ -244,9 +244,11 @@ if ($mensaje !== "") {
                     </select>
                 </div>
 
+                <?php if ($role == 'admin'): ?>
                 <!-- Botones -->
                 <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</a>
                 <a href="edit_project.php" class="btn btn-info chompa">Editar Cotización</a>
+                <?php endif; ?>
                 <a href="ver_clientes.php" class="btn btn-info chompa">Clientes</a>
                 <?php if ($username == 'admin'): ?>
                     <a href="delete_project.php" class="btn btn-danger chompa"><img src="/assets/delete.ico" style="width: 30px; height: auto; alt=""></a>
@@ -279,6 +281,7 @@ if ($mensaje !== "") {
                         </div>
                     </a>
 
+                    <?php if ($role == 'admin'): ?>
                     <?php if ($proyecto['estatus'] == 'creado'): ?>
                         <button type="button" class="btn btn-success mt-2 btn-card" onclick="confirmarAccion('aprobar', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">Aprobar Cot</button>
                         <button type="button" class="btn btn-danger mt-2 btn-card" onclick="confirmarAccion('rechazar', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">No Concretar</button>
@@ -292,6 +295,7 @@ if ($mensaje !== "") {
                                 <button type="button" class="btn btn-secondary mt-2 btn-card ml-2" onclick="confirmarAccion('cis_sin_correo', '<?php echo htmlspecialchars($proyecto['proyecto_id']); ?>')">OF sin Correo</button>
                             <?php endif; ?>
                         </div>
+                    <?php endif; ?>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>

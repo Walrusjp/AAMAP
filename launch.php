@@ -86,7 +86,7 @@ if (!isset($_SESSION['welcome_shown'])) {
         <button onclick="window.location.href='/PAPELERIA/papeleria.php'">PAPELERÍA</button>
         <button onclick="window.location.href='/error404.html'">VIÁTICOS</button>
 
-        <?php if($username === 'admin' || $username === 'h.galicia'): ?>
+        <?php if($username === 'admin' || $username === 'h.galicia' || $username === 'cuentasxpxc'): ?>
             <button onclick="window.location.href='/PROYECTOS/all_projects.php'">CRM PROYECTOS</button>
         <?php elseif($username === 'CIS' || $username === 'atencionaclientes'): ?>
             <button onclick="window.location.href='/PROYECTOS/direct_projects.php'">CRM PROYECTOS</button>
