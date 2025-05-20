@@ -184,10 +184,38 @@ if (isset($_GET['search'])) {
     $search = $_GET['search'];
 }
 
-$query = "SELECT id, imagen, descripcion, stock FROM productos WHERE activo = 1 AND (id LIKE ? OR descripcion LIKE ?)";
-$search_param = "%" . $search . "%";
+// Obtener el parámetro de vista (si no existe, usar 'all' por defecto)
+$view = isset($_GET['view']) ? $_GET['view'] : 'all';
+
+// Consulta base
+$query = "SELECT id, imagen, descripcion, stock, created_at FROM productos WHERE activo = 1";
+
+// Añadir condiciones según la vista seleccionada
+if (!empty($search)) {
+    // Si hay búsqueda, priorizar la búsqueda sobre las vistas
+    $query .= " AND (id LIKE ? OR descripcion LIKE ?)";
+    $search_param = "%" . $search . "%";
+} else {
+    // Solo aplicar filtros de vista si no hay búsqueda activa
+    switch ($view) {
+        case 'latest':
+            $query .= " ORDER BY updated_at DESC LIMIT 20"; // Últimos 20 agregados
+            break;
+        case 'stock':
+            $query .= " AND stock > 0 ORDER BY stock DESC"; // Solo con stock, ordenados por mayor stock
+            break;
+        default: // 'all'
+            $query .= " ORDER BY created_at ASC"; // Todos ordenados por los más nuevos primero
+    }
+}
+
 $stmt = $conn->prepare($query);
-$stmt->bind_param("ss", $search_param, $search_param);
+
+// Bind parameters solo si hay búsqueda
+if (!empty($search)) {
+    $stmt->bind_param("ss", $search_param, $search_param);
+}
+
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -243,6 +271,23 @@ $result = $stmt->get_result();
             </form>
         </div>
         </form>
+    </div>
+</div>
+
+<!-- Panel de navegación de vistas -->
+<div class="view-panel">
+    <div class="container">
+        <ul class="nav nav-tabs view-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" data-view="all">Todos los productos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-view="latest">Últimos agregados</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-view="stock">En stock</a>
+            </li>
+        </ul>
     </div>
 </div>
 
@@ -338,4 +383,5 @@ $result = $stmt->get_result();
 </div>
 </body>
 <script src="script_pape.js" type="text/javascript"></script>
+<script src="script_pape2.js" type="text/javascript"></script>
 </html>

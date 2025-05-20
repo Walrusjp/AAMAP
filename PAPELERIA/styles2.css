@@ -278,3 +278,35 @@ h1 {
         font-size: 14px;
     }
 }
+
+
+
+
+/* Estilos para el panel de vistas */
+.view-panel {
+    background-color: #f8f9fa;
+    padding: 10px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.view-tabs {
+    border-bottom: none;
+}
+
+.view-tabs .nav-link {
+    color: #495057;
+    border: none;
+    padding: 8px 20px;
+    margin-right: 5px;
+    border-radius: 4px;
+}
+
+.view-tabs .nav-link:hover {
+    background-color: #e9ecef;
+}
+
+.view-tabs .nav-link.active {
+    background-color: #007bff;
+    color: white;
+}
