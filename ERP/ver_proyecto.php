@@ -75,6 +75,14 @@ $sqlPartidas = "SELECT
                     pa.descripcion AS nombre_partida, 
                     pa.proceso,
                     pa.cantidad,
+                    (SELECT IFNULL(SUM(ep.cantidad_entregada), 0) 
+                     FROM entregas_partidas ep
+                     INNER JOIN entregas_parciales e ON ep.id_entrega = e.id
+                     WHERE ep.id_partida = pa.id AND e.id_proyecto = pa.cod_fab) AS entregado,
+                    (pa.cantidad - (SELECT IFNULL(SUM(ep.cantidad_entregada), 0) 
+                     FROM entregas_partidas ep
+                     INNER JOIN entregas_parciales e ON ep.id_entrega = e.id
+                     WHERE ep.id_partida = pa.id AND e.id_proyecto = pa.cod_fab)) AS pendiente,
                     pa.unidad_medida,
                     (SELECT re.estatus_log
                      FROM registro_estatus re
@@ -86,6 +94,7 @@ $sqlPartidas = "SELECT
                      WHERE re.id_partida = pa.id) AS ultimo_registro
                 FROM partidas pa
                 WHERE pa.cod_fab = (SELECT id_proyecto FROM orden_fab WHERE id_fab = ?)";
+
 
 $stmtPartidas = $conn->prepare($sqlPartidas);
 if (!$stmtPartidas) {
@@ -175,16 +184,16 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
                 //echo "<td>" . $pr . "</td>";
                 echo "<td style='width: 35%;' class='tbody'>" . htmlspecialchars($row['nombre_partida']) . "</td>";
                 echo "<td style='width: 5%;' class='tbody'>" . htmlspecialchars($row['proceso']) . "</td>";
-                echo "<td style='width: 6%;' class='tbody'>" . htmlspecialchars($row['cantidad']) . "</td>";
+                echo "<td style='width: 6%;' class='tbody'>" . htmlspecialchars($row['pendiente']) . " / " . htmlspecialchars($row['cantidad']) . "</td>";
                 echo "<td style='width: 3%;' class='tbody'>" . htmlspecialchars($row['unidad_medida']) . "</td>";
                 $pr = $pr + 1;
-                if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo'):
+                if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo' || $proyecto['etapa'] == 'facturacion'):
                     echo "<td style='width: 18%;' data-id='" . htmlspecialchars($row['partida_id']) . "' class='editable tbody'>" . htmlspecialchars($row['estatus']) . "</td>";
                     echo "<td style='width: 10%;' class='tbody'>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
                     echo "</tr>";
                 endif;
 
-                if ($proyecto['etapa'] == 'finalizado' or $proyecto['etapa'] == 'facturacion'):
+                if ($proyecto['etapa'] == 'finalizado' ):
                     echo '
                         <td class="tbody" data-id="'. htmlspecialchars($row['partida_id']). '">'. htmlspecialchars($row['estatus']). '</td>
                         <td class="tbody">'. htmlspecialchars($row['ultimo_registro']). '</td>
@@ -216,6 +225,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
         <?php if($username == 'CIS' || $username == 'admin' || $username == 'l.aca'):
         if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo'): ?>
             <a href="mandar_facturacion.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-info mr-3">Mandar a Facturar</a>
+            <a href="hacer_entrega.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-warning mr-3">Hacer Entrega Parcial</a>
         <?php endif; 
         endif; ?>
     </div>
