@@ -53,6 +53,20 @@ function actualizarEstatusProyecto($conn, $proyecto_id, $nuevo_estatus, $observa
 
 // Función para insertar orden de fabricación
 function insertarOrdenFab($conn, $proyecto_id) {
+    //Verificar existencia
+    $sql_check = "SELECT id FROM orden_fab WHERE id_proyecto = ?";
+    $stmt_check = $conn->prepare($sql_check);
+    $stmt_check->bind_param("s", $proyecto_id);
+    $stmt_check->execute();
+    $result = $stmt_check->get_result();
+
+    if ($result->num_rows > 0) {
+        $stmt_check->close();
+        return true; // ya existe una of
+    }
+    $stmt_check->close();
+
+    // Si no existe se inserta la of
     $sql_insert = "INSERT INTO orden_fab 
         (of_created, id_proyecto, id_cliente, updated_at)
         SELECT 
@@ -96,23 +110,17 @@ if (isset($_POST['en_proceso_sin_correo'])) {
 }
 
 // Manejar la solicitud de aprobación de cotización
+// Modificar el bloque de aprobación para NO insertar OF
 if (isset($_POST['aprobar_cotizacion'])) {
     $proyecto_id = $_POST['proyecto_id'];
     
     echo "<script>
             if (confirm('¿Estás seguro de que quieres aprobar esta cotización?')) {";
-                $conn->begin_transaction();
-                try {
-                    if (actualizarEstatusProyecto($conn, $proyecto_id, 'aprobado') && insertarOrdenFab($conn, $proyecto_id)) {
-                        $conn->commit();
-                        $mensaje = "Cotización aprobada con éxito.";
-                        $redireccionar = true;
-                    } else {
-                        throw new Exception("Error al aprobar la cotización");
-                    }
-                } catch (Exception $e) {
-                    $conn->rollback();
-                    $mensaje = $e->getMessage();
+                if (actualizarEstatusProyecto($conn, $proyecto_id, 'aprobado')) {
+                    $mensaje = "Cotización aprobada con éxito.";
+                    $redireccionar = true;
+                } else {
+                    $mensaje = "Error al aprobar la cotización";
                 }
             echo "}
           </script>";

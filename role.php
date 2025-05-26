@@ -10,14 +10,13 @@ if (isset($_SESSION['username'])) {
     $user = $result->fetch_assoc();
 
     if ($user) {
-        $role = $user['role']; // Obtener el rol
-        $nombre = $user['nombre']; // Obtener el nombre
-        $apellido = $user['apellido']; // Obtener el apellido
+        $role = $user['role']; // Obtener rol
+        $nombre = $user['nombre']; // Obtener nombre
+        $apellido = $user['apellido']; // Obtener apellido
 
-        // Ahora puedes usar $role, $nombre y $apellido en tu lógica
-       // echo "Rol: " . $role . "<br>";
-        //echo "Nombre: " . $nombre . "<br>";
-        //echo "Apellido: " . $apellido . "<br>";
+        // echo "Rol: " . $role . "<br>";
+        // echo "Nombre: " . $nombre . "<br>";
+        // echo "Apellido: " . $apellido . "<br>";
     } else {
         // Manejar el caso en que el usuario no existe
         echo "Usuario no encontrado.";
