@@ -8,7 +8,10 @@ if (!isset($_SESSION['username'])) {
 require 'C:/xampp/htdocs/db_connect.php';
 
 // Obtener la lista de proyectos para el select
-$sqlProyectos = "SELECT cod_fab, nombre FROM proyectos";
+$sqlProyectos = "SELECT p.cod_fab, p.nombre 
+                 FROM proyectos p
+                 LEFT JOIN orden_fab o ON p.cod_fab = o.id_proyecto
+                 WHERE o.id_proyecto IS NULL";
 $resultProyectos = $conn->query($sqlProyectos);
 $proyectos = [];
 if ($resultProyectos->num_rows > 0) {
@@ -88,9 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
     try {
         // Actualizar proyecto
-        $sqlUpdateProyecto = "UPDATE proyectos SET nombre = ?, id_cliente = ?, id_comprador = ?, descripcion = ?, fecha_entrega = ? WHERE cod_fab = ?";
+        $sqlUpdateProyecto = "UPDATE proyectos SET nombre = ?, id_cliente = ?, id_comprador = ?, descripcion = ? WHERE cod_fab = ?";
         $stmtUpdateProyecto = $conn->prepare($sqlUpdateProyecto);
-        $stmtUpdateProyecto->bind_param('siisss', $nombre, $id_cliente, $id_comprador, $descripcion, $fecha_entrega, $cod_fab);
+        $stmtUpdateProyecto->bind_param('siiss', $nombre, $id_cliente, $id_comprador, $descripcion, $cod_fab);
         $stmtUpdateProyecto->execute();
 
         // Eliminar registros dependientes en registro_estatus
@@ -200,10 +203,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label for="descripcion">Nota:</label>
             <textarea class="form-control" id="descripcion" name="descripcion" rows="3"><?php echo $proyecto['descripcion'] ?? ''; ?></textarea>
-        </div>
-        <div class="form-group">
-            <label for="fecha_entrega">Fecha de Entrega</label>
-            <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega" value="<?php echo $proyecto['fecha_entrega'] ?? ''; ?>" required>
         </div>
 
         <!-- Datos de Vigencia -->

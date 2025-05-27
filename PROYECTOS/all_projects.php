@@ -16,11 +16,10 @@ $sql = "SELECT
     p.descripcion,
     p.etapa AS estatus,
     p.observaciones,
-    p.fecha_entrega,
     c.nombre_comercial AS cliente_nombre
 FROM proyectos AS p
 INNER JOIN clientes_p AS c ON p.id_cliente = c.id
-WHERE p.etapa != 'directo'
+WHERE p.cod_fab NOT LIKE 'OF%'  -- Excluye códigos que empiezan con OF
 ORDER BY 
     FIELD(p.etapa, 'creado', 'aprobado', 'rechazado', 'en proceso', 'facturacion', 'finalizado'),
     p.cod_fab ASC";
@@ -168,7 +167,7 @@ if (isset($_POST['en_proceso'])) {
             
             $body = "<h3>Se inicia proyecto {$proyecto_data['proyecto_id']}: {$proyecto_data['proyecto_nombre']}</h3>";
             $body .= "<p><strong>Cliente:</strong> {$proyecto_data['cliente_nombre']}</p>";
-            $body .= "<p><strong>Entrega:</strong> {$proyecto_data['fecha_entrega']}</p>";
+            //$body .= "<p><strong>Entrega:</strong> {$proyecto_data['fecha_entrega']}</p>";
             
             if (!empty($partidas)) {
                 $body .= "<h4>Partidas:</h4><table border='1' cellpadding='5'>";

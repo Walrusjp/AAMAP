@@ -77,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
     try {
         // Insertar proyecto
-        $sqlProyecto = "INSERT INTO proyectos (cod_fab, nombre, id_cliente, id_comprador, descripcion, etapa, fecha_entrega)
-                VALUES (?, ?, ?, ?, ?, 'creado', ?)";
+        $sqlProyecto = "INSERT INTO proyectos (cod_fab, nombre, id_cliente, id_comprador, descripcion, etapa)
+                VALUES (?, ?, ?, ?, ?, 'creado')";
         $stmtProyecto = $conn->prepare($sqlProyecto);
-        $stmtProyecto->bind_param('ssiiss', $cod_fab, $nombre, $id_cliente, $id_comprador, $descripcion, $fecha_entrega);
+        $stmtProyecto->bind_param('ssiis', $cod_fab, $nombre, $id_cliente, $id_comprador, $descripcion);
         $stmtProyecto->execute();
         $id_proyecto = $stmtProyecto->insert_id;
 
@@ -167,10 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-group">
             <label for="descripcion">Nota:</label>
             <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="fecha_entrega">Fecha de Entrega</label>
-            <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega" required>
         </div>
 
         <!-- Dentro del formulario existente -->
