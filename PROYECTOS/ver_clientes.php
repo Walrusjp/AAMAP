@@ -94,7 +94,7 @@ $clientes = $result->fetch_all(MYSQLI_ASSOC);
     <!-- Contenedor de elementos alineados a la derecha -->
     <div class="sticky-header" style="width: 100%;">
         <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
-            <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>E R P</b></p></div>
+            <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>C R M</b></p></div>
             <!-- Buscador y botones -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
                 <!-- Buscador -->
@@ -122,7 +122,7 @@ $clientes = $result->fetch_all(MYSQLI_ASSOC);
                 
                 <!-- Botones -->
                 <a href="reg_client.php" class="btn btn-success chompa">Nuevo Cliente</a>
-                <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
+                <a href="/PROYECTOS/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
                 <?php if($username === 'admin'): ?>
                     <a href="borrar_cliente.php" class="btn btn-danger chompa">Eliminar cliente</a>
                 <?php endif; ?>
