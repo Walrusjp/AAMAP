@@ -289,10 +289,17 @@ $estados = $conn->query("SELECT DISTINCT estado FROM proveedores WHERE estado IS
                 success: function(response) {
                     modal.find('.modal-body').html(response);
                 },
-                error: function() {
+                // En el código AJAX, agregar:
+                error: function(xhr, status, error) {
+                    let errorMsg = "Error al cargar los datos del proveedor";
+                    if (xhr.status === 404) {
+                        errorMsg = "Proveedor no encontrado";
+                    } else if (xhr.status === 403) {
+                        errorMsg = "Acceso no autorizado";
+                    }
                     modal.find('.modal-body').html(`
                         <div class="alert alert-danger">
-                            Error al cargar los datos del proveedor
+                            ${errorMsg}
                         </div>
                     `);
                 }

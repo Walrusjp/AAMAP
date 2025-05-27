@@ -7,9 +7,8 @@ if (!isset($_SESSION['username'])) {
 
 require 'C:/xampp/htdocs/db_connect.php';
 
-// Obtener clientes activos para el select
-$sql_clientes = "SELECT id, nombre_comercial FROM clientes_p";
-$result_clientes = $conn->query($sql_clientes);
+// Obtener ID del cliente desde la URL si está presente
+$id_cliente = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_cliente = $_POST['id_cliente'];
@@ -29,6 +28,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<script>alert('Error al registrar el comprador: " . $stmt_comprador->error . "');</script>";
     }
 }
+
+// Obtener nombre del cliente si se pasa el ID por URL
+$nombre_cliente = '';
+if ($id_cliente > 0) {
+    $sql = "SELECT nombre_comercial FROM clientes_p WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id_cliente);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $nombre_cliente = $row['nombre_comercial'];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -42,26 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <div class="container mt-4">
-    <h1>Registrar Comprador</h1>
+    <h1>Registrar Comprador <?php echo $id_cliente > 0 ? 'para Cliente: ' . htmlspecialchars($nombre_cliente) : ''; ?></h1>
     <a href="ver_clientes.php" class="btn btn-secondary mb-3">Regresar</a>
 
     <form method="POST" action="reg_comprador.php">
-        <!-- Select para elegir cliente -->
-        <div class="form-group">
-            <label for="id_cliente">Seleccionar Cliente:</label>
-            <select class="form-control" id="id_cliente" name="id_cliente" required>
-                <option value="">Seleccione un cliente</option>
-                <?php
-                if ($result_clientes->num_rows > 0) {
-                    while ($row = $result_clientes->fetch_assoc()) {
-                        echo "<option value='" . $row['id'] . "'>" . htmlspecialchars($row['nombre_comercial']) . "</option>";
-                    }
-                } else {
-                    echo "<option value=''>No hay clientes disponibles</option>";
-                }
-                ?>
-            </select>
-        </div>
+        <!-- Campo oculto para el ID del cliente -->
+        <input type="hidden" name="id_cliente" value="<?php echo $id_cliente; ?>">
 
         <!-- Campos para el comprador -->
         <div class="form-group">

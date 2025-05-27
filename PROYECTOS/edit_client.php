@@ -44,11 +44,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     nombre_comercial = ?, 
                     razon_social = ?, 
                     rfc = ?, 
-                    direccion = ?, 
-                    activo = ? 
+                    direccion = ?
                 WHERE id = ?";
     $stmt_cliente = $conn->prepare($sql_cliente);
-    $stmt_cliente->bind_param("ssssii", $nombre_comercial, $razon_social, $rfc, $direccion, $activo, $clientId);
+    $stmt_cliente->bind_param("ssssi", $nombre_comercial, $razon_social, $rfc, $direccion, $clientId);
 
     if ($stmt_cliente->execute()) {
         // Actualizar compradores
@@ -111,10 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
         <div class="form-group">
             <label for="direccion">Dirección:</label>
             <input type="text" class="form-control" id="direccion" name="direccion" value="<?php echo htmlspecialchars($cliente['direccion']); ?>">
-        </div>
-        <div class="form-group">
-            <label for="activo">Activo:</label>
-            <input type="checkbox" id="activo" name="activo" <?php echo $cliente['activo'] ? 'checked' : ''; ?>>
         </div>
 
         <h3>Compradores</h3>
