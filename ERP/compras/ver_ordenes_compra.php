@@ -15,12 +15,12 @@ $proveedor_filter = $_GET['proveedor'] ?? '';
 $fecha_inicio = $_GET['fecha_inicio'] ?? '';
 $fecha_fin = $_GET['fecha_fin'] ?? '';
 
-// Consulta base para órdenes de compra
+// Consulta base para órdenes de compra con el último estatus
 $query = "SELECT 
             oc.id_oc, 
             oc.folio, 
             oc.fecha_solicitud, 
-            oc.estatus, 
+            le.estatus, 
             oc.total,
             pr.empresa as proveedor,
             COUNT(d.id_detalle) as items,
@@ -34,6 +34,15 @@ $query = "SELECT
           LEFT JOIN orden_fab of ON oc.id_fab = of.id_fab
           LEFT JOIN proyectos p ON of.id_proyecto = p.cod_fab
           LEFT JOIN users u ON oc.solicitante = u.id
+          LEFT JOIN (
+              SELECT id_oc, estatus 
+              FROM logs_estatus_oc 
+              WHERE (id_oc, fecha_cambio) IN (
+                  SELECT id_oc, MAX(fecha_cambio) 
+                  FROM logs_estatus_oc 
+                  GROUP BY id_oc
+              )
+          ) le ON oc.id_oc = le.id_oc
           WHERE oc.activo = TRUE";
 
 // Aplicar filtros
@@ -43,7 +52,7 @@ if (!empty($search)) {
 }
 
 if ($estatus_filter != 'todos') {
-    $query .= " AND oc.estatus = '" . $conn->real_escape_string($estatus_filter) . "'";
+    $query .= " AND le.estatus = '" . $conn->real_escape_string($estatus_filter) . "'";
 }
 
 if (!empty($proveedor_filter)) {
@@ -87,7 +96,12 @@ $conn->close();
         }
         .badge-estatus {
             font-size: 0.9rem;
-            padding: 5px 10px;
+            padding: 4px 8px;
+            color: rgb(19, 17, 17);
+            position: absolute;  /* Posicionamiento absoluto */
+            top: 10px;          /* Distancia desde arriba */
+            right: 10px;        /* Distancia desde la derecha */
+            z-index: 1;         /* Para que quede sobre otros elementos */
         }
         .filter-section {
             background-color: #f8f9fa;
@@ -145,7 +159,7 @@ $conn->close();
                 </form>
                 
                 <!-- Botones -->
-                <a href="crear_orden_compra.php" class="btn btn-success chompa">Nueva OC</a>
+                <a href="reg_orden_compra.php" class="btn btn-success chompa">Nueva OC</a>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
@@ -202,68 +216,58 @@ $conn->close();
         <div class="text-muted">Total: <?php echo count($ordenes); ?> registros</div>
     </div>
 
-    <div class="row">
+    <div class="proyectos-container px-0">
+    <div id="proyectos-container" class="w-100">
         <?php if (!empty($ordenes)): ?>
-            <?php foreach ($ordenes as $oc): 
-                // Determinar color según estatus
-                $badge_class = '';
-                switch($oc['estatus']) {
-                    case 'solicitada': $badge_class = 'bg-warning text-dark'; break;
-                    case 'aprobada': $badge_class = 'bg-info'; break;
-                    case 'pagada': $badge_class = 'bg-primary'; break;
-                    case 'recibida': $badge_class = 'bg-success'; break;
-                    default: $badge_class = 'bg-secondary';
-                }
-            ?>
-                <div class="col-md-6">
-                    <div class="card card-oc">
+            <?php foreach ($ordenes as $oc): ?>
+                <div class="mb-4 proyecto-card w-100" data-estatus="<?php echo htmlspecialchars($oc['estatus']); ?>">
+                    <a href="detalles_oc.php?id=<?php echo urlencode($oc['id_oc']); ?>" class="card-link" target="_blank">
+                    <div class="card text-dark w-100">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h5 class="card-title"><?php echo htmlspecialchars($oc['folio']); ?></h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">
-                                        <?php echo htmlspecialchars($oc['proveedor']); ?>
-                                    </h6>
-                                </div>
-                                <span class="badge badge-estatus <?php echo $badge_class; ?>">
-                                    <?php echo ucfirst($oc['estatus']); ?>
-                                </span>
-                            </div>
-                            
-                            <div class="card-text mt-3">
-                                <div><strong>Solicitante:</strong> <?php echo htmlspecialchars($oc['solicitante_nombre']); ?></div>
-                                <div><strong>Fecha:</strong> <?php echo date('d/m/Y', strtotime($oc['fecha_solicitud'])); ?></div>
-                                <div><strong>Artículos:</strong> <?php echo $oc['items']; ?></div>
-                                <div><strong>Total:</strong> $<?php echo number_format($oc['total'], 2); ?></div>
-                                
+                            <h5 class="card-title text-start"><?php echo htmlspecialchars($oc['folio']); ?> || <?php echo htmlspecialchars($oc['proveedor']); ?></h5>
+                            <p class="text-start card-text">
+                                <strong>Solicitante:</strong> <?php echo htmlspecialchars($oc['solicitante_nombre']); ?><br>
+                                <strong>Fecha:</strong> <?php echo date('d/m/Y', strtotime($oc['fecha_solicitud'])); ?><br>
+                                <strong>Total:</strong> $<?php echo number_format($oc['total'], 2); ?><br>
                                 <?php if (!empty($oc['id_fab'])): ?>
-                                    <div class="oc-proyecto mt-2">
-                                        <strong>Proyecto/OF:</strong> 
-                                        <?php echo htmlspecialchars($oc['proyecto_nombre'] ?? 'OF-' . $oc['id_fab']); ?>
-                                        (<?php echo htmlspecialchars($oc['cod_fab'] ?? ''); ?>)
-                                    </div>
+                                    <strong>Proyecto/OF:</strong> <?php echo htmlspecialchars($oc['proyecto_nombre'] ?? 'OF-' . $oc['id_fab']); ?>
+                                    (<?php echo htmlspecialchars($oc['cod_fab'] ?? ''); ?>)
+                                <?php else: ?>
+                                    <span style="color: darkred;"><u>Sin proyecto asignado</u></span>
                                 <?php endif; ?>
-                            </div>
-                            
-                            <div class="oc-actions">
-                                <a href="editar_orden_compra.php?id=<?php echo $oc['id_oc']; ?>" class="btn btn-sm btn-primary">Detalles</a>
-                                <?php if ($oc['estatus'] == 'solicitada' && ($role == 'admin' || $role == 'compras')): ?>
-                                    <a href="aprobar_oc.php?id=<?php echo $oc['id_oc']; ?>" class="btn btn-sm btn-success">Aprobar</a>
-                                <?php endif; ?>
-                                <?php if ($oc['estatus'] == 'aprobada' && $role == 'admin'): ?>
-                                    <a href="recepcion_oc.php?id=<?php echo $oc['id_oc']; ?>" class="btn btn-sm btn-info">Registrar Recepción</a>
-                                <?php endif; ?>
-                            </div>
+                            </p>
+                            <span class="badge <?php 
+                                switch($oc['estatus']) {
+                                    case 'solicitada': echo 'bg-warning text-dark'; break;
+                                    case 'aprobada': echo 'bg-info'; break;
+                                    case 'pagada': echo 'bg-primary'; break;
+                                    case 'recibida': echo 'bg-success'; break;
+                                    default: echo 'bg-danger';
+                                }
+                            ?> badge-estatus">
+                                <?php echo ucfirst($oc['estatus']); ?>
+                            </span>
                         </div>
+                    </div>
+
+                    <div class="mt-2">
+                        <?php if ($oc['estatus'] == 'solicitada' && ($role == 'admin' || $role == 'compras')): ?>
+                            <a href="aprobar_oc.php?id=<?php echo $oc['id_oc']; ?>" class="btn btn-info btn-card">Aprobar</a>
+                            <a href="cancelar_oc.php?id=<?php echo $oc['id_oc']; ?>" class="btn btn-secondary btn-card">Cancelar</a>
+                        <?php endif; ?>
+                        <?php if ($oc['estatus'] == 'aprobada' && $role == 'admin'): ?>
+                            <a href="recepcion_oc.php?id=<?php echo $oc['id_oc']; ?>" class="btn btn-info btn-card">Registrar Recepción</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
             <div class="col-12">
-                <div class="alert alert-info">No se encontraron órdenes de compra con los filtros aplicados</div>
+                <p class="text-muted text-center">No se encontraron órdenes de compra con los filtros aplicados</p>
             </div>
         <?php endif; ?>
     </div>
+</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

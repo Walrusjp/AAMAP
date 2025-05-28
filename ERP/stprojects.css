@@ -116,6 +116,7 @@ h1 {
 
 /* Cada tarjeta individual */
 .proyecto-card {
+    position: relative;
     width: 100%;
     background-color: #ffffff;
     border-radius: 10px;
@@ -125,6 +126,7 @@ h1 {
     margin-bottom: 10px;
     height: auto;
     flex: 0 0 calc(33.33% - 20px); /* Ajusta el ancho de las tarjetas */
+    text-align: left !important;
 }
 
 .card-body {
