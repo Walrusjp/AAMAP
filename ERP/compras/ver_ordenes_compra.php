@@ -27,6 +27,7 @@ $query = "SELECT
             of.id_fab,
             p.nombre as proyecto_nombre,
             p.cod_fab,
+            u.username,
             u.nombre as solicitante_nombre
           FROM ordenes_compra oc
           LEFT JOIN proveedores pr ON oc.id_pr = pr.id_pr
@@ -96,18 +97,34 @@ $conn->close();
         }
         .badge-estatus {
             font-size: 0.9rem;
-            padding: 4px 8px;
+            padding: 5px 10px;
             color: rgb(19, 17, 17);
             position: absolute;  /* Posicionamiento absoluto */
             top: 10px;          /* Distancia desde arriba */
             right: 10px;        /* Distancia desde la derecha */
             z-index: 1;         /* Para que quede sobre otros elementos */
+            font-family: 'Consolas';
         }
         .filter-section {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #f8f9fa; /* Color de fondo opcional */
+            border-bottom: 1px solid #dee2e6; /* Línea separadora opcional */
+            margin-bottom: 0 !important; /* Elimina cualquier margen inferior */
+        }
+
+        /* Elimina márgenes/paddings innecesarios */
+        .filter-section .form-row {
+            margin-bottom: 0 !important;
+        }
+
+        .filter-section .form-control {
+            padding: 0.375rem 0.75rem;
+            height: calc(1.8125rem + 2px); /* Reduce altura de inputs */
+        }
+
+        .filter-section label {
+            margin-bottom: 0.2rem; /* Reduce espacio bajo labels */
+            font-size: 0.9rem; /* Tamaño de fuente más pequeño */
         }
         .oc-header {
             display: flex;
@@ -122,6 +139,12 @@ $conn->close();
         .oc-actions {
             margin-top: 10px;
         }
+        .solicitada { background-color: gold; }
+        .aprobada { background-color: lawngreen; }
+        .pagada { background-color: cornflowerblue; }
+        .recibida { background-color: mediumspringgreen; }
+        .cancelada { background-color: lightcoral; }
+
     </style>
 </head>
 <body>
@@ -158,6 +181,7 @@ $conn->close();
                     </div>
                 </form>
                 
+                
                 <!-- Botones -->
                 <a href="reg_orden_compra.php" class="btn btn-success chompa">Nueva OC</a>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
@@ -168,48 +192,38 @@ $conn->close();
 
 <div class="container">
     <!-- Filtros adicionales -->
-    <div class="filter-section">
-        <form method="GET" action="ver_ordenes_compra.php">
-            <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
-            <div class="form-row">
-                <div class="col-md-3">
-                    <label for="estatus">Estatus:</label>
-                    <select name="estatus" id="estatus" class="form-control">
-                        <option value="todos" <?php echo ($estatus_filter == 'todos') ? 'selected' : ''; ?>>Todos los estatus</option>
-                        <option value="solicitada" <?php echo ($estatus_filter == 'solicitada') ? 'selected' : ''; ?>>Solicitadas</option>
-                        <option value="aprobada" <?php echo ($estatus_filter == 'aprobada') ? 'selected' : ''; ?>>Aprobadas</option>
-                        <option value="pagada" <?php echo ($estatus_filter == 'pagada') ? 'selected' : ''; ?>>Pagadas</option>
-                        <option value="recibida" <?php echo ($estatus_filter == 'recibida') ? 'selected' : ''; ?>>Recibidas</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="proveedor">Proveedor:</label>
-                    <select name="proveedor" id="proveedor" class="form-control">
-                        <option value="">Todos los proveedores</option>
-                        <?php foreach ($proveedores as $prov): ?>
-                            <option value="<?php echo $prov['id_pr']; ?>" <?php echo ($proveedor_filter == $prov['id_pr']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($prov['empresa']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="fecha_inicio">Fecha Inicio:</label>
-                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" value="<?php echo htmlspecialchars($fecha_inicio); ?>">
-                </div>
-                <div class="col-md-3">
-                    <label for="fecha_fin">Fecha Fin:</label>
-                    <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="<?php echo htmlspecialchars($fecha_fin); ?>">
-                </div>
+    <div class="filter-section sticky-top bg-light"> <!-- sticky-top lo mantiene visible al hacer scroll -->
+    <form method="GET" action="ver_ordenes_compra.php" class="py-1"> <!-- py-1 reduce padding vertical -->
+        <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+        <div class="form-row align-items-center"> <!-- align-items-center para vertical centering -->
+            <div class="col-md-3 mb-1"> <!-- mb-1 reduce margen inferior -->
+                <label for="estatus" class="mb-0">Estatus:</label> <!-- mb-0 elimina margen inferior -->
+                <select name="estatus" id="estatus" class="form-control form-control-sm"> <!-- form-control-sm para controles más pequeños -->
+                    <option value="todos" <?php echo ($estatus_filter == 'todos') ? 'selected' : ''; ?>>Todos los estatus</option>
+                    <option value="solicitada" <?php echo ($estatus_filter == 'solicitada') ? 'selected' : ''; ?>>Solicitadas</option>
+                    <option value="aprobada" <?php echo ($estatus_filter == 'aprobada') ? 'selected' : ''; ?>>Aprobadas</option>
+                    <option value="pagada" <?php echo ($estatus_filter == 'pagada') ? 'selected' : ''; ?>>Pagadas</option>
+                    <option value="recibida" <?php echo ($estatus_filter == 'recibida') ? 'selected' : ''; ?>>Recibidas</option>
+                </select>
             </div>
-            <div class="form-row mt-2">
-                <div class="col-md-12 text-right">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                    <a href="ver_ordenes_compra.php" class="btn btn-link">Limpiar</a>
-                </div>
+            <div class="col-md-3 mb-1">
+                <label for="proveedor" class="mb-0">Proveedor:</label>
+                <select name="proveedor" id="proveedor" class="form-control form-control-sm">
+                    <option value="">Todos los proveedores</option>
+                    <?php foreach ($proveedores as $prov): ?>
+                        <option value="<?php echo $prov['id_pr']; ?>" <?php echo ($proveedor_filter == $prov['id_pr']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($prov['empresa']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-        </form>
-    </div>
+            <div class="col-md-6 text-right mb-1">
+                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button> <!-- btn-sm para botón pequeño -->
+                <a href="ver_ordenes_compra.php" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+            </div>
+        </div>
+    </form>
+</div>
 
     <div class="oc-header">
         <h2>Órdenes de Compra</h2>
@@ -226,7 +240,7 @@ $conn->close();
                         <div class="card-body">
                             <h5 class="card-title text-start"><?php echo htmlspecialchars($oc['folio']); ?> || <?php echo htmlspecialchars($oc['proveedor']); ?></h5>
                             <p class="text-start card-text">
-                                <strong>Solicitante:</strong> <?php echo htmlspecialchars($oc['solicitante_nombre']); ?><br>
+                                <strong>Solicitante:</strong> <?php echo htmlspecialchars($oc['username']); ?><br>
                                 <strong>Fecha:</strong> <?php echo date('d/m/Y', strtotime($oc['fecha_solicitud'])); ?><br>
                                 <strong>Total:</strong> $<?php echo number_format($oc['total'], 2); ?><br>
                                 <?php if (!empty($oc['id_fab'])): ?>
@@ -238,11 +252,11 @@ $conn->close();
                             </p>
                             <span class="badge <?php 
                                 switch($oc['estatus']) {
-                                    case 'solicitada': echo 'bg-warning text-dark'; break;
-                                    case 'aprobada': echo 'bg-info'; break;
-                                    case 'pagada': echo 'bg-primary'; break;
-                                    case 'recibida': echo 'bg-success'; break;
-                                    default: echo 'bg-danger';
+                                    case 'solicitada': echo 'solicitada'; break;
+                                    case 'aprobada': echo 'aprobada'; break;
+                                    case 'pagada': echo 'pagada'; break;
+                                    case 'recibida': echo 'recibida'; break;
+                                    default: echo 'cancelada';
                                 }
                             ?> badge-estatus">
                                 <?php echo ucfirst($oc['estatus']); ?>

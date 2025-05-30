@@ -125,7 +125,8 @@ $conn->close();
                 
                 <!-- Botones -->
                 <a href="reg_articulo_alm.php" class="btn btn-success chompa">Nuevo Artículo</a>
-                <a href="ajustar_inventario.php" class="btn btn-warning chompa">Ajustar Inventario</a>
+                <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
+                <a href="ajustar_inventario.php" class="btn btn-info chompa">Ajustar Inventario</a>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
@@ -200,7 +201,10 @@ $conn->close();
                         <td><?php echo htmlspecialchars($art['salidas'] ?? 0); ?></td>
                         <td>
                             <a href="editar_articulo_alm.php?id=<?php echo $art['id_alm']; ?>" class="btn btn-primary btn-sm btn-action">Editar</a>
-                            <a href="ver_movs_alm.php?id=<?php echo $art['id_alm']; ?>" class="btn btn-info btn-sm btn-action">Movimientos</a>
+                            <!--<a href="ver_movs_alm.php?id=<?php echo $art['id_alm']; ?>" class="btn btn-info btn-sm btn-action">Movimientos</a>-->
+                            <button class="btn btn-info btn-sm btn-action btn-ver-movimientos" data-id="<?php echo $art['id_alm']; ?>">
+                                logs
+                            </button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -217,10 +221,16 @@ $conn->close();
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    // Actualizar tabla al cambiar filtros
     $(document).ready(function() {
+        // Filtros
         $('#categoria, #proveedor').change(function() {
             $(this).closest('form').submit();
+        });
+
+        // Ventana de movimientos
+        $(document).on('click', '.btn-ver-movimientos', function() {
+            const id_alm = $(this).data('id');
+            window.location.href = `ver_movs_alm.php?id_alm=${id_alm}`;
         });
     });
 </script>

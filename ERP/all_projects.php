@@ -120,7 +120,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
 
                 <?php if ($role == 'admin' || $username == "CIS" || $username == 'atencionaclientes'): ?>
                 <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="almacenDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-info dropdown-toggle" type="button" id="almacenDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     Gestión de Suministros
                 </button>
                 <ul class="dropdown-menu">
