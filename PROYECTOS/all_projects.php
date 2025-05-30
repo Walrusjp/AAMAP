@@ -53,7 +53,7 @@ function actualizarEstatusProyecto($conn, $proyecto_id, $nuevo_estatus, $observa
 // Función para insertar orden de fabricación
 function insertarOrdenFab($conn, $proyecto_id) {
     //Verificar existencia
-    $sql_check = "SELECT id FROM orden_fab WHERE id_proyecto = ?";
+    $sql_check = "SELECT id_fab FROM orden_fab WHERE id_proyecto = ?";
     $stmt_check = $conn->prepare($sql_check);
     $stmt_check->bind_param("s", $proyecto_id);
     $stmt_check->execute();
@@ -67,11 +67,12 @@ function insertarOrdenFab($conn, $proyecto_id) {
 
     // Si no existe se inserta la of
     $sql_insert = "INSERT INTO orden_fab 
-        (of_created, id_proyecto, id_cliente, updated_at)
+        (plano_ref, id_proyecto, id_cliente, of_created, updated_at)
         SELECT 
-            NOW(), 
+            '',
             p.cod_fab, 
             p.id_cliente,
+            NOW(),
             NOW()
         FROM proyectos p
         WHERE p.cod_fab = ?";
