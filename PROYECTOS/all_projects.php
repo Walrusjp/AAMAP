@@ -20,6 +20,7 @@ $sql = "SELECT
 FROM proyectos AS p
 INNER JOIN clientes_p AS c ON p.id_cliente = c.id
 WHERE p.cod_fab NOT LIKE 'OF%'  -- Excluye códigos que empiezan con OF
+AND p.activo = 1
 ORDER BY 
     FIELD(p.etapa, 'creado', 'aprobado', 'rechazado', 'en proceso', 'facturacion', 'finalizado'),
     p.cod_fab ASC";

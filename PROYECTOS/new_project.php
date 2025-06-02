@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="text" class="form-control" id="lab" name="lab" value="Puebla, Pue." required>
         </div>
         <div class="form-group">
-            <label for="tipo_entr">Tipo de Entrega</label>
+            <label for="tipo_entr">Tiempo de Entrega</label>
             <input type="text" class="form-control" id="tipo_entr" name="tipo_entr" value="A convenir con el cliente" required>
         </div>
 

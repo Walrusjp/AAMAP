@@ -121,13 +121,13 @@ if (isset($_POST['aprobar_cotizacion'])) {
                 <?php if ($role == 'admin' || $username == "CIS" || $username == 'atencionaclientes'): ?>
                 <div class="dropdown">
                 <button class="btn btn-info dropdown-toggle" type="button" id="almacenDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    Gestión de Suministros
+                    Cadena de Suministros
                 </button>
                 <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" data-value="proveedores" data-url='proveedores/ver_proveedores.php'>Proveedores</a></li>
                     <li><a class="dropdown-item" href="/launch.php" data-value="almacen" data-url='almacen/ver_almacen.php'>Almacén</a></li>
                     <li><a class="dropdown-item" href="#" data-value="compras" data-url='compras/ver_ordenes_compra.php'>Compras</a></li>
-                    <li><a class="dropdown-item" href="#" data-value="proveedores" data-url='proveedores/ver_proveedores.php'>Proveedores</a></li>
-
+                    <li><a class="dropdown-item" href="#" data-value="req_interna" data-url='req_interna/ver_req_interna.php'>Requisicón interna</a></li>
                 <!--Submenú para Reportes-->
                     <li class="dropdown-submenu position-relative" >
                         <a class="dropdown-item disabled-item">Reportes</a>

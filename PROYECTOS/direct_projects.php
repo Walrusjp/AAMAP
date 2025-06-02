@@ -9,6 +9,15 @@ require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 require 'send_email.php';
 
+
+// Obtener datos del usuario actual
+$sql = "SELECT username, role FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $_SESSION['user_id']); // Asume que guardas el ID en sesión
+$stmt->execute();
+$user_data = $stmt->get_result()->fetch_assoc();
+$username = $user_data['username'] ?? '';
+
 // Obtener los proyectos en etapa 'directo' desde la base de datos
 $sql = "SELECT
             of.id_fab AS orden_fab_id,  -- Mostrar id_fab en lugar de cod_fab
@@ -121,6 +130,10 @@ if ($mensaje !== "") {
             <div style="display: flex; align-items: center; gap: 10px;">
                 <!--<a href="ver_proyecto.php?id=<?php //echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">-->
                 <a href="new_of.php" class="btn btn-info chompa">Nueva OF Directa</a>
+                <?php if($username === 'admin' || $username === ''): ?>
+                    <a href="reg_client.php" class="btn btn-info chompa">Registrar CLiente</a>
+                    <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</nav></a>
+                <?php endif; ?>
                 <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
