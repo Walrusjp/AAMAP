@@ -156,7 +156,11 @@ if (isset($_POST['logout'])) {
                 <p style="text-align: left; margin-left: 30px;"><b>MONEDA</b></p>
                 <p style="text-align: left; margin-left: 30px; line-height: 1.1em;" ><b>COND. PAGO</b></p>
                 <p style="text-align: left; margin-left: 30px;"><b>L.A.B:</b></p>
-                <p style="text-align: left; margin-left: 30px;"><b>TPO. ENTR:</b></p>
+                <?php if (isset($datos_vigencia['tmp_ejecucion']) && !empty($datos_vigencia['tmp_ejecucion'])): ?>
+                    <p style="text-align: left; margin-left: 30px;"><b>TPO. EJEC:</b></p>
+                <?php else: ?>
+                    <p style="text-align: left; margin-left: 30px;"><b>TPO. ENTR:</b></p>
+                <?php endif; ?>
             </td>
             <td class=" vigencia" style="width: 40%;">
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['vigencia']); ?></p>
@@ -164,7 +168,11 @@ if (isset($_POST['logout'])) {
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['moneda']); ?></p>
                 <p style="text-align: left; line-height: 1.1em;" ><?php echo htmlspecialchars($datos_vigencia['condicion_pago']); ?></p>
                 <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['lab']); ?></p>
-                <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['tipo_entr']); ?></p>
+                <?php if (isset($datos_vigencia['tmp_ejecucion']) && !empty($datos_vigencia['tmp_ejecucion'])): ?>
+                    <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['tmp_ejecucion']); ?></p>
+                <?php else: ?>
+                    <p style="text-align: left;"><?php echo htmlspecialchars($datos_vigencia['tipo_entr'] ?? 'A convenir con el cliente'); ?></p>
+                <?php endif; ?>
             </td>
             <td style="width: 42%;">
                 <img src="/assets/datos.webp" style="width: 100%;">

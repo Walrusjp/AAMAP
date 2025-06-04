@@ -102,10 +102,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insertar datos de vigencia
-        $sqlVigencia = "INSERT INTO datos_vigencia (cod_fab, vigencia, precios, moneda, condicion_pago, lab, tipo_entr)
-                    VALUES(?,?,?,?,?,?,?)";
-        $stmtVigencia = $conn->prepare($sqlVigencia);
-        $stmtVigencia->bind_param('sssssss', $cod_fab, $vigencia, $precios, $moneda, $condicion_pago, $lab, $tipo_entr);
+        $tipo_tiempo = $_POST['tipo_tiempo'];
+        $tiempo_valor = ($tipo_tiempo == 'entrega') ? $_POST['tipo_entr'] : $_POST['tmp_ejecucion'];
+
+        if ($tipo_tiempo == 'entrega') {
+            $sqlVigencia = "INSERT INTO datos_vigencia (cod_fab, vigencia, precios, moneda, condicion_pago, lab, tipo_entr)
+                            VALUES(?,?,?,?,?,?,?)";
+            $stmtVigencia = $conn->prepare($sqlVigencia);
+            $stmtVigencia->bind_param('sssssss', $cod_fab, $vigencia, $precios, $moneda, $condicion_pago, $lab, $tiempo_valor);
+        } else {
+            $sqlVigencia = "INSERT INTO datos_vigencia (cod_fab, vigencia, precios, moneda, condicion_pago, lab, tmp_ejecucion)
+                            VALUES(?,?,?,?,?,?,?)";
+            $stmtVigencia = $conn->prepare($sqlVigencia);
+            $stmtVigencia->bind_param('sssssss', $cod_fab, $vigencia, $precios, $moneda, $condicion_pago, $lab, $tiempo_valor);
+        }
         $stmtVigencia->execute();
 
         $conn->commit();
@@ -192,8 +202,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="text" class="form-control" id="lab" name="lab" value="Puebla, Pue." required>
         </div>
         <div class="form-group">
+            <label>Escoge una opción</label>
+            <div class="form-check">
+                <input class ="form-check-input" type="radio" name="tipo_tiempo" id="tiempo_entrega" value="entrega" checked>
+                <label class="form-check-label" for="tiempo_entrega">Tiempo de entrega</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="tipo_tiempo" id="tiempo_ejecucion" value="ejecucion">
+                <label class="form-check-label" for="tiempo_ejecucion">Tiempo de ejecución</label>
+            </div>
+        </div>
+        <div class="form-group" id="grupo_tiempo_entrega">
             <label for="tipo_entr">Tiempo de Entrega</label>
-            <input type="text" class="form-control" id="tipo_entr" name="tipo_entr" value="A convenir con el cliente" required>
+            <input type="text" class="form-control" id="tipo_entr" name="tipo_entr" value="A convenir con el cliente">
+        </div>
+        <div class="form-group" id="grupo_tiempo_ejecucion" style="display: none;">
+            <label for="tmp_ejecucion">Tiempo de Ejecución</label>
+            <input type="text" class="form-control" id="tmp_ejecucion" name="tmp_ejecucion" value="A convenir con el cliente">
         </div>
 
         <h3>Partidas</h3>
@@ -308,6 +333,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $('#id_comprador').html('<option value="">Seleccionar comprador</option>');
             }
         });
+    });
+
+    //Manejar el cambio entre tiempos entrega o ejecucion
+    $('input[name="tipo_tiempo"]').change(function(){
+        if($(this).val() === 'entrega') {
+            $('#grupo_tiempo_entrega').show();
+            $('#grupo_tiempo_ejecucion').hide();
+        } else {
+            $('#grupo_tiempo_entrega').hide();
+            $('#grupo_tiempo_ejecucion').show();
+        }
     });
     </script>
 

@@ -86,7 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $moneda = $_POST['moneda'];
     $condicion_pago = $_POST['condicion_pago'];
     $lab = $_POST['lab'];
-    $tipo_entr = $_POST['tipo_entr'];
 
     $conn->begin_transaction();
     try {
@@ -126,9 +125,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Actualizar datos de vigencia
-        $sqlUpdateVigencia = "UPDATE datos_vigencia SET vigencia = ?, precios = ?, moneda = ?, condicion_pago = ?, lab = ?, tipo_entr = ? WHERE cod_fab = ?";
+        // Determinar qué campo de tiempo usar
+        if (isset($_POST['tmp_ejecucion']) && !empty($_POST['tmp_ejecucion'])) {
+            $sqlUpdateVigencia = "UPDATE datos_vigencia SET vigencia = ?, precios = ?, moneda = ?, condicion_pago = ?, lab = ?, tmp_ejecucion = ?, tipo_entr = NULL WHERE cod_fab = ?";
+            $tiempo_valor = $_POST['tmp_ejecucion'];
+        } else {
+            $sqlUpdateVigencia = "UPDATE datos_vigencia SET vigencia = ?, precios = ?, moneda = ?, condicion_pago = ?, lab = ?, tipo_entr = ?, tmp_ejecucion = NULL WHERE cod_fab = ?";
+            $tiempo_valor = $_POST['tipo_entr'] ?? 'A convenir con el cliente';
+        }
+
         $stmtUpdateVigencia = $conn->prepare($sqlUpdateVigencia);
-        $stmtUpdateVigencia->bind_param('sssssss', $vigencia, $precios, $moneda, $condicion_pago, $lab, $tipo_entr, $cod_fab);
+        $stmtUpdateVigencia->bind_param('sssssss', $vigencia, $precios, $moneda, $condicion_pago, $lab, $tiempo_valor, $cod_fab);
         $stmtUpdateVigencia->execute();
 
         $conn->commit();
@@ -227,9 +234,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="lab">L.a.b.</label>
             <input type="text" class="form-control" id="lab" name="lab" value="<?php echo $datosVigencia['lab'] ?? ''; ?>" required>
         </div>
-        <div class="form-group">
-            <label for="tipo_entr">Tipo de Entrega</label>
-            <input type="text" class="form-control" id="tipo_entr" name="tipo_entr" value="<?php echo $datosVigencia['tipo_entr'] ?? ''; ?>" required>
+        <?php 
+        $mostrar_tiempo_ejecucion = isset($datosVigencia['tmp_ejecucion']) && !empty($datosVigencia['tmp_ejecucion']);
+        $mostrar_tiempo_entrega = isset($datosVigencia['tipo_entr']) && !empty($datosVigencia['tipo_entr']) || !$mostrar_tiempo_ejecucion;
+        ?>
+
+        <div class="form-group" id="grupo_tiempo_entrega" style="<?php echo $mostrar_tiempo_ejecucion ? 'display: none;' : ''; ?>">
+            <label for="tipo_entr">Tiempo de Entrega</label>
+            <input type="text" class="form-control" id="tipo_entr" name="tipo_entr" 
+                value="<?php echo $datosVigencia['tipo_entr'] ?? 'A convenir con el cliente'; ?>" 
+                <?php echo $mostrar_tiempo_ejecucion ? '' : 'required'; ?>>
+        </div>
+
+        <div class="form-group" id="grupo_tiempo_ejecucion" style="<?php echo $mostrar_tiempo_entrega ? 'display: none;' : ''; ?>">
+            <label for="tmp_ejecucion">Tiempo de Ejecución</label>
+            <input type="text" class="form-control" id="tmp_ejecucion" name="tmp_ejecucion" 
+                value="<?php echo $datosVigencia['tmp_ejecucion'] ?? ''; ?>"
+                <?php echo $mostrar_tiempo_entrega ? '' : 'required'; ?>>
         </div>
 
         <!-- Partidas -->

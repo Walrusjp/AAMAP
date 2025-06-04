@@ -42,7 +42,7 @@ $resultPartidas = $stmtPartidas->get_result();
 $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 
 // Consultar los datos de vigencia del proyecto
-$sqlVigencia = "SELECT vigencia, precios, moneda, condicion_pago, lab, tipo_entr 
+$sqlVigencia = "SELECT vigencia, precios, moneda, condicion_pago, lab, tipo_entr, tmp_ejecucion 
                 FROM datos_vigencia 
                 WHERE cod_fab = ?";
 $stmtVigencia = $conn->prepare($sqlVigencia);
