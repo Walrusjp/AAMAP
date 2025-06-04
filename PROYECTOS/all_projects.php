@@ -229,6 +229,18 @@ if ($mensaje !== "") {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
+    <style>
+        .badge-estatus {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            color: rgb(19, 17, 17);
+            position: absolute;  /* Posicionamiento absoluto */
+            top: 10px;          /* Distancia desde arriba */
+            right: 10px;        /* Distancia desde la derecha */
+            z-index: 1;         /* Para que quede sobre otros elementos */
+            font-family: 'Consolas';
+        }
+    </style>
 </head>
 <body>
 <div class="navbar" style="display: flex; align-items: center; justify-content: space-between; padding: 0px; background-color: #f8f9fa; position: relative;">
@@ -286,6 +298,30 @@ if ($mensaje !== "") {
                                     Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
                                     Nota: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
                                 </p>
+                                <span class="badge <?php 
+                                    switch($proyecto['estatus']) {
+                                        case 'creado': echo 'bg-warning'; break;
+                                        case 'aprobado': echo 'bg-success'; break;
+                                        case 'rechazado': echo 'bg-danger text-white'; break;
+                                        case 'en proceso': echo 'bg-dark text-white'; break;
+                                        case 'facturacion': echo 'bg-dark text-white'; break;
+                                        case 'finalizado': echo 'bg-dark text-white'; break;
+                                        default: echo 'dark';
+                                    }
+                                ?> badge-estatus">
+                                    <?php 
+                                        // Mapeo de estatus a textos personalizados
+                                        $estatusTextos = [
+                                            'creado' => 'En proceso CRM',
+                                            'aprobado' => 'Aprobado',
+                                            'rechazado' => 'No concretado',
+                                            'en proceso' => 'En ERP',
+                                            'facturacion' => 'En ERP',
+                                            'finalizado' => 'En ERP'
+                                        ];
+                                        echo $estatusTextos[$proyecto['estatus']] ?? ucfirst($proyecto['estatus']);
+                                    ?>
+                                </span>
                             </div>
                         </div>
                     </a>

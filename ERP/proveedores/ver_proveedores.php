@@ -92,7 +92,7 @@ $estados = $conn->query("SELECT DISTINCT estado FROM proveedores WHERE estado IS
             margin-bottom: 20px;
         }
         .modal-lg {
-            max-width: 800px;
+            max-width: 900px;
         }
         .ref-bancaria-item {
             border-bottom: 1px solid #eee;

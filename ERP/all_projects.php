@@ -82,6 +82,17 @@ if (isset($_POST['aprobar_cotizacion'])) {
             pointer-events: none;
             cursor: pointer;
         }
+
+        .badge-estatus {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            color: rgb(19, 17, 17);
+            position: absolute;  /* Posicionamiento absoluto */
+            top: 10px;          /* Distancia desde arriba */
+            right: 10px;        /* Distancia desde la derecha */
+            z-index: 1;         /* Para que quede sobre otros elementos */
+            font-family: 'Consolas';
+        }
     </style>
 </head>
 <body>
@@ -166,13 +177,31 @@ if (isset($_POST['aprobar_cotizacion'])) {
                                     Nota: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
                                     <small class="text-muted"><b>Basado en cot: <?php echo htmlspecialchars($proyecto['cod_fab']); ?></b></small>
                                 </p>
+
+                                <span class="badge <?php 
+                                    switch($proyecto['estatus']) {
+                                        case 'en proceso': echo 'bg-warning'; break;
+                                        case 'directo': echo 'bg-warning'; break;
+                                        case 'finalizado': echo 'bg-success text-white'; break;
+                                        case 'facturacion': echo 'bg-info'; break;
+                                        default: echo 'dark';
+                                    }
+                                ?> badge-estatus">
+                                    <?php 
+                                        // Mapeo de estatus a textos personalizados
+                                        $estatusTextos = [
+                                            'en proceso' => 'En proceso ERP',
+                                            'directo' => 'En proceso ERP',
+                                            'finalizado' => 'Finalizado',
+                                            'facturacion' => 'Facturado',
+                                            'finalizado' => 'Finalizado'
+                                        ];
+                                        echo $estatusTextos[$proyecto['estatus']] ?? ucfirst($proyecto['estatus']);
+                                    ?>
+                                </span>
                             </div>
                         </div>
                     </a>
-            <!--ucbeiubacnneiondioenon-->
-                    <?php if ($proyecto['estatus'] == 'produccion'): ?>
-                        <a href="complete_reg.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="btn btn-secondary mt-2 btn-card">Completar Registro</a>
-                    <?php endif; ?>
 
                 </div>
             <?php endforeach; ?>

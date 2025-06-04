@@ -117,5 +117,6 @@ $conn->close();
 
 <div class="mt-4 text-right">
     <a href="editar_proveedor.php?id=<?php echo $proveedor['id_pr']; ?>" class="btn btn-primary btn10">Editar Proveedor</a>
+    <a href="editar_ref_pr.php?id=<?php echo $proveedor['id_pr']; ?>" class="btn btn-info btn10">Editar Ref. Bancarias</a>
     <a href="ver_compras_proveedor.php?id=<?php echo $proveedor['id_pr']; ?>" class="btn btn-info btn10" >Ver Compras</a>
 </div>
