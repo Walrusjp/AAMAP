@@ -99,6 +99,10 @@ if (!isset($_SESSION['welcome_shown'])) {
         <?php else: ?>
             <button onclick="window.location.href='/ERP/all_projects.php'" disabled>ERP PROYECTOS</button>
         <?php endif; ?>
+
+        <?php if($username === 'h.galicia' || $username === 'admin'): ?>
+            <button onclick="window.open('/reportes/reporte_gral.php', '_blank')" class="btn btn-primary">REPORTES</button>
+        <?php endif; ?>
     </div>
 
     <script type="text/javascript">

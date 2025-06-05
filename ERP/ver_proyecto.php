@@ -121,9 +121,6 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="seep.css">
     <link rel="icon" href="/assets/logo.ico">
-    <style>
-      
-    </style>
 </head>
 <body>
 

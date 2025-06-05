@@ -10,6 +10,8 @@ require 'C:/xampp/htdocs/role.php';
 require 'get_compradores.php';
 require 'send_email.php';
 
+date_default_timezone_set("America/Mexico_City");
+
 // Obtener clientes para la lista desplegable
 $sqlClientes = "SELECT id, nombre_comercial FROM clientes_p";
 $resultClientes = $conn->query($sqlClientes);
