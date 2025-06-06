@@ -79,8 +79,9 @@ $queryEstadisticas = "
         SUM(CASE WHEN etapa != 'finalizado' AND etapa != 'rechazado' THEN 1 ELSE 0 END) AS en_curso,
         SUM(CASE WHEN etapa = 'rechazado' THEN 1 ELSE 0 END) AS no_concretado,
         AVG(CASE WHEN etapa = 'finalizado' THEN DATEDIFF(of.updated_at, p.fecha_creacion) ELSE NULL END) AS promedio_dias_total,
-        AVG(CASE WHEN p.etapa = 'finalizado' AND DATEDIFF(of.of_created, p.fecha_creacion) > 0 -- Excluye proyectos con 0 días en CRM
+        AVG(CASE WHEN p.etapa = 'finalizado' AND p.cod_fab NOT LIKE '%OF-%'
         THEN DATEDIFF(of.of_created, p.fecha_creacion) ELSE NULL END) AS promedio_dias_cotizacion,
+
         AVG(CASE WHEN etapa = 'finalizado' THEN DATEDIFF(of.updated_at, of.of_created) ELSE NULL END) AS promedio_dias_produccion
     FROM 
         proyectos p
