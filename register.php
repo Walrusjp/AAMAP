@@ -6,7 +6,7 @@ if (isset($_POST['register'])) {
     $password = $_POST['password'];
     $role = $_POST['role'];
 
-    // Hash de la contraseña
+    // Hash de la contraseÃ±a
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     $query = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
@@ -50,6 +50,8 @@ if (isset($_POST['register'])) {
                     <option value="operador">Operador</option>
 
                     <option value="lector">Lector</option>
+
+                    <option value="externo">Externo</option>
 
                 </select>
 

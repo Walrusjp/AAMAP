@@ -175,7 +175,7 @@ if (isset($_POST['logout'])) {
                 <?php endif; ?>
             </td>
             <td style="width: 42%;">
-                <img src="/assets/datos.webp" style="width: 100%;">
+                <img src="/assets/datos.png" style="width: 100%;">
             </td>
         </tr>
 

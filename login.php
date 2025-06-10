@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Consulta para verificar el nombre de usuario y contraseña
-    $query = "SELECT id, username, password FROM users WHERE username = ?";
+    $query = "SELECT id, username, password, role FROM users WHERE username = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -30,13 +30,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Guardar datos en la sesión
         $_SESSION['username'] = $user['username'];
         $_SESSION['user_id'] = $user['id'];
+        $_SESSION['role'] = $user['role'];
 
-        // Redirigir al usuario
-        header("Location: launch.php");
+        require 'role.php';
+
+        // Redirección basada en el rol (esto se ejecutará si role.php no redirecciona)
+        switch ($_SESSION['role']) {
+            //case 'admin':
+                //header("Location: admin_panel.php");
+                //break;
+            case 'externo':
+                header("Location: launch_externos.php");
+                break;
+            default:
+                header("Location: launch.php");
+                break;
+        }
         exit();
-    } else {
-        $error = "Nombre de usuario o contraseña incorrectos.";
-    }
+        } else {
+            $error = "Nombre de usuario o contraseña incorrectos.";
+        }
 
     $stmt->close();
 }
