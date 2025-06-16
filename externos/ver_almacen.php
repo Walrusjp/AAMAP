@@ -11,16 +11,18 @@ require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 
 $search = $_GET['search'] ?? '';
-$categoria_filter = $_GET['categoria'] ?? '';
-$proveedor_filter = $_GET['proveedor'] ?? '';
+$subcategoria_filter = $_GET['subcategoria'] ?? '';
 
-// Consulta base para artículos de almacén
-$query = "SELECT ia.*, cp.categoria,
+// Consulta base para artículos de almacén de la categoría 7 (Rotecna)
+$query = "SELECT ia.*, cp.categoria, 
+           GROUP_CONCAT(DISTINCT sca.nombre SEPARATOR ', ') as subcategorias,
            (SELECT SUM(cantidad) FROM movimientos_almacen WHERE id_alm = ia.id_alm AND tipo_mov = 'entrada') as entradas,
            (SELECT SUM(cantidad) FROM movimientos_almacen WHERE id_alm = ia.id_alm AND tipo_mov = 'salida') as salidas
           FROM inventario_almacen ia
           LEFT JOIN categorias_almacen cp ON ia.id_cat_alm = cp.id_cat_alm
-          WHERE ia.activo = TRUE";
+          LEFT JOIN articulos_subcat asub ON ia.id_alm = asub.id_alm
+          LEFT JOIN sub_cat_almacen sca ON asub.id_scat = sca.id_scat
+          WHERE ia.activo = TRUE AND ia.id_cat_alm = 7"; // categoria rotecna
 
 // Aplicar filtros
 if (!empty($search)) {
@@ -28,16 +30,28 @@ if (!empty($search)) {
                 OR ia.descripcion LIKE '%" . $conn->real_escape_string($search) . "%')";
 }
 
-if (!empty($categoria_filter)) {
-    $query .= " AND ia.id_cat_alm = " . intval($categoria_filter);
+if (!empty($subcategoria_filter)) {
+    $query .= " AND EXISTS (
+                SELECT 1 FROM articulos_subcat 
+                WHERE id_alm = ia.id_alm AND id_scat = " . intval($subcategoria_filter) . "
+              )";
 }
+
+// Agrupar por artículo para evitar duplicados por las subcategorías
+$query .= " GROUP BY ia.id_alm";
 
 $result = $conn->query($query);
 $articulos = $result->fetch_all(MYSQLI_ASSOC);
 
-// Obtener categorías y proveedores para filtros
-$categorias = $conn->query("SELECT * FROM categorias_almacen WHERE 1")->fetch_all(MYSQLI_ASSOC);
-$proveedores = $conn->query("SELECT * FROM proveedores WHERE activo = TRUE")->fetch_all(MYSQLI_ASSOC);
+// Obtener subcategorías para filtros (solo las asociadas a la categoría 7)
+$subcategorias = $conn->query("
+    SELECT DISTINCT sca.* 
+    FROM sub_cat_almacen sca
+    JOIN articulos_subcat asub ON sca.id_scat = asub.id_scat
+    JOIN inventario_almacen ia ON asub.id_alm = ia.id_alm
+    WHERE ia.id_cat_alm = 7 AND sca.activo = TRUE
+    ORDER BY sca.nombre
+")->fetch_all(MYSQLI_ASSOC);
 
 $conn->close();
 ?>
@@ -46,7 +60,7 @@ $conn->close();
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inventario de Almacén</title>
+    <title>Inventario Rotecna</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/ERP/stprojects.css">
     <link rel="icon" href="/assets/logo.ico">
@@ -88,6 +102,15 @@ $conn->close();
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        .subcategoria-badge {
+            margin-right: 5px;
+            background-color: #6c757d;
+            color: white;
+        }
+        #code {
+            font-family: 'consolas';
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -113,7 +136,7 @@ $conn->close();
                             </a>
                         <?php endif; ?>
                         <input type="text" name="search" class="form-control" id="psearch" 
-                            placeholder="Buscar artículos..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="width: 200px;">
+                            placeholder="Buscar artículos Rotecna..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="width: 200px;">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-outline-secondary" title="Buscar">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -124,11 +147,9 @@ $conn->close();
                     </div>
                 </form>
                 
-                <!-- Botones -->
-                <a href="reg_articulo_alm.php" class="btn btn-success chompa">Nuevo Artículo</a>
+                <a href="#" class="btn btn-success chompa">Nuevo Artículo</a>
                 <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
-                <a href="ajustar_inventario.php" class="btn btn-info chompa">Ajustar Inventario</a>
-                <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
+                <a href="/launch_externos.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
     </div>
@@ -141,12 +162,12 @@ $conn->close();
             <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
             <div class="form-row">
                 <div class="col-md-4">
-                    <label for="categoria">Categoría:</label>
-                    <select name="categoria" id="categoria" class="form-control">
-                        <option value="">Todas las categorías</option>
-                        <?php foreach ($categorias as $cat): ?>
-                            <option value="<?php echo $cat['id_cat_alm']; ?>" <?php echo ($categoria_filter == $cat['id_cat_alm']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($cat['categoria']); ?>
+                    <label for="subcategoria">Subcategoría:</label>
+                    <select name="subcategoria" id="subcategoria" class="form-control">
+                        <option value="">Todas las subcategorías</option>
+                        <?php foreach ($subcategorias as $subcat): ?>
+                            <option value="<?php echo $subcat['id_scat']; ?>" <?php echo ($subcategoria_filter == $subcat['id_scat']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($subcat['nombre']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -160,7 +181,7 @@ $conn->close();
     </div>
 
     <div class="header-buttons">
-        <h2>Inventario de Almacén</h2>
+        <h2>Inventario Rotecna</h2>
         <div>
             <div class="text-muted">Total: <?php echo count($articulos); ?> registros</div>
             <span class="badge badge-danger">Stock bajo</span>
@@ -173,8 +194,7 @@ $conn->close();
             <tr>
                 <th>Código</th>
                 <th>Descripción</th>
-                <th>Categoría</th>
-                <!--<th>Proveedor</th>-->
+                <th>Subcategorías</th>
                 <th>Stock</th>
                 <th>Mín</th>
                 <th>Máx</th>
@@ -198,9 +218,19 @@ $conn->close();
                     }
                 ?>
                     <tr class="<?php echo $stock_class; ?>">
-                        <td><?php echo htmlspecialchars($art['codigo']); ?></td>
+                        <td id="code"><?php echo htmlspecialchars($art['codigo']); ?></td>
                         <td><?php echo htmlspecialchars($art['descripcion']); ?></td>
-                        <td><?php echo htmlspecialchars($art['categoria'] ?? 'N/A'); ?></td>
+                        <td>
+                            <?php if (!empty($art['subcategorias'])): ?>
+                                <?php 
+                                $subcats = explode(', ', $art['subcategorias']);
+                                foreach ($subcats as $subcat): ?>
+                                    <span class="badge subcategoria-badge"><?php echo htmlspecialchars($subcat); ?></span>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <span class="text-muted">Sin subcategoría</span>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo htmlspecialchars($art['existencia']); ?></td>
                         <td><?php echo htmlspecialchars($art['min_stock']); ?></td>
                         <td><?php echo htmlspecialchars($art['max_stock']); ?></td>
@@ -211,7 +241,7 @@ $conn->close();
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="11" class="text-center">No hay artículos registrados en el almacén</td>
+                    <td colspan="9" class="text-center">No hay artículos registrados en esta categoría</td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -224,14 +254,8 @@ $conn->close();
 <script>
     $(document).ready(function() {
         // Filtros
-        $('#categoria, #proveedor').change(function() {
+        $('#subcategoria').change(function() {
             $(this).closest('form').submit();
-        });
-
-        // Ventana de movimientos
-        $(document).on('click', '.btn-ver-movimientos', function() {
-            const id_alm = $(this).data('id');
-            window.location.href = `ver_movs_alm.php?id_alm=${id_alm}`;
         });
     });
 </script>

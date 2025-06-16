@@ -87,17 +87,17 @@ if (!isset($_SESSION['welcome_shown'])) {
         <button onclick="window.location.href='/error404.html'">VIÁTICOS</button>
 
         <?php if($username === 'admin' || $username === 'h.galicia' || $username === 'cuentasxpxc'): ?>
-            <button onclick="window.location.href='/PROYECTOS/all_projects.php'">CRM PROYECTOS</button>
+            <button onclick="window.location.href='/PROYECTOS/all_projects.php'">CRM</button>
         <?php elseif($username === 'CIS' || $username === 'atencionaclientes'): ?>
-            <button onclick="window.location.href='/PROYECTOS/direct_projects.php'">CRM PROYECTOS</button>
+            <button onclick="window.location.href='/PROYECTOS/direct_projects.php'">CRM</button>
         <?php else: ?>
-            <button onclick="window.location.href='/PROYECTOS/all_projects.php'" disabled>CRM PROYECTOS</button>
+            <button onclick="window.location.href='/PROYECTOS/all_projects.php'" disabled>CRM</button>
         <?php endif; ?>
 
         <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes' || $username === 'calidad'): ?>
-            <button onclick="window.location.href='/ERP/all_projects.php'">ERP PROYECTOS</button>
+            <button onclick="window.location.href='/ERP/all_projects.php'">ERP</button>
         <?php else: ?>
-            <button onclick="window.location.href='/ERP/all_projects.php'" disabled>ERP PROYECTOS</button>
+            <button onclick="window.location.href='/ERP/all_projects.php'" disabled>ERP</button>
         <?php endif; ?>
 
         <?php if($username === 'h.galicia' || $username === 'admin'): ?>

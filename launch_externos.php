@@ -83,11 +83,25 @@ if (!isset($_SESSION['welcome_shown'])) {
     <!-- Contenedor centrado -->
     <div class="launcher-container">
         <h1>ESCOGE UNA OPCIÓN</h1>
+        <button onclick="window.location.href='">PAPELERÍA</button>
+        <button onclick="window.location.href=''">VIÁTICOS</button>
 
-        <?php if($role === 'admin' || $role === 'externo'): ?>
-            <button onclick="window.location.href='/externos/ver_almacen.php'">ERP EXTERNOS</button>
+        <?php if($username === 'admin' || $username === 'h.galicia' || $username === 'cuentasxpxc'): ?>
+            <button onclick="window.location.href='/PROYECTOS/all_projects.php'">CRM</button>
+        <?php elseif($username === 'CIS' || $username === 'atencionaclientes'): ?>
+            <button onclick="window.location.href='/PROYECTOS/direct_projects.php'">CRM</button>
         <?php else: ?>
-            <button onclick="window.location.href='/launch_externos.php'" disabled>ERP PROYECTOS</button>
+            <button onclick="window.location.href='/PROYECTOS/all_projects.php'" disabled>CRM</button>
+        <?php endif; ?>
+
+        <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes' || $username === 'calidad'): ?>
+            <button onclick="window.location.href='/ERP/all_projects.php'">ERP</button>
+        <?php else: ?>
+            <button onclick="window.location.href='/externos/ver_almacen.php'">ERP</button>
+        <?php endif; ?>
+
+        <?php if($username === 'h.galicia' || $username === 'admin'): ?>
+            <button onclick="window.open('/reportes/reporte_gral.php', '_blank')" class="btn btn-primary">REPORTES</button>
         <?php endif; ?>
     </div>
 
