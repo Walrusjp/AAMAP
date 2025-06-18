@@ -88,6 +88,10 @@ $conn->close();
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        #code {
+            font-family: 'consolas';
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -198,7 +202,7 @@ $conn->close();
                     }
                 ?>
                     <tr class="<?php echo $stock_class; ?>">
-                        <td><?php echo htmlspecialchars($art['codigo']); ?></td>
+                        <td id="code"><?php echo htmlspecialchars($art['codigo']); ?></td>
                         <td><?php echo htmlspecialchars($art['descripcion']); ?></td>
                         <td><?php echo htmlspecialchars($art['categoria'] ?? 'N/A'); ?></td>
                         <td><?php echo htmlspecialchars($art['existencia']); ?></td>
