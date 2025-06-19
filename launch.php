@@ -103,6 +103,11 @@ if (!isset($_SESSION['welcome_shown'])) {
         <?php if($username === 'h.galicia' || $username === 'admin'): ?>
             <button onclick="window.open('/reportes/reporte_gral.php', '_blank')" class="btn btn-primary">REPORTES</button>
         <?php endif; ?>
+
+        <?php if($username === 'admin'): ?>
+            <button onclick="window.location.href='/externos/ver_almacen.php'" class="btn btn-primary">ROTECNA</button>
+        <?php endif; ?>
+        
     </div>
 
     <script type="text/javascript">

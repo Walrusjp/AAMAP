@@ -136,7 +136,7 @@ $conn->close();
                             </a>
                         <?php endif; ?>
                         <input type="text" name="search" class="form-control" id="psearch" 
-                            placeholder="Buscar artículos Rotecna..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="width: 200px;">
+                            placeholder="Buscar artículos..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="width: 200px;">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-outline-secondary" title="Buscar">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -149,7 +149,11 @@ $conn->close();
                 
                 <a href="#" class="btn btn-success chompa">Nuevo Artículo</a>
                 <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
-                <a href="/launch_externos.php" class="btn btn-secondary chompa">Regresar</a>
+                <?php if($username === 'admin'): ?>
+                    <a href="/launch.php" class="btn btn-secondary chompa">Regresar</a>
+                <?php else: ?>
+                    <a href="/launch_externos.php" class="btn btn-secondary chompa">Regresar</a>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -162,9 +166,9 @@ $conn->close();
             <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
             <div class="form-row">
                 <div class="col-md-4">
-                    <label for="subcategoria">Subcategoría:</label>
+                    <label for="subcategoria">Categoría:</label>
                     <select name="subcategoria" id="subcategoria" class="form-control">
-                        <option value="">Todas las subcategorías</option>
+                        <option value="">Todas las Categorías</option>
                         <?php foreach ($subcategorias as $subcat): ?>
                             <option value="<?php echo $subcat['id_scat']; ?>" <?php echo ($subcategoria_filter == $subcat['id_scat']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($subcat['nombre']); ?>
