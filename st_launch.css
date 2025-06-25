@@ -1,23 +1,111 @@
-/* Reseteo básico */
+/* ==== RESET GENERAL ==== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Estilos del body para centrar el div */
+/* ==== FUENTES Y COLORES BASE ==== */
 body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f9;
+    color: #2c3e50;
+    min-height: 100vh;
+    padding-top: 120px; /* espacio para la navbar */
+}
+
+/* ==== NAVBAR ==== */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100vh;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(65deg, #1e3c72, #2a5298);
-    position: relative;
+    justify-content: space-between;
+    z-index: 100;
+}
+
+#aamap {
+    height: 70px;
+}
+
+.navbar h4 {
+    margin: 0;
+    font-size: 18px;
 }
 
 #logout {
     border: none;
+    
+    cursor: pointer;
+}
+
+/* ==== CONTENEDOR PRINCIPAL ==== */
+.launcher-container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+/* ==== GRID DE CARDS ==== */
+.launcher-grid {
+    margin: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 30px;
+    justify-content: center;
+}
+
+/* ==== CARDS ==== */
+.card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    padding: 25px 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    border-color: #3498db;
+    box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+}
+
+/* ==== ICONOS ==== */
+.card img {
+    display: block;
+    margin: 0 auto 10px auto;
+    width: 48px;
+    height: 48px;
+    filter: invert(35%) sepia(87%) saturate(452%) hue-rotate(180deg) brightness(90%) contrast(92%);
+}
+
+/* ==== TEXTO DE LAS CARDS ==== */
+.card span {
+    font-size: 15px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* ==== CARDS DESHABILITADAS ==== */
+.card.disabled {
+    background-color: #ecf0f1;
+    color: #7f8c8d;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+    border: none;
+}
+
+.card.disabled img {
+    filter: grayscale(100%) opacity(0.4);
 }
 
 /* Estilos básicos para el modal */
@@ -63,101 +151,51 @@ body {
     margin-bottom: 20px;
 }
 
-/* Navbar con fondo translúcido */
-.navbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.7); /* Fondo translúcido */
-    padding: 5px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    z-index: 10;
-}
-
-.navbar img {
-    height: 90px; /* Ajusta el tamaño del logo en la navbar */
-}
-
-/* Div principal centrado */
-.launcher-container {
-    position: absolute;
-    top: 150px;
-    background-color: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente */
-    padding: 45px;
-    border-radius: 15px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    text-align: center;
-    width: 500px;
-    backdrop-filter: blur(10px); /* Efecto de desenfoque */
-}
-
-/* Botones */
-.launcher-container button {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    margin: 15px 0;
+/* ==== BOTONES GENERALES ==== */
+.btn {
+    padding: 10px 18px;
+    font-size: 14px;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 6px;
     cursor: pointer;
-    background-color: #0084D5;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
     color: white;
-    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.launcher-container button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px); /* Efecto de elevación al pasar el ratón */
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
 }
-
-/* Imagen flotante */
-.floating-image {
-    position: absolute;
-    width: 250px; /* Ajusta el tamaño según prefieras */
-    top: 20px;
-    left: 20px; /* Puedes ajustar estas posiciones */
-    cursor: pointer;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)); /* Sombra para la imagen */
-}
-
-/* Efecto de luz detrás del logo */
-.launcher-container::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    left: -20px;
-    right: -20px;
-    bottom: -20px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-    z-index: -1;
-    border-radius: 25px;
-}
-
-/* Tipografía elegante */
-.launcher-container h1 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
-    font-weight: bold;
-}
-
-/* Iconos minimalistas */
-.launcher-container .icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-    vertical-align: middle;
-    fill: #007bff; /* Color de los iconos */
-}
-
 .chompa {
     margin-left: 10px;
     position: absolute;
     top: 40px;
     left: 1200px;
+}
+
+/* ==== RESPONSIVO ==== */
+@media (max-width: 768px) {
+    #aamap {
+        height: 35px;
+    }
+
+    .card {
+        padding: 20px 10px;
+    }
+
+    .card img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .launcher-grid {
+        gap: 20px;
+    }
+
+    .modal-content {
+        margin-top: 30%;
+    }
 }

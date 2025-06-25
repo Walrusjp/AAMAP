@@ -52,7 +52,7 @@ if (!isset($_SESSION['welcome_shown'])) {
 
     <!-- Navbar con logo -->
     <div class="navbar" style="display: flex; align-items: center; justify-content: space-between;">
-        <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="height: 90px;">
+        <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" id="aamap">
         <div style="display: flex; align-items: center;">
             <img src="/assets/user.ico" alt="usuario" style="width: 30px; height: auto; margin-right: 10px;">
             <h4 style="margin: 0;" class="mr-3"><b>: <?php echo htmlspecialchars($_SESSION['username']); ?></b></h4>
@@ -80,35 +80,61 @@ if (!isset($_SESSION['welcome_shown'])) {
         </div>
     </div>
 
-    <!-- Contenedor centrado -->
-    <div class="launcher-container">
-        <h1>ESCOGE UNA OPCIÓN</h1>
-        <button onclick="window.location.href='/PAPELERIA/papeleria.php'">PAPELERÍA</button>
-        <button onclick="window.location.href='/error404.html'">VIÁTICOS</button>
+    <div class="launcher-grid">
+        <div class="card" onclick="window.location.href='/PAPELERIA/papeleria.php'">
+            <img class="icon" src="/assets/icons/papeleria.svg" alt="Papelería">
+            <span>Papelería</span>
+        </div>
+
+        <div class="card" onclick="window.location.href='/error404.html'">
+            <img class="icon" src="/assets/icons/viaticos.svg" alt="Viáticos">
+            <span>Viáticos</span>
+        </div>
 
         <?php if($username === 'admin' || $username === 'h.galicia' || $username === 'cuentasxpxc'): ?>
-            <button onclick="window.location.href='/PROYECTOS/all_projects.php'">CRM</button>
+        <div class="card" onclick="window.location.href='/PROYECTOS/all_projects.php'">
+            <img class="icon" src="/assets/icons/crm.svg" alt="CRM">
+            <span>CRM</span>
+        </div>
         <?php elseif($username === 'CIS' || $username === 'atencionaclientes'): ?>
-            <button onclick="window.location.href='/PROYECTOS/direct_projects.php'">CRM</button>
+        <div class="card" onclick="window.location.href='/PROYECTOS/direct_projects.php'">
+            <img class="icon" src="/assets/icons/crm.svg" alt="CRM">
+            <span>CRM</span>
+        </div>
         <?php else: ?>
-            <button onclick="window.location.href='/PROYECTOS/all_projects.php'" disabled>CRM</button>
+        <div class="card disabled">
+            <img class="icon" src="/assets/icons/crm.svg" alt="CRM">
+            <span>CRM</span>
+        </div>
         <?php endif; ?>
 
         <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes' || $username === 'calidad'): ?>
-            <button onclick="window.location.href='/ERP/all_projects.php'">ERP</button>
+        <div class="card" onclick="window.location.href='/ERP/all_projects.php'">
+            <img class="icon" src="/assets/icons/erp.svg" alt="ERP">
+            <span>ERP</span>
+        </div>
         <?php else: ?>
-            <button onclick="window.location.href='/ERP/all_projects.php'" disabled>ERP</button>
+        <div class="card disabled">
+            <img class="icon" src="/assets/icons/erp.svg" alt="ERP">
+            <span>ERP</span>
+        </div>
         <?php endif; ?>
 
         <?php if($username === 'h.galicia' || $username === 'admin'): ?>
-            <button onclick="window.open('/reportes/reporte_gral.php', '_blank')" class="btn btn-primary">REPORTES</button>
+        <div class="card" onclick="window.open('/reportes/reporte_gral.php', '_blank')">
+            <img class="icon" src="/assets/icons/reportes.svg" alt="Reportes">
+            <span>Reportes</span>
+        </div>
         <?php endif; ?>
 
         <?php if($username === 'admin'): ?>
-            <button onclick="window.location.href='/externos/ver_almacen.php'" class="btn btn-primary">ROTECNA</button>
+        <div class="card" onclick="window.location.href='/externos/ver_almacen.php'">
+            <img class="icon" src="/assets/icons/rotecna.svg" alt="ROTECNA">
+            <span>ROTECNA</span>
+        </div>
         <?php endif; ?>
-        
     </div>
+
 
     <script type="text/javascript">
         // Función para abrir el modal de cierre de sesión
