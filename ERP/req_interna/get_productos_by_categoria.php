@@ -6,10 +6,11 @@ header('Content-Type: application/json');
 if (isset($_GET['id_cat'])) {
     $id_cat = intval($_GET['id_cat']);
     
-    $query = "SELECT id_alm, codigo, descripcion, existencia 
-              FROM inventario_almacen 
-              WHERE id_cat_alm = $id_cat AND activo = TRUE
-              ORDER BY codigo";
+    $query = "SELECT ia.id_alm, ia.codigo, ia.descripcion, ia.existencia, ca.categoria 
+             FROM inventario_almacen ia
+             JOIN categorias_almacen ca ON ia.id_cat_alm = ca.id_cat_alm
+             WHERE ia.id_cat_alm = $id_cat AND ia.activo = TRUE
+             ORDER BY ia.codigo";
     
     $result = $conn->query($query);
     $productos = $result->fetch_all(MYSQLI_ASSOC);
@@ -20,4 +21,3 @@ if (isset($_GET['id_cat'])) {
 }
 
 $conn->close();
-?>

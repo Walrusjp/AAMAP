@@ -154,7 +154,7 @@ $conn->close();
                                     if ($row['id_oc']) {
                                         echo "OC-" . $row['id_oc'];
                                     } elseif ($row['id_fab']) {
-                                        echo "FAB-" . $row['id_fab'];
+                                        echo "OF-" . $row['id_fab'];
                                     } else {
                                         echo "N/A";
                                     }

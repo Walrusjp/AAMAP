@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 if (!isset($_SESSION['username'])) {
     header("Location: /login.php");
     exit();
@@ -9,54 +8,109 @@ if (!isset($_SESSION['username'])) {
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 
+date_default_timezone_set("America/Mexico_City");
+$fechaH = date("Y-m-d H:i:s");
+
 // Procesar el formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_alm = intval($_POST['id_alm']);
-    $cantidad = intval($_POST['cantidad']);
     $razon = $conn->real_escape_string($_POST['razon']);
-    $fecha_devolucion = $conn->real_escape_string($_POST['fecha_devolucion']);
+    $observaciones = $conn->real_escape_string($_POST['observaciones'] ?? '');
+    $fecha_devolucion = isset($_POST['fecha_devolucion']) && !empty($_POST['fecha_devolucion']) 
+        ? $conn->real_escape_string($_POST['fecha_devolucion']) 
+        : null;
     $id_usuario = $_SESSION['user_id'];
-    
-    // Verificar stock disponible
-    $stock_query = "SELECT existencia FROM inventario_almacen WHERE id_alm = $id_alm";
-    $stock_result = $conn->query($stock_query);
-    $stock_data = $stock_result->fetch_assoc();
-    
-    if ($stock_data['existencia'] >= $cantidad) {
-        // Generar folio único para préstamo
-        $folio = 'PR-' . date('Ymd') . '-' . rand(1000, 9999);
+    $productos = json_decode($_POST['productos'], true);
+    $id_fab = isset($_POST['id_fab']) ? intval($_POST['id_fab']) : null;
+
+    $conn->begin_transaction();
+    try {
+        // Generar folio único
+        $datePrefix = 'PR-' . date('Ymd') . '-';
         
-        $insert_query = "INSERT INTO prestamos_almacen 
-                        (folio, id_usuario_solicitante, id_alm, cantidad, razon, fecha_devolucion_estimada) 
-                        VALUES ('$folio', $id_usuario, $id_alm, $cantidad, '$razon', '$fecha_devolucion')";
-        
-        if ($conn->query($insert_query)) {
-            // Registrar movimiento de salida por préstamo
-            $movimiento_query = "INSERT INTO movimientos_almacen 
-                               (id_alm, tipo_mov, cantidad, id_usuario, notas)
-                               VALUES 
-                               ($id_alm, 'salida', $cantidad, $id_usuario, 'Préstamo: $folio')";
-            $conn->query($movimiento_query);
-            
-            // Actualizar inventario
-            $update_query = "UPDATE inventario_almacen 
-                           SET existencia = existencia - $cantidad 
-                           WHERE id_alm = $id_alm";
-            $conn->query($update_query);
-            
-            $_SESSION['success'] = "Préstamo registrado con folio: $folio";
-            header("Location: prestamo_almacen.php");
-            exit();
+        $sql = "SELECT folio FROM prestamos_almacen WHERE folio LIKE '$datePrefix%' ORDER BY folio DESC LIMIT 1";
+        $result = $conn->query($sql);
+
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $lastFolio = $row['folio'];
+            $lastNumber = intval(substr($lastFolio, strrpos($lastFolio, '-') + 1));
+            $newNumber = $lastNumber + 1;
         } else {
-            $_SESSION['error'] = "Error al registrar el préstamo: " . $conn->error;
+            $newNumber = 1;
         }
-    } else {
-        $_SESSION['error'] = "No hay suficiente stock disponible para este préstamo";
+
+        $numberPadded = str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        $folio = $datePrefix . $numberPadded;
+        
+        // 1. Insertar el préstamo principal
+        $insert_prestamo = "INSERT INTO prestamos_almacen 
+                   (folio, id_usuario_solicitante, razon, observaciones, fecha_prestamo, estatus, id_fab" . 
+                   ($fecha_devolucion ? ", fecha_devolucion" : "") . ") 
+                   VALUES ('$folio', $id_usuario, '$razon', '$observaciones', '$fechaH', 'solicitado', " 
+                   . ($id_fab ? "$id_fab" : "NULL") . 
+                   ($fecha_devolucion ? ", '$fecha_devolucion'" : "") . ")";
+        
+        if (!$conn->query($insert_prestamo)) {
+            throw new Exception("Error al crear el préstamo: " . $conn->error);
+        }
+        
+        $id_prestamo = $conn->insert_id;
+        
+        // 2. Insertar los detalles de cada producto (sin afectar inventario)
+        foreach ($productos as $producto) {
+            $id_alm = intval($producto['id_alm']);
+            $cantidad = intval($producto['cantidad']);
+            
+            // Verificar que el producto exista (opcional)
+            $check_query = "SELECT id_alm FROM inventario_almacen WHERE id_alm = $id_alm";
+            $check_result = $conn->query($check_query);
+            
+            if ($check_result->num_rows === 0) {
+                throw new Exception("El producto seleccionado no existe en el inventario");
+            }
+            
+            // Insertar detalle en solicitudes_detalle
+            $insert_detalle = "INSERT INTO solicitudes_detalle 
+                              (id_solicitud, id_prestamo, id_alm, cantidad) 
+                              VALUES (NULL, $id_prestamo, $id_alm, $cantidad)";
+            
+            if (!$conn->query($insert_detalle)) {
+                throw new Exception("Error al registrar el detalle: " . $conn->error);
+            }
+            
+        }
+        
+        $conn->commit();
+        $_SESSION['success'] = "Solicitud de préstamo registrada con folio: $folio";
+        header("Location: prestamo_almacen.php");
+        exit();
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['error'] = "Error al registrar el préstamo: " . $e->getMessage();
     }
 }
 
 // Obtener categorías para el select
-$categorias = $conn->query("SELECT * FROM categorias_almacen WHERE 1")->fetch_all(MYSQLI_ASSOC);
+$categorias = $conn->query("SELECT * FROM categorias_almacen WHERE id_cat_alm in (4,5)")->fetch_all(MYSQLI_ASSOC);
+$nombresPersonalizados = [
+    'herramienta_mayor' => 'HM',
+    'herramienta_menor' => 'Hm'
+];
+
+foreach ($categorias as &$categoria) {
+    $categoria['categoria_nombre'] = $nombresPersonalizados[$categoria['categoria'] ?? $categoria['categoria']];
+}
+unset($categoria);
+
+// Obtener órdenes de fabricación activas para el select
+$ordenes_fab = $conn->query("
+    SELECT of.id_fab, p.nombre as proyecto_nombre, of.plano_ref 
+    FROM orden_fab of
+    JOIN proyectos p ON of.id_proyecto = p.cod_fab
+    WHERE of.id_proyecto IS NOT NULL
+    AND p.etapa IN ('en proceso', 'directo')
+    ORDER BY of.id_fab DESC
+")->fetch_all(MYSQLI_ASSOC);
 
 $conn->close();
 ?>
@@ -71,15 +125,46 @@ $conn->close();
     <link rel="icon" href="/assets/logo.ico">
     <style>
         .form-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 20px auto;
             padding: 20px;
             background-color: #f8f9fa;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .product-select {
-            display: none;
+        .product-row {
+            margin-bottom: 15px;
+        }
+        #productosTable tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        .stock-info {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .stock-ok {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .stock-low {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        /* Estilo para el select de órdenes de fabricación */
+        #id_fab {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        #id_fab option {
+            padding: 5px;
+            white-space: normal; /* Permite texto multilínea */
         }
     </style>
 </head>
@@ -115,48 +200,89 @@ $conn->close();
         <div class="alert alert-danger"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
     <?php endif; ?>
     
-    <form method="POST" action="prestamo_almacen.php">
-        <!-- [Select de categoría y producto igual que en req_interna.php] -->
-         <div class="form-group">
-            <label for="categoria">Categoría:</label>
-            <select class="form-control" id="categoria" name="categoria" required>
-                <option value="">Seleccione una categoría</option>
-                <?php foreach ($categorias as $cat): ?>
-                    <option value="<?php echo $cat['id_cat_alm']; ?>"><?php echo htmlspecialchars($cat['categoria']); ?></option>
+    <form id="prestamoForm" method="POST" action="prestamo_almacen.php">
+        <div class="form-group">
+            <label for="razon">Motivo del préstamo:</label>
+            <textarea class="form-control" id="razon" name="razon" rows="2" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="id_fab">Orden de Fabricación (opcional):</label>
+            <select class="form-control" id="id_fab" name="id_fab">
+                <option value="">-- Seleccione una orden --</option>
+                <?php foreach ($ordenes_fab as $of): ?>
+                    <option value="<?php echo $of['id_fab']; ?>">
+                        #<?php echo $of['id_fab']; ?> - <?php echo htmlspecialchars($of['proyecto_nombre']); ?> (<?php echo htmlspecialchars($of['plano_ref']); ?>)
+                    </option>
                 <?php endforeach; ?>
             </select>
         </div>
         
-        <div class="form-group">
-            <label for="producto">Producto:</label>
-            <select class="form-control" id="producto" name="id_alm" required disabled>
-                <option value="">Primero seleccione una categoría</option>
-            </select>
-            <div id="stock-info" class="text-muted mt-2"></div>
+        <h4>Productos a prestar</h4>
+        <div class="row product-row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="categoria">Categoría:</label>
+                    <select class="form-control" id="categoria" name="categoria">
+                        <option value="">Seleccione una categoría</option>
+                        <?php foreach ($categorias as $cat): ?>
+                            <option value="<?php echo $cat['id_cat_alm']; ?>" 
+                                    title="<?php echo htmlspecialchars($cat['categoria']); ?>">
+                                <?php echo htmlspecialchars($cat['categoria_nombre']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="producto">Producto:</label>
+                    <select class="form-control" id="producto" name="producto" disabled>
+                        <option value="">Primero seleccione una categoría</option>
+                    </select>
+                    <div id="stockInfo" class="stock-info" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label for="cantidad">Cantidad:</label>
+                    <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" value="1">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-primary btn-block" id="addProducto">Agregar</button>
+            </div>
         </div>
         
-        <div class="form-group">
-            <label for="cantidad">Cantidad:</label>
-            <input type="number" class="form-control" id="cantidad" name="cantidad" min="1" required>
-        </div>
+        <table class="table table-bordered" id="productosTable">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Categoría</th>
+                    <th>Cantidad</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
         
-        <div class="form-group">
-            <label for="fecha_devolucion">Fecha estimada de devolución:</label>
-            <input type="date" class="form-control" id="fecha_devolucion" name="fecha_devolucion" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="razon">Motivo del préstamo:</label>
-            <textarea class="form-control" id="razon" name="razon" rows="3" required></textarea>
-        </div>
-        
-        <button type="submit" class="btn btn-primary btn-block">Registrar Préstamo</button>
+        <input type="hidden" name="productos" id="productos">
+        <button type="submit" class="btn btn-success btn-block" id="btnRegistrar">Registrar Préstamo</button>
     </form>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 <script>
 $(document).ready(function() {
+    const nombresCategoria = {
+        herramienta_mayor: 'HM',
+        herramienta_menor: 'Hm'
+    };
+    const productos = [];
+    
     // Cargar productos cuando se selecciona una categoría
     $('#categoria').change(function() {
         var id_cat = $(this).val();
@@ -172,7 +298,8 @@ $(document).ready(function() {
                     if (data.length > 0) {
                         $('#producto').append('<option value="">Seleccione un producto</option>');
                         $.each(data, function(index, producto) {
-                            $('#producto').append('<option value="' + producto.id_alm + '" data-stock="' + producto.existencia + '">' + 
+                            const nombreCategoria = nombresCategoria[producto.categoria] || producto.categoria;
+                            $('#producto').append('<option value="' + producto.id_alm + '" data-stock="' + producto.existencia + '" data-codigo="' + producto.codigo + '" data-descripcion="' + producto.descripcion + '" data-categoria="' + nombreCategoria + '">' + 
                                 producto.codigo + ' - ' + producto.descripcion + '</option>');
                         });
                         $('#producto').prop('disabled', false);
@@ -180,26 +307,129 @@ $(document).ready(function() {
                         $('#producto').append('<option value="">No hay productos en esta categoría</option>');
                         $('#producto').prop('disabled', true);
                     }
-                    $('#stock-info').text('');
                 }
             });
         } else {
             $('#producto').empty().append('<option value="">Primero seleccione una categoría</option>');
             $('#producto').prop('disabled', true);
-            $('#stock-info').text('');
         }
     });
     
-    // Mostrar información de stock cuando se selecciona un producto
-    $('#producto').change(function() {
-        var stock = $(this).find(':selected').data('stock');
-        if (stock !== undefined) {
-            $('#stock-info').text('Stock disponible: ' + stock);
-            $('#cantidad').attr('max', stock);
-        } else {
-            $('#stock-info').text('');
+    // Agregar producto a la tabla
+    $('#addProducto').click(function() {
+        const id_alm = $('#producto').val();
+        const cantidad = parseInt($('#cantidad').val());
+        const stock = parseInt($('#producto option:selected').data('stock'));
+        const codigo = $('#producto option:selected').data('codigo');
+        const descripcion = $('#producto option:selected').data('descripcion');
+        const categoria = $('#producto option:selected').data('categoria');
+        
+        if (!id_alm) {
+            alert('Seleccione un producto válido');
+            return;
         }
+        
+        if (cantidad < 1) {
+            alert('La cantidad debe ser al menos 1');
+            return;
+        }
+        
+        if (cantidad > stock) {
+            alert('No hay suficiente stock disponible (Stock: ' + stock + ')');
+            return;
+        }
+        
+        // Verificar si el producto ya fue agregado
+        const index = productos.findIndex(p => p.id_alm == id_alm);
+        if (index >= 0) {
+            productos[index].cantidad += cantidad;
+        } else {
+            productos.push({
+                id_alm: id_alm,
+                codigo: codigo,
+                descripcion: descripcion,
+                categoria: categoria,
+                cantidad: cantidad,
+                stock: stock
+            });
+        }
+        
+        actualizarTablaProductos();
+        
+        // Limpiar selección
+        $('#producto').val('').trigger('change');
+        $('#cantidad').val(1);
     });
+    
+    // Actualizar tabla de productos
+    function actualizarTablaProductos() {
+        const tbody = $('#productosTable tbody');
+        tbody.empty();
+        
+        productos.forEach((producto, index) => {
+            tbody.append(`
+                <tr>
+                    <td>${producto.codigo}</td>
+                    <td>${producto.descripcion}</td>
+                    <td>${producto.categoria}</td>
+                    <td>${producto.cantidad}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm removeProducto" data-index="${index}">Eliminar</button></td>
+                </tr>
+            `);
+        });
+        
+        // Actualizar campo oculto
+        $('#productos').val(JSON.stringify(productos));
+        $('#btnRegistrar').prop('disabled', productos.length === 0);
+    }
+    
+    // Eliminar producto
+    $(document).on('click', '.removeProducto', function() {
+        const index = $(this).data('index');
+        productos.splice(index, 1);
+        actualizarTablaProductos();
+    });
+    
+    // Validar formulario antes de enviar
+    $('#prestamoForm').submit(function() {
+        if (productos.length === 0) {
+            alert('Debe agregar al menos un producto');
+            return false;
+        }
+        return true;
+    });
+});
+// Mostrar stock cuando se selecciona un producto
+$('#producto').change(function() {
+    const stock = parseInt($(this).find(':selected').data('stock')) || 0;
+    const stockInfo = $('#stockInfo');
+    
+    if (stock > 0 && $(this).val()) {
+        stockInfo.text('Stock disponible: ' + stock);
+        stockInfo.removeClass('stock-low').addClass('stock-ok');
+        stockInfo.show();
+        
+        // Establecer el máximo en el input de cantidad
+        $('#cantidad').attr('max', stock);
+    } else {
+        stockInfo.hide();
+    }
+    
+    // Resaltar si el stock es bajo (menos de 10 unidades)
+    if (stock < 10) {
+        stockInfo.removeClass('stock-ok').addClass('stock-low');
+    }
+});
+
+// Validar cantidad contra el stock máximo
+$('#cantidad').on('input', function() {
+    const max = parseInt($(this).attr('max')) || 0;
+    const value = parseInt($(this).val()) || 0;
+    
+    if (value > max) {
+        $(this).val(max);
+        alert('No puede solicitar más del stock disponible');
+    }
 });
 </script>
 </body>

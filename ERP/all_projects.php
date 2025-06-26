@@ -87,10 +87,10 @@ if (isset($_POST['aprobar_cotizacion'])) {
             font-size: 0.9rem;
             padding: 5px 10px;
             color: rgb(19, 17, 17);
-            position: absolute;  /* Posicionamiento absoluto */
-            top: 10px;          /* Distancia desde arriba */
-            right: 10px;        /* Distancia desde la derecha */
-            z-index: 1;         /* Para que quede sobre otros elementos */
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
             font-family: 'Consolas';
         }
     </style>
