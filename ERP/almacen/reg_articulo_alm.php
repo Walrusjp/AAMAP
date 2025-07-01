@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $min_stock = $_POST['min_stock'] ?? 0;
     $max_stock = $_POST['max_stock'] ?? 0;
     $unidad_medida = $_POST['unidad_medida'];
-    $id_pr = $_POST['id_pr'] ?? null;
+    $id_pr = is_numeric($id_pr) ? (int)$id_pr : null;
     $activo = isset($_POST['activo']) ? 1 : 0;
 
     // Validar código único (por si acaso)
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssiiiiii", $codigo, $descripcion, $id_cat_alm, $existencia, $min_stock, $max_stock, $unidad_medida, $id_pr);
+        $stmt->bind_param("ssiiiisi", $codigo, $descripcion, $id_cat_alm, $existencia, $min_stock, $max_stock, $unidad_medida, $id_pr);
 
         if ($stmt->execute()) {
             $id_articulo = $stmt->insert_id;

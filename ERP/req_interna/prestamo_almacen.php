@@ -20,7 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         : null;
     $id_usuario = $_SESSION['user_id'];
     $productos = json_decode($_POST['productos'], true);
-    $id_fab = isset($_POST['id_fab']) ? intval($_POST['id_fab']) : null;
+    $destino = $_POST['destino'] ?? '';
+    $id_fab = null;
+    $no_of = null;
+
+    if (strpos($destino, 'OF-') === 0) {
+        $id_fab = intval(substr($destino, 3)); // Extrae el ID numérico
+    } elseif (strpos($destino, 'ALT-') === 0) {
+        $no_of = $conn->real_escape_string(substr($destino, 4)); // Extrae el texto del destino alternativo
+    }
+
 
     $conn->begin_transaction();
     try {
@@ -44,11 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // 1. Insertar el préstamo principal
         $insert_prestamo = "INSERT INTO prestamos_almacen 
-                   (folio, id_usuario_solicitante, razon, observaciones, fecha_prestamo, estatus, id_fab" . 
-                   ($fecha_devolucion ? ", fecha_devolucion" : "") . ") 
-                   VALUES ('$folio', $id_usuario, '$razon', '$observaciones', '$fechaH', 'solicitado', " 
-                   . ($id_fab ? "$id_fab" : "NULL") . 
-                   ($fecha_devolucion ? ", '$fecha_devolucion'" : "") . ")";
+            (folio, id_usuario_solicitante, razon, observaciones, fecha_prestamo, estatus, id_fab, no_of" . 
+            ($fecha_devolucion ? ", fecha_devolucion" : "") . ") 
+            VALUES (
+                '$folio', $id_usuario, '$razon', '$observaciones', '$fechaH', 'solicitado', " 
+                . ($id_fab ? "$id_fab" : "NULL") . ", " 
+                . ($no_of ? "'$no_of'" : "NULL") .
+                ($fecha_devolucion ? ", '$fecha_devolucion'" : "") . ")";
         
         if (!$conn->query($insert_prestamo)) {
             throw new Exception("Error al crear el préstamo: " . $conn->error);
@@ -179,10 +190,12 @@ $conn->close();
             <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>E R P</b></p></div>
             <!-- Botones -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
-                <a href="panel_almacen.php" class="btn btn-warning chompa">Solicitudes</a>
-                <a href="devolucion_prestamo.php" class="btn btn-warning chompa">Prestámos</a>
+                <?php if($username == 'CIS' || $username == 'admin'): ?>
+                    <a href="panel_almacen.php" class="btn btn-warning chompa">Requisición Interna</a>
+                    <a href="devolucion_prestamo.php" class="btn btn-warning chompa">Asignación de Herramientas</a>
+                <?php endif; ?>
                 <a href="req_interna.php" class="btn btn-info chompa">Nueva Requisición</a>
-                <a href="prestamo_almacen.php" class="btn btn-info chompa" style="border: 3px solid gray;">Nuevo prestámo</a>
+                <a href="prestamo_almacen.php" class="btn btn-info chompa" style="border: 3px solid gray;">Nueva Asignación</a>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
@@ -190,7 +203,7 @@ $conn->close();
 </div>
 
 <div class="form-container">
-    <h2 class="text-center mb-4">Solicitud de Préstamo de Almacén</h2>
+    <h2 class="text-center mb-4">Nueva Asignación de Herramientas</h2>
     
     <?php if (isset($_SESSION['success'])): ?>
         <div class="alert alert-success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
@@ -207,14 +220,22 @@ $conn->close();
         </div>
 
         <div class="form-group">
-            <label for="id_fab">Orden de Fabricación (opcional):</label>
-            <select class="form-control" id="id_fab" name="id_fab">
-                <option value="">-- Seleccione una orden --</option>
-                <?php foreach ($ordenes_fab as $of): ?>
-                    <option value="<?php echo $of['id_fab']; ?>">
-                        #<?php echo $of['id_fab']; ?> - <?php echo htmlspecialchars($of['proyecto_nombre']); ?> (<?php echo htmlspecialchars($of['plano_ref']); ?>)
-                    </option>
-                <?php endforeach; ?>
+            <label for="destino">Destino (Orden de Fabricación o Alternativa):</label>
+            <select class="form-control" id="destino" name="destino" required>
+                <option value="">-- Seleccione un destino --</option>
+                <optgroup label="Órdenes de Fabricación">
+                    <?php foreach ($ordenes_fab as $of): ?>
+                        <option value="OF-<?php echo $of['id_fab']; ?>">
+                            #<?php echo $of['id_fab']; ?> - <?php echo htmlspecialchars($of['proyecto_nombre']); ?> (<?php echo htmlspecialchars($of['plano_ref']); ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </optgroup>
+                <optgroup label="Otros destinos">
+                    <option value="ALT-Mantenimiento Interno">Mantenimiento Interno</option>
+                    <option value="ALT-Muestras">Muestras</option>
+                    <option value="ALT-EPP">EPP</option>
+                    <!-- Agrega más opciones ALT- según necesites -->
+                </optgroup>
             </select>
         </div>
         

@@ -20,7 +20,7 @@ $query = "SELECT ia.*, cp.categoria,
            (SELECT SUM(cantidad) FROM movimientos_almacen WHERE id_alm = ia.id_alm AND tipo_mov = 'salida') as salidas
           FROM inventario_almacen ia
           LEFT JOIN categorias_almacen cp ON ia.id_cat_alm = cp.id_cat_alm
-          WHERE ia.activo = TRUE";
+          WHERE ia.activo = TRUE"; //mostrar solo existencia > 0  and ia.existencia > 0
 
 // Aplicar filtros
 if (!empty($search)) {
@@ -70,9 +70,16 @@ $conn->close();
             justify-content: space-between;
         }
         .stock-low {
+            background-color:rgb(250, 255, 116) !important;  /* Rojo claro */
+        }
+        .stock-null {
             background-color: #ffdddd !important;  /* Rojo claro */
         }
         .stock-low td:nth-child(4) {  /* Celda de stock */
+            color:rgb(220, 181, 53);  /* Rojo */
+            font-weight: bold;
+        }
+         .stock-null td:nth-child(4) {  /* Celda de stock */
             color: #dc3545;  /* Rojo */
             font-weight: bold;
         }
@@ -130,8 +137,10 @@ $conn->close();
                 
                 <!-- Botones -->
                 <a href="reg_articulo_alm.php" class="btn btn-success chompa">Nuevo Artículo</a>
-                <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
-                <a href="ajustar_inventario.php" class="btn btn-info chompa">Ajustar Inventario</a>
+                <?php if($role === 'admin'): ?>
+                    <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
+                <?php endif; ?>
+                <a href="movs_manual.php" class="btn btn-info chompa">Salida Manual</a>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
@@ -167,7 +176,8 @@ $conn->close();
         <h2>Inventario de Almacén</h2>
         <div>
             <div class="text-muted">Total: <?php echo count($articulos); ?> registros</div>
-            <span class="badge badge-danger">Stock bajo</span>
+            <span class="badge badge-danger">Stock nulo</span>
+            <span class="badge badge-warning">Stock bajo</span>
             <span class="badge badge-success">Stock suficiente</span>
         </div>
     </div>
@@ -193,10 +203,13 @@ $conn->close();
                     $stock_disponible = $art['existencia'];
                     $min_stock = $art['min_stock'] ?? 0;
                     
-                    if ($stock_disponible <= $min_stock) {
+                    if ($stock_disponible < $min_stock and $stock_disponible > 0 ) {
                         $stock_class = 'stock-low';
-                    } elseif ($stock_disponible >= ($art['max_stock'] ?? $min_stock * 2)) {
+                    } elseif ($stock_disponible > ($art['max_stock'] ?? $min_stock * 2)) {
                         $stock_class = 'stock-high';
+                    }
+                     elseif ($stock_disponible == 0) {
+                        $stock_class = 'stock-null';
                     } else {
                         $stock_class = 'stock-ok';
                     }

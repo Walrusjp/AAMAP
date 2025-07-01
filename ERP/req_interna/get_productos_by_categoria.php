@@ -9,7 +9,7 @@ if (isset($_GET['id_cat'])) {
     $query = "SELECT ia.id_alm, ia.codigo, ia.descripcion, ia.existencia, ca.categoria 
              FROM inventario_almacen ia
              JOIN categorias_almacen ca ON ia.id_cat_alm = ca.id_cat_alm
-             WHERE ia.id_cat_alm = $id_cat AND ia.activo = TRUE
+             WHERE ia.id_cat_alm = $id_cat AND ia.activo = TRUE AND ia.existencia > 0 
              ORDER BY ia.codigo";
     
     $result = $conn->query($query);

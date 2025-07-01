@@ -85,12 +85,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Obtener categorías para el select (igual que antes)
-$categorias = $conn->query("SELECT * FROM categorias_almacen WHERE id_cat_alm in (1,2,3,6)")->fetch_all(MYSQLI_ASSOC);
+$categorias = $conn->query("SELECT * FROM categorias_almacen WHERE id_cat_alm in (1,2,3,6,7)")->fetch_all(MYSQLI_ASSOC);
 $nombresPersonalizados = [
     'consumibles' => 'Consumibles',
     'epp' => 'EPP',
     'MP' => 'MP',
-    'miscelaneos' => 'Miscelaneos'
+    'miscelaneos' => 'Miscelaneos',
+    'rotecna' => 'Rotecna'
 ];
 
 foreach ($categorias as &$categoria) {
@@ -175,10 +176,12 @@ $conn->close();
             <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>E R P</b></p></div>
             <!-- Botones -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
-                <a href="panel_almacen.php" class="btn btn-warning chompa">Solicitudes</a>
-                <a href="devolucion_prestamo.php" class="btn btn-warning chompa">Prestámos</a>
+                <?php if($username == 'CIS' || $username == 'admin'): ?>
+                    <a href="panel_almacen.php" class="btn btn-warning chompa">Requisición Interna</a>
+                    <a href="devolucion_prestamo.php" class="btn btn-warning chompa">Asignación de Herramientas</a>
+                <?php endif; ?>
                 <a href="req_interna.php" class="btn btn-info chompa" style="border: 3px solid gray;">Nueva Requisición</a>
-                <a href="prestamo_almacen.php" class="btn btn-info chompa">Nuevo prestámo</a>
+                <a href="prestamo_almacen.php" class="btn btn-info chompa">Nueva Asignación</a>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
@@ -186,7 +189,7 @@ $conn->close();
 </div>
 
 <div class="form-container">
-    <h2 class="text-center mb-4">Solicitud Interna de Almacén</h2>
+    <h2 class="text-center mb-4">Nueva Requisición Interna de Almacén</h2>
     
     <?php if (isset($_SESSION['success'])): ?>
         <div class="alert alert-success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></div>
@@ -204,7 +207,7 @@ $conn->close();
         <div class="form-group">
             <label for="id_fab">Orden de Fabricación (opcional):</label>
             <select class="form-control" id="id_fab" name="id_fab">
-                <option value="">-- Seleccione una orden --</option>
+                <option value="">-- Seleccione una orden --</option> <!-- Mantenimiento interno por default -->
                 <?php foreach ($ordenes_fab as $of): ?>
                     <option value="<?php echo $of['id_fab']; ?>">
                         #<?php echo $of['id_fab']; ?> - <?php echo htmlspecialchars($of['proyecto_nombre']); ?> (<?php echo htmlspecialchars($of['plano_ref']); ?>)

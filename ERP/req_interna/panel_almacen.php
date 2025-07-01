@@ -5,21 +5,11 @@ require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 
 // Verificar si el usuario está logueado y tiene permisos de almacén
-if (!isset($_SESSION['username']) || !tienePermisoAlmacen($_SESSION['user_id'])) {
+if (!isset($_SESSION['username'])) {
     header("Location: /login.php");
     exit();
 }
 
-function tienePermisoAlmacen($user_id) {
-    global $conn;
-    $query = "SELECT role FROM users WHERE id = $user_id";
-    $result = $conn->query($query);
-    if ($result && $result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        return in_array($user['role'], ['admin', 'almacen']);
-    }
-    return false;
-}
 
 // Procesar entrega de solicitud
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['folio'])) {
@@ -132,7 +122,7 @@ $query = "SELECT
           JOIN solicitudes_detalle sd ON si.id_solicitud = sd.id_solicitud
           LEFT JOIN orden_fab of ON si.id_fab = of.id_fab
           LEFT JOIN proyectos p ON of.id_proyecto = p.cod_fab
-          -- WHERE si.estatus = 'pendiente'
+          WHERE si.estatus = 'pendiente'
           GROUP BY si.id_solicitud
           ORDER BY si.fecha_solicitud DESC";
 $solicitudes = $conn->query($query)->fetch_all(MYSQLI_ASSOC);
@@ -240,9 +230,11 @@ $conn->close();
             <!-- Botones -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
                 <a href="panel_almacen.php" class="btn btn-warning chompa" style="border: 3px solid gray;">Requicisión Interna</a>
-                <a href="devolucion_prestamo.php" class="btn btn-warning chompa">Prestámos</a>
-                <a href="req_interna.php" class="btn btn-info chompa">Nueva Requisición</a>
-                <a href="prestamo_almacen.php" class="btn btn-info chompa">Nuevo prestámo</a>
+                <a href="devolucion_prestamo.php" class="btn btn-warning chompa">Asignación de Herramientas</a>
+                <?php if($username != 'CIS'): ?>
+                    <a href="req_interna.php" class="btn btn-info chompa">Nueva Requisición</a>
+                    <a href="prestamo_almacen.php" class="btn btn-info chompa">Nueva Asignación</a>
+                <?php endif; ?>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>

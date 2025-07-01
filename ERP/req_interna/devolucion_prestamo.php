@@ -4,20 +4,9 @@ session_start();
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 
-if (!isset($_SESSION['username']) || !tienePermisoAlmacen($_SESSION['user_id'])) {
+if (!isset($_SESSION['username'])) {
     header("Location: /login.php");
     exit();
-}
-
-function tienePermisoAlmacen($user_id) {
-    global $conn;
-    $query = "SELECT role FROM users WHERE id = $user_id";
-    $result = $conn->query($query);
-    if ($result && $result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        return in_array($user['role'], ['admin', 'almacen']);
-    }
-    return false;
 }
 
 
@@ -71,11 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                     $conn->query($update_detalle);
                     
                     // Registrar movimiento de entrada
+                    $id_fab_value = $prestamo['id_fab'] ? $prestamo['id_fab'] : 'NULL';
                     $movimiento_query = "INSERT INTO movimientos_almacen 
-                                    (id_alm, tipo_mov, cantidad, id_fab, id_usuario, notas)
-                                    VALUES 
-                                    (" . $detalle['id_alm'] . ", 'entrada', $cantidad_a_devolver, " . $prestamo['id_fab'] . ", 
-                                    $id_usuario, 'Devolución rápida préstamo: $folio')";
+                                        (id_alm, tipo_mov, cantidad, id_fab, id_usuario, notas)
+                                        VALUES 
+                                        (" . $detalle['id_alm'] . ", 'entrada', $cantidad_a_devolver, $id_fab_value, 
+                                        $id_usuario, 'Devolución rápida préstamo: $folio')";
                     $conn->query($movimiento_query);
                     
                     // Actualizar inventario
@@ -102,13 +92,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
     exit();
 }
 
-// Procesar devolución con observaciones
+
+// Procesar devolución con observaciones (ahora manejará parciales)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'devolucion_completa') {
     header('Content-Type: application/json');
     
     $folio = $conn->real_escape_string($_POST['folio']);
     $notas = $conn->real_escape_string($_POST['notas'] ?? '');
     $id_usuario = $_SESSION['user_id'];
+    $devoluciones = $_POST['devoluciones'] ?? []; // Array de devoluciones
+
+    foreach ($devoluciones as $id_detalle => $cantidad) {
+    if (!is_numeric($cantidad) || $cantidad < 0) {
+        throw new Exception("Cantidad inválida para el producto ID: $id_detalle");
+    }
+}
     
     $response = ['success' => false, 'message' => ''];
     
@@ -129,46 +127,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
         $conn->begin_transaction();
         
         try {
-            // 1. Actualizar préstamo como devuelto
-            $update_prestamo = "UPDATE prestamos_almacen 
-                               SET estatus = 'devuelto',
-                                   fecha_devolucion = NOW(),
-                                   observaciones = '$notas',
-                                   id_usuario_almacen = $id_usuario
-                               WHERE id_prestamo = $id_prestamo";
-            $conn->query($update_prestamo);
+            $todos_devueltos = true;
             
-            // 2. Procesar cada producto
+            // 1. Procesar cada producto
             foreach ($detalles as $detalle) {
-                $cantidad_a_devolver = $detalle['cantidad'];
+                $id_detalle = $detalle['id_detalle'];
+                $cantidad_a_devolver = isset($devoluciones[$id_detalle]) ? (int)$devoluciones[$id_detalle] : 0;
                 
                 if ($cantidad_a_devolver > 0) {
+                    // Validar que no se devuelva más de lo prestado
+                    $max_devolver = $detalle['cantidad_entregada'] - $detalle['cantidad_devuelta'];
+                    if ($cantidad_a_devolver > $max_devolver) {
+                        throw new Exception("No se puede devolver más de lo prestado para el producto ID: $id_detalle");
+                    }
+                    
+                    // Calcular nueva cantidad devuelta
+                    $nueva_cantidad_devuelta = $detalle['cantidad_devuelta'] + $cantidad_a_devolver;
+                    
                     // Actualizar detalle con cantidad devuelta
                     $update_detalle = "UPDATE solicitudes_detalle 
-                                      SET cantidad_entregada = cantidad
-                                      WHERE id_detalle = " . $detalle['id_detalle'];
+                                      SET cantidad_devuelta = $nueva_cantidad_devuelta
+                                      WHERE id_detalle = $id_detalle";
                     $conn->query($update_detalle);
                     
                     // Registrar movimiento de entrada
+                    $id_fab_value = $prestamo['id_fab'] ? $prestamo['id_fab'] : 'NULL';
                     $movimiento_query = "INSERT INTO movimientos_almacen 
-                                    (id_alm, tipo_mov, cantidad, id_fab, id_usuario, notas)
-                                    VALUES 
-                                    (" . $detalle['id_alm'] . ", 'entrada', $cantidad_a_devolver, " . $prestamo['id_fab'] . ", 
-                                    $id_usuario, 'Devolución completa préstamo: $folio. Notas: $notas')";
+                                        (id_alm, tipo_mov, cantidad, id_fab, id_usuario, notas)
+                                        VALUES 
+                                        ({$detalle['id_alm']}, 'entrada', $cantidad_a_devolver, $id_fab_value, 
+                                        $id_usuario, 'Devolución parcial préstamo: $folio. Notas: $notas')";
                     $conn->query($movimiento_query);
                     
                     // Actualizar inventario
                     $inventario_query = "UPDATE inventario_almacen 
                                        SET existencia = existencia + $cantidad_a_devolver
-                                       WHERE id_alm = " . $detalle['id_alm'];
+                                       WHERE id_alm = {$detalle['id_alm']}";
                     $conn->query($inventario_query);
+                    
+                    // Verificar si queda pendiente por devolver
+                    if (($detalle['cantidad_entregada'] - $nueva_cantidad_devuelta) > 0) {
+                        $todos_devueltos = false;
+                    }
+                } else {
+                    // Si no se devuelve nada de este producto, verificar si ya estaba completo
+                    if (($detalle['cantidad_entregada'] - $detalle['cantidad_devuelta']) > 0) {
+                        $todos_devueltos = false;
+                    }
                 }
             }
             
+            // 2. Actualizar préstamo según si se devolvió todo o no
+            if ($todos_devueltos) {
+                $update_prestamo = "UPDATE prestamos_almacen 
+                                   SET estatus = 'devuelto',
+                                       fecha_devolucion = NOW(),
+                                       observaciones = '$notas',
+                                       id_usuario_almacen = $id_usuario
+                                   WHERE id_prestamo = $id_prestamo";
+                $response['message'] = "Devolución completa registrada correctamente";
+            } else {
+                $update_prestamo = "UPDATE prestamos_almacen 
+                                   SET observaciones = '$notas',
+                                       id_usuario_almacen = $id_usuario
+                                   WHERE id_prestamo = $id_prestamo";
+                $response['message'] = "Devolución parcial registrada correctamente";
+            }
+            $conn->query($update_prestamo);
+            
             $conn->commit();
             $response['success'] = true;
-            $response['message'] = "Devolución registrada correctamente";
             $response['folio'] = $folio;
+            $response['completa'] = $todos_devueltos;
         } catch (Exception $e) {
             $conn->rollback();
             $response['message'] = "Error al procesar devolución: " . $e->getMessage();
@@ -186,9 +216,9 @@ $query = "SELECT
             p.id_prestamo, p.folio, p.fecha_prestamo, p.estatus, p.observaciones,
             u.nombre as solicitante,
             COUNT(sd.id_detalle) as total_productos,
-            SUM(sd.cantidad) as cantidad_total,
-            SUM(sd.cantidad_entregada) as cantidad_devuelta,
-            p.id_fab,
+            SUM(sd.cantidad_entregada) as cantidad_total,
+            SUM(sd.cantidad_devuelta) as cantidad_devuelta,
+            p.id_fab, p.no_of,
             of.plano_ref,
             pr.nombre as proyecto_nombre
           FROM prestamos_almacen p
@@ -196,7 +226,7 @@ $query = "SELECT
           JOIN solicitudes_detalle sd ON p.id_prestamo = sd.id_prestamo
           LEFT JOIN orden_fab of ON p.id_fab = of.id_fab
           LEFT JOIN proyectos pr ON of.id_proyecto = pr.cod_fab
-          WHERE p.estatus != 'devuelto'
+          WHERE p.estatus != 'devuelto' AND p.estatus != 'rechazado' 
           GROUP BY p.id_prestamo
           ORDER BY p.fecha_prestamo DESC";
 $prestamos = $conn->query($query)->fetch_all(MYSQLI_ASSOC);
@@ -204,7 +234,10 @@ $prestamos = $conn->query($query)->fetch_all(MYSQLI_ASSOC);
 // Obtener detalles de productos para cada préstamo
 foreach ($prestamos as &$prestamo) {
     $detalle_query = "SELECT 
-                        sd.id_alm, sd.cantidad, sd.cantidad_entregada,
+                        sd.id_detalle, sd.id_alm, 
+                        sd.cantidad_entregada, 
+                        sd.cantidad_devuelta,
+                        (sd.cantidad_entregada - sd.cantidad_devuelta) as pendiente,
                         ia.codigo, ia.descripcion,
                         cat.categoria
                       FROM solicitudes_detalle sd
@@ -326,9 +359,11 @@ $conn->close();
             <!-- Botones -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
                 <a href="panel_almacen.php" class="btn btn-warning chompa">Requicisión Interna</a>
-                <a href="devolucion_prestamo.php" class="btn btn-warning chompa" style="border: 3px solid gray;">Prestámos</a>
-                <a href="req_interna.php" class="btn btn-info chompa">Nueva Requisición</a>
-                <a href="prestamo_almacen.php" class="btn btn-info chompa">Nuevo prestámo</a>
+                <a href="devolucion_prestamo.php" class="btn btn-warning chompa" style="border: 3px solid gray;">Asignación de Herramientas</a>
+                <?php if($username != 'CIS'): ?>
+                    <a href="req_interna.php" class="btn btn-info chompa">Nueva Requisición</a>
+                    <a href="prestamo_almacen.php" class="btn btn-info chompa">Nueva Asignación</a>
+                <?php endif; ?>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>
@@ -336,11 +371,9 @@ $conn->close();
 </div>
 
 <div class="table-container">
-    <h2 class="text-center mb-4">Gestión de Herramientas</h2>
+    <h2 class="text-center mb-4">Gestión de Asignación de Herramientas</h2>
     
     <div id="alert-container"></div>
-    
-    <h4>Préstamos Activos</h4>
     <table class="table table-striped table-bordered" id="tabla-prestamos">
         <thead>
             <tr>
@@ -348,10 +381,6 @@ $conn->close();
                 <th>Fecha Préstamo</th>
                 <th>Solicitante</th>
                 <th>OF</th>
-                <th>Productos</th>
-                <th>Total Prestado</th>
-                <th>Devuelto</th>
-                <th>Pendiente</th>
                 <th>Estatus</th>
                 <th>Acciones</th>
             </tr>
@@ -362,7 +391,9 @@ $conn->close();
                     $pendiente = $p['cantidad_total'] - $p['cantidad_devuelta'];
                 ?>
                     <tr data-folio="<?php echo htmlspecialchars($p['folio']); ?>">
-                        <td><?php echo htmlspecialchars($p['folio']); ?></td>
+                        <td style="cursor: pointer;" class="td-productos" data-id="<?php echo htmlspecialchars($p['id_prestamo']); ?>">
+                            <?php echo htmlspecialchars($p['folio']); ?>
+                        </td>
                         <td><?php echo htmlspecialchars($p['fecha_prestamo']); ?></td>
                         <td><?php echo htmlspecialchars($p['solicitante']); ?></td>
                         <td>
@@ -371,15 +402,12 @@ $conn->close();
                                 <?php echo htmlspecialchars($p['proyecto_nombre'] ?? 'Sin proyecto'); ?><br>
                                 <small><?php echo htmlspecialchars($p['plano_ref'] ?? ''); ?></small>
                             <?php else: ?>
-                                <span class="text-muted">N/A</span>
+                                <?php echo htmlspecialchars($p['no_of'] ?? 'N/A'); ?>
                             <?php endif; ?>
                         </td>
-                        <td style="cursor: pointer;" class="td-productos" data-id="<?php echo htmlspecialchars($p['id_prestamo']); ?>">
+                        <!--<td style="cursor: pointer;" class="td-productos" data-id="<?php echo htmlspecialchars($p['id_prestamo']); ?>">
                             <?php echo count($p['detalles']); ?> producto(s)
-                        </td>
-                        <td><?php echo htmlspecialchars($p['cantidad_total']); ?></td>
-                        <td><?php echo htmlspecialchars($p['cantidad_devuelta']); ?></td>
-                        <td><?php echo $pendiente; ?></td>
+                        </td>-->
                         <td id="estatus-<?php echo htmlspecialchars($p['folio']); ?>">
                             <span class="badge badge-<?php echo str_replace('_', '', $p['estatus']); ?>">
                                 <?php echo ucfirst(str_replace('_', ' ', $p['estatus'])); ?>
@@ -453,8 +481,8 @@ $conn->close();
                     </div>
                     
                     <h5>Productos a devolver:</h5>
-                    <div class="product-details" id="modalProductosInfo">
-                        <!-- Productos se cargarán aquí -->
+                    <div class="table-responsive" id="modalProductosInfo">
+                        <!-- Tabla de productos se cargará aquí dinámicamente -->
                     </div>
                     
                     <div class="form-group mt-3">
@@ -465,7 +493,10 @@ $conn->close();
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmarDevolucion">Registrar Devolución</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarDevolucion">
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    Registrar Devolución
+                </button>
             </div>
         </div>
     </div>
@@ -509,14 +540,13 @@ $conn->close();
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Modal de devolver pero con observaciones
+    // Modal de devolución con detalles (ahora con inputs para cantidades)
     $('#modalDevolucion').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
         var folio = button.data('folio');
         var row = button.closest('tr');
-        var solicitante = row.find('td:nth-child(3)').text();
-        var fecha = row.find('td:nth-child(2)').text();
-        var pendiente = row.find('td:nth-child(7)').text();
+        var id_prestamo = row.find('.td-productos').data('id');
+        
         // Obtener datos de la fila
         var proyectoInfo = row.find('td:nth-child(4)').text().trim();
         var ordenInfo = row.find('td:nth-child(4) small.text-muted').text();
@@ -526,29 +556,52 @@ $(document).ready(function() {
         modal.find('#modalFolioInfo').text(folio);
         modal.find('#modalProyectoInfo').text(proyectoInfo.replace(ordenInfo, '').trim());
         modal.find('#modalOrdenInfo').text(ordenInfo);
-        modal.find('#modalSolicitanteInfo').text(solicitante);
-        modal.find('#modalFechaInfo').text(fecha);
         modal.find('#modalNotas').val('');
         
-        // Cargar productos (simulado - en producción deberías obtener los datos reales)
+        // Cargar productos
         modal.find('#modalProductosInfo').html('<p>Cargando productos...</p>');
         
-        // Simular carga de productos (en producción harías una petición AJAX o usarías datos pre-cargados)
-        setTimeout(function() {
-            var productosHtml = '';
-            // Esto es un ejemplo - en producción deberías obtener los datos reales del préstamo
-            productosHtml += '<div class="product-row">';
-            productosHtml += '<strong>Producto 1</strong> - Descripción del producto';
-            productosHtml += '<span class="badge badge-secondary float-right">Cantidad: ' + pendiente + '</span>';
-            productosHtml += '</div>';
+        // Obtener detalles del préstamo (ya están en la página)
+        var detalles = [];
+        <?php foreach ($prestamos as $p): ?>
+            if (<?php echo $p['id_prestamo']; ?> == id_prestamo) {
+                detalles = <?php echo json_encode($p['detalles']); ?>;
+            }
+        <?php endforeach; ?>
+        
+        if (detalles.length > 0) {
+            var productosHtml = '<table class="table table-bordered">';
+            productosHtml += '<thead><tr><th>Código</th><th>Descripción</th><th>Cant. Prestada</th><th>Cant. Devuelta</th><th>Pendiente</th><th>Devolver</th></tr></thead>';
+            productosHtml += '<tbody>';
             
+            detalles.forEach(function(producto) {
+                var pendiente = producto.cantidad_entregada - (producto.cantidad_devuelta || 0);
+                productosHtml += '<tr>';
+                productosHtml += '<td>' + producto.codigo + '</td>';
+                productosHtml += '<td>' + producto.descripcion + '</td>';
+                productosHtml += '<td>' + producto.cantidad_entregada + '</td>';
+                productosHtml += '<td>' + (producto.cantidad_devuelta || 0) + '</td>';
+                productosHtml += '<td>' + pendiente + '</td>';
+                productosHtml += '<td><input type="number" class="form-control cantidad-devolver" ' + 
+                            'name="devoluciones[' + producto.id_detalle + ']" ' +
+                            'min="0" max="' + pendiente + '" ' +
+                            'value="' + (pendiente > 0 ? pendiente : 0) + '" ' +
+                            (pendiente <= 0 ? 'disabled' : '') + '></td>';
+                productosHtml += '</tr>';
+            });
+            
+            productosHtml += '</tbody></table>';
             modal.find('#modalProductosInfo').html(productosHtml);
-        }, 500);
+        } else {
+            modal.find('#modalProductosInfo').html('<p>No se encontraron productos para este préstamo</p>');
+        }
     });
-    
-    // Procesar devolución con detalles
+
+    // Procesar devolución con detalles (ahora con cantidades)
     $('#btnConfirmarDevolucion').click(function() {
         var formData = $('#formDevolucion').serialize();
+        var btn = $(this);
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...');
         
         $.ajax({
             url: 'devolucion_prestamo.php',
@@ -557,23 +610,32 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    showAlert('success', response.message);
-                    // Actualizar la fila en la tabla
-                    var row = $('tr[data-folio="' + response.folio + '"]');
-                    row.find('td:nth-child(6)').text(row.find('td:nth-child(5)').text()); // Devuelto = Prestado
-                    row.find('td:nth-child(7)').text('0'); // Pendiente = 0
-                    row.find('td:nth-child(8)').html('<span class="badge badge-devuelto">Devuelto</span>');
-                    row.find('td:nth-child(9)').html(''); // Limpiar acciones
+                    var alertType = response.completa ? 'success' : 'info';
+                    var alertMsg = response.message;
+                    
+                    showAlert(alertType, alertMsg);
+                    
+                    if (response.completa) {
+                        // Si fue devolución completa, actualizar fila
+                        var row = $('tr[data-folio="' + response.folio + '"]');
+                        row.find('td:nth-child(5)').html('<span class="badge badge-devuelto">Devuelto</span>');
+                        row.find('td:nth-child(6)').html('');
+                    } else {
+                        // Si fue parcial, solo recargar
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    }
+                    
                     $('#modalDevolucion').modal('hide');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
                 } else {
                     showAlert('danger', response.message);
                 }
+                btn.prop('disabled', false).html('Registrar Devolución');
             },
             error: function() {
                 showAlert('danger', 'Error al comunicarse con el servidor');
+                btn.prop('disabled', false).html('Registrar Devolución');
             }
         });
     });
@@ -663,22 +725,24 @@ $(document).on('click', '.btn-rechazar', function() {
             data: { folio: folio, accion: 'rechazar' },
             dataType: 'json',
             success: function(response) {
-                console.log('Respuesta del servidor:', response);
                 if (response.success) {
-                    row.find('td:nth-child(9)').html('<span class="badge badge-danger">Rechazado</span>');
+                    // Actualiza el badge de estatus dinámicamente
+                    row.find('.badge').removeClass().addClass('badge badge-danger').text('Rechazado');
+                    // Opcional: ocultar botones de acción
                     row.find('.btn-accion').hide();
                     showAlert('success', response.message);
                 } else {
                     showAlert('danger', response.message);
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
                 console.error('Error en la petición:', status, error);
                 showAlert('danger', 'Error al comunicarse con el servidor');
             }
         });
     }
 });
+
 
 // Mostrar modal con detalles de productos
 $(document).on('click', '.td-productos', function() {
@@ -702,14 +766,14 @@ $(document).on('click', '.td-productos', function() {
     
     if (detalles.length > 0) {
         detalles.forEach(function(producto) {
-            var pendiente = producto.cantidad - (producto.cantidad_entre || 0);
+            var pendiente = producto.cantidad - (producto.cantidad_entregada || 0);
             $('#modalProductosBody').append(`
                 <tr>
                     <td>${producto.codigo}</td>
                     <td>${producto.descripcion}</td>
                     <td>${producto.categoria}</td>
                     <td>${producto.cantidad}</td>
-                    <td>${producto.cantidad_entre || 0}</td>
+                    <td>${producto.cantidad_entregada || 0}</td>
                     <td>${pendiente}</td>
                 </tr>
             `);

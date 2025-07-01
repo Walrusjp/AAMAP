@@ -5,22 +5,12 @@ require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
 
 // Verificar autenticación y permisos
-if (!isset($_SESSION['username']) || !tienePermisoAlmacen($_SESSION['user_id'])) {
+if (!isset($_SESSION['username'])) {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Acceso no autorizado']);
     exit();
 }
 
-function tienePermisoAlmacen($user_id) {
-    global $conn;
-    $query = "SELECT role FROM users WHERE id = $user_id";
-    $result = $conn->query($query);
-    if ($result && $result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        return in_array($user['role'], ['admin', 'almacen']);
-    }
-    return false;
-}
 
 // Configurar cabecera para respuesta JSON
 header('Content-Type: application/json');
@@ -45,11 +35,11 @@ $accion = $_POST['accion'] ?? 'entregar';
 
 if ($accion === 'rechazar') {
     try {
-        $conn->begin_transaction();
+        $conn->begin_transaction(); // Iniciar transacción
         
         $check_query = "SELECT id_prestamo FROM prestamos_almacen 
-                        WHERE folio = '$folio' AND estatus = 'solicitado' 
-                        FOR UPDATE";
+                       WHERE folio = '$folio' AND estatus = 'solicitado' 
+                       FOR UPDATE";
         $check_result = $conn->query($check_query);
 
         if ($check_result->num_rows === 0) {
@@ -59,33 +49,25 @@ if ($accion === 'rechazar') {
         $prestamo = $check_result->fetch_assoc();
         $id_prestamo = $prestamo['id_prestamo'];
 
-        // Cambiar estado a 'rechazado'
         $rechazar_query = "UPDATE prestamos_almacen 
                           SET estatus = 'rechazado',
-                              id_usuario_almacen = $id_usuario,
-                              fecha_devolucion = NOW()
+                              id_usuario_almacen = $id_usuario
                           WHERE id_prestamo = $id_prestamo";
         
         if (!$conn->query($rechazar_query)) {
             throw new Exception('Error al actualizar el estado del préstamo');
         }
 
-        // Registrar acción en logs si es necesario
-        $log_query = "INSERT INTO logs_prestamos 
-                     (id_prestamo, accion, id_usuario, detalles)
-                     VALUES 
-                     ($id_prestamo, 'rechazo', $id_usuario, 'Préstamo rechazado')";
-        $conn->query($log_query);
+        // ¡FALTABA ESTA LÍNEA CRÍTICA!
+        $conn->commit(); // Confirmar la transacción
 
-        $conn->commit();
-        
         echo json_encode([
             'success' => true, 
             'message' => 'Préstamo rechazado correctamente',
             'folio' => $folio
         ]);
     } catch (Exception $e) {
-        $conn->rollback();
+        $conn->rollback(); // Revertir en caso de error
         echo json_encode([
             'success' => false, 
             'message' => $e->getMessage()
@@ -97,9 +79,9 @@ if ($accion === 'rechazar') {
 
 try {
     // 1. Verificar que el préstamo existe y está en estado "solicitado"
-    $check_query = "SELECT id_prestamo FROM prestamos_almacen 
-                    WHERE folio = '$folio' AND estatus = 'solicitado' 
-                    FOR UPDATE";
+    $check_query = "SELECT id_prestamo, id_fab FROM prestamos_almacen 
+                WHERE folio = '$folio' AND estatus = 'solicitado' 
+                FOR UPDATE";
     $check_result = $conn->query($check_query);
     
     if ($check_result->num_rows === 0) {
@@ -108,6 +90,7 @@ try {
     
     $prestamo = $check_result->fetch_assoc();
     $id_prestamo = $prestamo['id_prestamo'];
+    $id_fab = $prestamo['id_fab'];
     
     // 2. Obtener detalles del préstamo para verificar stock
     $detalles_query = "SELECT sd.id_alm, sd.cantidad, ia.codigo, ia.descripcion, ia.existencia
@@ -138,10 +121,11 @@ try {
     foreach ($detalles as $detalle) {
         // Registrar movimiento de salida
         $movimiento_query = "INSERT INTO movimientos_almacen 
-                            (id_alm, tipo_mov, cantidad, id_usuario, notas)
-                            VALUES 
-                            (" . $detalle['id_alm'] . ", 'salida', " . $detalle['cantidad'] . ", 
-                            $id_usuario, 'Préstamo entregado: $folio')";
+                    (id_alm, tipo_mov, cantidad, id_fab, id_usuario, notas)
+                    VALUES 
+                    (" . $detalle['id_alm'] . ", 'salida', " . $detalle['cantidad'] . ", 
+                    " . ($prestamo['id_fab'] ?: 'NULL') . ", 
+                    $id_usuario, 'Préstamo entregado: $folio')";
         $conn->query($movimiento_query);
         
         // Actualizar inventario

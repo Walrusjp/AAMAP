@@ -1,12 +1,32 @@
 <?php
 session_start();
+require 'C:/xampp/htdocs/db_connect.php';
+require 'C:/xampp/htdocs/role.php';
+
+// Verificar sesión y obtener datos del usuario
 if (!isset($_SESSION['username'])) {
     header("Location: /login.php");
     exit();
 }
 
-require 'C:/xampp/htdocs/db_connect.php';
-require 'C:/xampp/htdocs/role.php';
+// Obtener información del usuario actual
+$username = $_SESSION['username'];
+$user_id = $_SESSION['user_id'];
+
+// Verificar si el usuario tiene acceso a esta página
+$query = "SELECT role FROM users WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    header("Location: /login.php");
+    exit();
+}
+
+$user = $result->fetch_assoc();
+$role = $user['role'];
 
 
 // Obtener los proyectos desde la base de datos (ahora desde orden_fab)
@@ -138,7 +158,11 @@ if (isset($_POST['aprobar_cotizacion'])) {
                     <li><a class="dropdown-item" href="#" data-value="proveedores" data-url='proveedores/ver_proveedores.php'>Proveedores</a></li>
                     <li><a class="dropdown-item" href="/launch.php" data-value="almacen" data-url='almacen/ver_almacen.php'>Almacén</a></li>
                     <li><a class="dropdown-item" href="#" data-value="compras" data-url='compras/ver_ordenes_compra.php'>Compras</a></li>
-                    <li><a class="dropdown-item" href="#" data-value="req_interna" data-url='req_interna/panel_almacen.php'>Requisicón interna</a></li>
+                    <?php if($username == 'CIS'): ?>
+                        <li><a class="dropdown-item" href="#" data-value="req_interna" data-url='/ERP/req_interna/panel_almacen.php'>Requisición interna</a></li>
+                    <?php else: ?>
+                        <li><a class="dropdown-item" href="" data-value="req_interna" data-url='req_interna/req_interna.php'>Requisición interna</a></li>
+                    <?php endif; ?>
                 <!--Submenú para Reportes-->
                     <li class="dropdown-submenu position-relative" >
                         <a class="dropdown-item disabled-item">Reportes</a>
