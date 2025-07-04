@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'cantidad' => $_POST['cantidad'],
             'tipo_mov' => 'entrada',
             'id_pr' => $_POST['id_pr'],
-            'uuid' => uniqid() // Generamos un UUID único para cada item
+            'uuid' => $_POST['uuid_factura']
         ];
     } elseif (isset($_POST['confirmar_movimiento'])) {
         // Confirmar todo el movimiento
@@ -136,8 +136,25 @@ if (!isset($_SESSION['movimiento_temp'])) {
 </head>
 <body>
     <div class="navbar" style="display: flex; align-items: center; justify-content: space-between; padding: 0px; background-color: #f8f9fa; position: relative;">
-        <!-- Logo y menú (igual que en tu original) -->
+    <!-- Logo -->
+    <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 18%; position: absolute; top: 25px; left: 10px;">
+
+    <!-- Contenedor de elementos alineados a la derecha -->
+    <div class="sticky-header" style="width: 100%;">
+        <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
+            <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>E R P</b></p></div>
+            <!-- Buscador y botones -->
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
+                <!-- Botones -->
+                <a href="reg_articulo_alm.php" class="btn btn-success chompa">Nuevo Artículo</a>
+                <?php if($role === 'admin'): ?>
+                    <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
+                <?php endif; ?>
+                <a href="ver_almacen.php" class="btn btn-secondary chompa">Regresar</a>
+            </div>
+        </div>
     </div>
+</div>
 
 <div class="container mt-4">
     <h2 class="text-center mb-4">Entradas Manuales de Almacén</h2>
@@ -185,6 +202,14 @@ if (!isset($_SESSION['movimiento_temp'])) {
                         <select class="form-control" id="producto" name="producto" disabled required>
                             <option value="">Primero seleccione una categoría</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="uuid_factura">UUID de Factura</label>
+                        <input type="text" class="form-control" id="uuid_factura" name="uuid_factura" 
+                            placeholder="Ingrese UUID de la factura" required>
                     </div>
                 </div>
             </div>
@@ -237,11 +262,11 @@ if (!isset($_SESSION['movimiento_temp'])) {
                         $producto = $conn->query($prod_query)->fetch_assoc();
                         
                         // Obtener detalles del proveedor
-                        $prov_query = "SELECT nombre FROM proveedores WHERE id_pr = {$item['id_pr']}";
+                        $prov_query = "SELECT empresa FROM proveedores WHERE id_pr = {$item['id_pr']}";
                         $proveedor = $conn->query($prov_query)->fetch_assoc();
                     ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($proveedor['nombre']); ?></td>
+                            <td><?php echo htmlspecialchars($proveedor['empresa']); ?></td>
                             <td><?php echo htmlspecialchars($producto['codigo']); ?></td>
                             <td><?php echo htmlspecialchars($producto['descripcion']); ?></td>
                             <td><?php echo htmlspecialchars($producto['categoria']); ?></td>

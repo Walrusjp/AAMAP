@@ -148,29 +148,6 @@ if (!isset($_SESSION['movimiento_temp'])) {
             <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>E R P</b></p></div>
             <!-- Buscador y botones -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
-                <!-- Buscador -->
-                <form method="GET" action="ver_almacen.php" class="form-inline" style="margin-right: 10px;">
-                    <div class="input-group">
-                        <?php if(isset($_GET['search']) && !empty($_GET['search'])): ?>
-                            <a href="ver_almacen.php" class="input-group-prepend" title="Cancelar búsqueda" style="display: flex; align-items: center; padding: 0 5px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
-                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                                </svg>
-                            </a>
-                        <?php endif; ?>
-                        <input type="text" name="search" class="form-control" id="psearch" 
-                            placeholder="Buscar artículos..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="width: 200px;">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-outline-secondary" title="Buscar">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-                
                 <!-- Botones -->
                 <a href="reg_articulo_alm.php" class="btn btn-success chompa">Nuevo Artículo</a>
                 <?php if($role === 'admin'): ?>
