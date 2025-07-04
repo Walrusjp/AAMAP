@@ -17,13 +17,27 @@ $sql = "SELECT
     p.etapa AS estatus,
     p.observaciones,
     c.nombre_comercial AS cliente_nombre
-FROM proyectos AS p
-INNER JOIN clientes_p AS c ON p.id_cliente = c.id
-WHERE p.cod_fab NOT LIKE 'OF%'  -- Excluye códigos que empiezan con OF
-AND p.activo = 1
-ORDER BY 
-    FIELD(p.etapa, 'creado', 'aprobado', 'rechazado', 'en proceso', 'facturacion', 'finalizado'),
-    p.cod_fab ASC";
+    FROM proyectos AS p
+    INNER JOIN clientes_p AS c ON p.id_cliente = c.id
+    WHERE p.cod_fab NOT LIKE 'OF%'
+    AND p.activo = 1
+    AND p.etapa != 'rechazado'
+    ORDER BY 
+    CASE 
+        WHEN p.etapa IN ('en proceso', 'facturacion', 'finalizado') THEN 1
+        WHEN p.etapa = 'creado' THEN 2
+        WHEN p.etapa = 'aprobado' THEN 3
+        ELSE 4
+    END,
+    CASE 
+        WHEN p.etapa IN ('en proceso', 'facturacion', 'finalizado') THEN p.cod_fab
+        WHEN p.etapa = 'creado' THEN p.cod_fab
+        WHEN p.etapa = 'aprobado' THEN p.cod_fab
+    END DESC,
+    CASE 
+        WHEN p.etapa = 'creado' THEN p.cod_fab
+    END ASC";
+
 
 $result = $conn->query($sql);
 $proyectos = [];
@@ -260,7 +274,6 @@ if ($mensaje !== "") {
                         <option value="todos">Todos</option>
                         <option value="creado">Creado</option>
                         <option value="aprobado">Aprobado</option>
-                        <option value="rechazado">No Concretado</option>
                         <option value="en proceso,finalizado,facturacion">ERP</option>
                     </select>
                 </div>
