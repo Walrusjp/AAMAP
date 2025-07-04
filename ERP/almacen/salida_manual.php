@@ -176,7 +176,6 @@ if (!isset($_SESSION['movimiento_temp'])) {
                 <?php if($role === 'admin'): ?>
                     <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
                 <?php endif; ?>
-                <a href="movs_manual.php" class="btn btn-info chompa">Registro Manual</a>
                 <a href="ver_almacen.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>

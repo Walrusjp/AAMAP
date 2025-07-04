@@ -20,7 +20,7 @@ $query = "SELECT ia.*, cp.categoria,
            (SELECT SUM(cantidad) FROM movimientos_almacen WHERE id_alm = ia.id_alm AND tipo_mov = 'salida') as salidas
           FROM inventario_almacen ia
           LEFT JOIN categorias_almacen cp ON ia.id_cat_alm = cp.id_cat_alm
-          WHERE ia.activo = TRUE"; //mostrar solo existencia > 0  and ia.existencia > 0
+          WHERE ia.activo = TRUE and ia.existencia > 0"; //mostrar solo existencia > 0  and ia.existencia > 0
 
 // Aplicar filtros
 if (!empty($search)) {
@@ -140,7 +140,8 @@ $conn->close();
                 <?php if($role === 'admin'): ?>
                     <a href="historico_movs_alm.php" class="btn btn-info chompa">Ver Movimientos</a>
                 <?php endif; ?>
-                <a href="movs_manual.php" class="btn btn-info chompa">Salida Manual</a>
+                <a href="salida_manual.php" class="btn btn-info chompa">Salida Manual</a>
+                <a href="entrada_manual.php" class="btn btn-info chompa">Entrada Manual</a>
                 <a href="/ERP/all_projects.php" class="btn btn-secondary chompa">Regresar</a>
             </div>
         </div>

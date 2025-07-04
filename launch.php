@@ -81,12 +81,19 @@ if (!isset($_SESSION['welcome_shown'])) {
     </div>
 
     <div class="launcher-grid">
+        <?php if($role == 'operador' || $role == 'admin'): ?>
         <div class="card" onclick="window.location.href='/PAPELERIA/papeleria.php'">
             <img class="icon" src="/assets/icons/papeleria.svg" alt="Papelería">
             <span>Papelería</span>
         </div>
+        <?php else: ?>
+        <div class="card disabled" onclick="window.location.href='/PAPELERIA/papeleria.php'">
+            <img class="icon" src="/assets/icons/papeleria.svg" alt="Papelería">
+            <span>Papelería</span>
+        </div>
+        <?php endif; ?>
 
-        <div class="card" onclick="window.location.href='/error404.html'">
+        <div class="card disabled" onclick="window.location.href='/error404.html'">
             <img class="icon" src="/assets/icons/viaticos.svg" alt="Viáticos">
             <span>Viáticos</span>
         </div>
@@ -120,8 +127,52 @@ if (!isset($_SESSION['welcome_shown'])) {
         </div>
         <?php endif; ?>
 
+        <?php if($username === 'CIS' || $username === 'admin'): ?>
+        <div class="card" onclick="window.location.href='/ERP/req_interna/devolucion_prestamo.php'">
+            <img class="icon" src="/assets/icons/req_interna.svg" alt="req_interna">
+            <span>Requicisión Interna</span>
+        </div>
+        <?php elseif($role == 'operador' || $username == 'la.lopez' || $username == 'h.galicia'): ?>
+        <div class="card" onclick="window.location.href='/ERP/req_interna/prestamo_almacen.php'">
+            <img class="icon" src="/assets/icons/req_interna.svg" alt="req_interna">
+            <span>Requicisión Interna</span>
+        </div>
+        <?php else: ?>
+        <div class="card disabled" onclick="window.location.href='/ERP/req_interna/devolucion_prestamo.php'">
+            <img class="icon" src="/assets/icons/req_interna.svg" alt="req_interna">
+            <span>Requicisión Interna</span>
+        </div>
+        <?php endif; ?>
+
+        <?php if($username === 'CIS' || $role == 'admin'): ?>
+        <div class="card" onclick="window.location.href='/ERP/almacen/ver_almacen.php'">
+            <img class="icon" src="/assets/icons/almacen.svg" alt="almacen">
+            <span>Almacén</span>
+        </div>
+        <?php else: ?>
+        <div class="card disabled" onclick="window.location.href='/ERP/req_interna/devolucion_prestamo.php'">
+            <img class="icon" src="/assets/icons/almacen.svg" alt="almacen">
+            <span>Almacén</span>
+        </div>
+        <?php endif; ?>
+
+        <div class="card disabled" onclick="window.location.href='/ERP/req_interna/devolucion_prestamo.php'">
+            <img class="icon" src="/assets/icons/orden_compra.svg" alt="oc">
+            <span>Ordenes de Compra</span>
+        </div>
+
+        <div class="card disabled" onclick="window.location.href='/ERP/req_interna/devolucion_prestamo.php'">
+            <img class="icon" src="/assets/icons/catalogo.svg" alt="catalogo">
+            <span>Catálogo</span>
+        </div>
+
         <?php if($username === 'h.galicia' || $username === 'admin'): ?>
         <div class="card" onclick="window.open('/reportes/reporte_gral.php', '_blank')">
+            <img class="icon" src="/assets/icons/reportes.svg" alt="Reportes">
+            <span>Reportes</span>
+        </div>
+        <?php else: ?>
+        <div class="card disabled" onclick="window.open('/reportes/reporte_gral.php', '_blank')">
             <img class="icon" src="/assets/icons/reportes.svg" alt="Reportes">
             <span>Reportes</span>
         </div>
@@ -129,6 +180,11 @@ if (!isset($_SESSION['welcome_shown'])) {
 
         <?php if($username === 'admin'): ?>
         <div class="card" onclick="window.location.href='/externos/ver_almacen.php'">
+            <img class="icon" src="/assets/icons/rotecna.svg" alt="ROTECNA">
+            <span>ROTECNA</span>
+        </div>
+        <?php else: ?>
+        <div class="card disabled" onclick="window.location.href='/externos/ver_almacen.php'">
             <img class="icon" src="/assets/icons/rotecna.svg" alt="ROTECNA">
             <span>ROTECNA</span>
         </div>
