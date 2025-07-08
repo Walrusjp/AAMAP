@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['generar_cotizacion']))
 }
 
 // Validar y sanitizar la entrada del ID del proyecto
-$proyecto_id = filter_var($_GET['id'], FILTER_SANITIZE_STRING);
+$proyecto_id = trim(htmlspecialchars($_GET['id'] ?? ''));
 if ($proyecto_id === false || empty($proyecto_id)) {
     echo "ID de proyecto no válido.";
     exit();
@@ -150,7 +150,7 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
 </table>
 
     <?php if ($proyecto['etapa'] != 'creado'): ?>
-    <?php echo "<div id='title'><h4>Proyecto: " . htmlspecialchars($proyecto['nombre_proyecto']) . "</h4></div>";?>
+    <?php echo "<div id='title'><h4>Proyecto: " . htmlspecialchars($proyecto['nombre_proyecto'] ?? '') . "</h4></div>";?>
     <table class="main-table">
         <thead class="thead">
             <tr>
@@ -174,26 +174,26 @@ $partidas = $resultPartidas->fetch_all(MYSQLI_ASSOC);
             foreach ($partidas as $key => $row) {
                 echo "<tr>";
                 if ($key === 0) {
-                    echo "<td style='width: 6%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . 'OF-' . htmlspecialchars($proyecto['proyecto_id']) . "</td>";
-                    echo "<td style='width: 9%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . htmlspecialchars($proyecto['nombre_cliente']) . "</td>";
-                    echo "<td style='width: 8%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . htmlspecialchars($proyecto['fecha_entrega']) . "</td>";
+                    echo "<td style='width: 6%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . 'OF-' . htmlspecialchars($proyecto['proyecto_id'] ?? '') . "</td>";
+                    echo "<td style='width: 9%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . htmlspecialchars($proyecto['nombre_cliente'] ?? '') . "</td>";
+                    echo "<td style='width: 8%;' rowspan='" . $numRows . "' class='text-center align-middle tbody'>" . htmlspecialchars($proyecto['fecha_entrega'] ?? '') . "</td>";
                 }
                 //echo "<td>" . $pr . "</td>";
-                echo "<td style='width: 35%;' class='tbody'>" . htmlspecialchars($row['nombre_partida']) . "</td>";
-                echo "<td style='width: 5%;' class='tbody'>" . htmlspecialchars($row['proceso']) . "</td>";
-                echo "<td style='width: 6%;' class='tbody'>" . htmlspecialchars($row['pendiente']) . " / " . htmlspecialchars($row['cantidad']) . "</td>";
-                echo "<td style='width: 3%;' class='tbody'>" . htmlspecialchars($row['unidad_medida']) . "</td>";
+                echo "<td style='width: 35%;' class='tbody'>" . htmlspecialchars($row['nombre_partida'] ?? '') . "</td>";
+                echo "<td style='width: 5%;' class='tbody'>" . htmlspecialchars($row['proceso'] ?? '') . "</td>";
+                echo "<td style='width: 6%;' class='tbody'>" . htmlspecialchars($row['pendiente'] ?? '') . " / " . htmlspecialchars($row['cantidad']) . "</td>";
+                echo "<td style='width: 3%;' class='tbody'>" . htmlspecialchars($row['unidad_medida'] ?? '') . "</td>";
                 $pr = $pr + 1;
                 if ($proyecto['etapa'] == 'en proceso' || $proyecto['etapa'] == 'directo' || $proyecto['etapa'] == 'facturacion'):
-                    echo "<td style='width: 18%;' data-id='" . htmlspecialchars($row['partida_id']) . "' class='editable tbody'>" . htmlspecialchars($row['estatus']) . "</td>";
-                    echo "<td style='width: 10%;' class='tbody'>" . htmlspecialchars($row['ultimo_registro']) . "</td>";
+                    echo "<td style='width: 18%;' data-id='" . htmlspecialchars($row['partida_id'] ?? '') . "' class='editable tbody'>" . htmlspecialchars($row['estatus'] ?? '') . "</td>";
+                    echo "<td style='width: 10%;' class='tbody'>" . htmlspecialchars($row['ultimo_registro'] ?? '') . "</td>";
                     echo "</tr>";
                 endif;
 
                 if ($proyecto['etapa'] == 'finalizado' ):
                     echo '
-                        <td class="tbody" data-id="'. htmlspecialchars($row['partida_id']). '">'. htmlspecialchars($row['estatus']). '</td>
-                        <td class="tbody">'. htmlspecialchars($row['ultimo_registro']). '</td>
+                        <td class="tbody" data-id="'. htmlspecialchars($row['partida_id'] ?? ''). '">'. htmlspecialchars($row['estatus'] ?? ''). '</td>
+                        <td class="tbody">'. htmlspecialchars($row['ultimo_registro'] ?? ''). '</td>
                     ';
                 endif;
             }

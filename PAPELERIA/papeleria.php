@@ -349,7 +349,7 @@ $result = $stmt->get_result();
                                     data-id="<?php echo $row['id']; ?>">-</button>
 
 
-                                <?php if ($row['stock'] == 0): ?>
+                                <?php if ($row['stock'] == 0 || $username == 'admin'): ?>
                                     <?php if ($solicitudExistente && !$personalizadoExistente): ?>
                                         <!-- Si ya existe un pedido de tipo "solicitud" pero no la "personalizada", mostramos "Solicitud Personalizada" -->
                                         <a href="solicitar_producto.php?product_id=<?php echo $row['id']; ?>&product_desc=<?php echo urlencode($row['descripcion']); ?>" class="btn btn-secondary btncard">Solicitud Personalizada</a>

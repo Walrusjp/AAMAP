@@ -2,7 +2,7 @@
 require 'C:/xampp/htdocs/db_connect.php';
 
 // Validar y sanitizar la entrada del ID del proyecto
-$proyecto_id = filter_var($_GET['id'], FILTER_SANITIZE_STRING);
+$proyecto_id = filter_var($_GET['id'] ?? '');
 if ($proyecto_id === false || empty($proyecto_id)) {
     echo "ID de proyecto no válido.";
     exit();

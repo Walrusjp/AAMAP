@@ -155,9 +155,9 @@ if (isset($_POST['aprobar_cotizacion'])) {
                     Cadena de Suministros
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#" data-value="proveedores" data-url='proveedores/ver_proveedores.php'>Proveedores</a></li>
+                    <li><a class="dropdown-item disabled" href="#" data-value="proveedores" data-url='proveedores/ver_proveedores.php'>Proveedores</a></li>
                     <li><a class="dropdown-item" href="/launch.php" data-value="almacen" data-url='almacen/ver_almacen.php'>Almacén</a></li>
-                    <li><a class="dropdown-item" href="#" data-value="compras" data-url='compras/ver_ordenes_compra.php'>Compras</a></li>
+                    <li><a class="dropdown-item disabled" href="#" data-value="compras" data-url='compras/ver_ordenes_compra.php'>Compras</a></li>
                     <?php if($username == 'CIS'): ?>
                         <li><a class="dropdown-item" href="#" data-value="req_interna" data-url='/ERP/req_interna/panel_almacen.php'>Requisición interna</a></li>
                     <?php else: ?>
