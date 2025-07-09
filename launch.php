@@ -114,6 +114,12 @@ if (!isset($_SESSION['welcome_shown'])) {
             <span>CRM</span>
         </div>
         <?php endif; ?>
+        <?php if($username === 'admin'): ?>
+        <div class="card" onclick="window.location.href='/PROYECTOS/direct_projects.php'">
+            <img class="icon" src="/assets/icons/crm.svg" alt="CRM">
+            <span>CRM directas</span>
+        </div>
+        <?php endif; ?>
 
         <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes' || $username === 'calidad'): ?>
         <div class="card" onclick="window.location.href='/ERP/all_projects.php'">

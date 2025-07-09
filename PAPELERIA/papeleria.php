@@ -323,8 +323,6 @@ $result = $stmt->get_result();
                 $stmt->bind_param("ss", $_SESSION['user_id'], $_POST['product_id']);
                 $stmt->execute();
                 
-                // Ahora cambiamos la solicitud a tipo personalizado
-                // Mostramos el botón de "Solicitud Personalizada"
                 $solicitudExistente = true;
             }
             ?>
@@ -339,7 +337,7 @@ $result = $stmt->get_result();
                             <strong>Stock:</strong> <?php echo htmlspecialchars($row['stock']); ?>
                         </p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <!-- Botones de a�adir y quitar con AJAX -->
+                            <!-- Botones de añadir y quitar con AJAX -->
                             <div style="display:inline-flex;">
                                 <button type="button" class="btn btn-success add-to-cart btncard" 
                                     data-id="<?php echo $row['id']; ?>"

@@ -41,7 +41,7 @@ $sql = "SELECT
         FROM orden_fab AS of
         INNER JOIN proyectos AS p ON of.id_proyecto = p.cod_fab
         INNER JOIN clientes_p AS c ON of.id_cliente = c.id
-        WHERE p.etapa IN ('directo', 'en proceso', 'finalizado', 'facturacion')
+        WHERE p.etapa IN ('directo', 'en proceso', 'finalizado', 'facturacion') AND of.activo = 1
         ORDER BY of.id_fab DESC";
 
 $result = $conn->query($sql);

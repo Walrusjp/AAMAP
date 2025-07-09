@@ -22,14 +22,34 @@ function tienePermisoAlmacen($user_id) {
 // Procesar el formulario de movimiento
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['agregar_producto'])) {
+        $destino = $_POST['destino'] ?? '';
+        $id_fab = null;
+        $no_of = null;
+
+        if (strpos($destino, 'OF-') === 0) {
+            $id_fab = intval(substr($destino, 3));
+        } elseif (strpos($destino, 'ALT-') === 0) {
+            $no_of = $conn->real_escape_string(substr($destino, 4));
+        }
+
         // Agregar producto a la tabla temporal
         $_SESSION['movimiento_temp'][] = [
             'id_alm' => $_POST['producto'],
             'cantidad' => $_POST['cantidad'],
             'tipo_mov' => 'salida',
-            'id_fab' => $_POST['id_fab']
+            'destino' => $_POST['destino']
         ];
     } elseif (isset($_POST['confirmar_movimiento'])) {
+        $destino = $item['destino'] ?? '';
+        $id_fab = null;
+        $no_of = null;
+
+        if (strpos($destino, 'OF-') === 0) {
+            $id_fab = intval(substr($destino, 3));
+        } elseif (strpos($destino, 'ALT-') === 0) {
+            $no_of = $conn->real_escape_string(substr($destino, 4));
+        }
+
         // Confirmar todo el movimiento
         $conn->begin_transaction();
         try {
@@ -39,16 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($_SESSION['movimiento_temp'] as $item) {
                 // Insertar movimiento
                 $query = "INSERT INTO movimientos_almacen 
-                        (id_alm, tipo_mov, cantidad, id_fab, id_usuario, notas)
-                        VALUES 
-                        (?, 'salida', ?, ?, ?, ?)";
+                        (id_alm, tipo_mov, cantidad, id_fab, no_of, id_usuario, notas)
+                        VALUES (?, 'salida', ?, ?, ?, ?, ?)";
 
                 $stmt = $conn->prepare($query);
                 $stmt->bind_param(
-                    "iiiss",
+                    "iiisss",
                     $item['id_alm'],
                     $item['cantidad'],
-                    $item['id_fab'],
+                    $id_fab,
+                    $no_of,
                     $id_usuario,
                     $notas
                 );
@@ -174,14 +194,22 @@ if (!isset($_SESSION['movimiento_temp'])) {
                 
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="id_fab">Orden de Fabricación</label>
-                        <select class="form-control" id="id_fab" name="id_fab" required>
-                            <option value="">Seleccionar...</option>
-                            <?php while ($of = $of_result->fetch_assoc()): ?>
-                                <option value="<?php echo $of['id_fab']; ?>">
-                                    #<?php echo $of['id_fab']; ?> - <?php echo htmlspecialchars($of['nombre']); ?>
-                                </option>
-                            <?php endwhile; ?>
+                        <label for="destino">Destino (OF o Alternativo):</label>
+                        <select class="form-control" id="destino" name="destino" required>
+                            <option value="">-- Seleccione un destino --</option>
+                            <optgroup label="Órdenes de Fabricación">
+                                <?php $of_result->data_seek(0); while ($of = $of_result->fetch_assoc()): ?>
+                                    <option value="OF-<?php echo $of['id_fab']; ?>">
+                                        #<?php echo $of['id_fab']; ?> - <?php echo htmlspecialchars($of['nombre']); ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            </optgroup>
+                            <optgroup label="Otros destinos">
+                                <option value="ALT-Mantenimiento Interno">Mantenimiento Interno</option>
+                                <option value="ALT-Muestras">Muestras</option>
+                                <option value="ALT-EPP">EPP</option>
+                                <!-- Agrega más opciones ALT- aquí -->
+                            </optgroup>
                         </select>
                     </div>
                 </div>
@@ -256,12 +284,18 @@ if (!isset($_SESSION['movimiento_temp'])) {
                                       WHERE ia.id_alm = {$item['id_alm']}";
                         $producto = $conn->query($prod_query)->fetch_assoc();
                         
-                        // Obtener detalles de la OF
-                        $of_query = "SELECT plano_ref FROM orden_fab WHERE id_fab = {$item['id_fab']}";
-                        $of = $conn->query($of_query)->fetch_assoc();
+                        
                     ?>
                         <tr>
-                            <td>#<?php echo $item['id_fab']; ?></td>
+                            <td>
+                            <?php 
+                            if (strpos($item['destino'], 'OF-') === 0) {
+                                echo $item['destino'];
+                            } elseif (strpos($item['destino'], 'ALT-') === 0) {
+                                echo substr($item['destino'], 4);
+                            }
+                            ?>
+                            </td>
                             <td><?php echo htmlspecialchars($producto['codigo']); ?></td>
                             <td><?php echo htmlspecialchars($producto['descripcion']); ?></td>
                             <td><?php echo htmlspecialchars($producto['categoria']); ?></td>

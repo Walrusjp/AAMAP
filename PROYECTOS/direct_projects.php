@@ -130,6 +130,7 @@ if ($mensaje !== "") {
             <div style="display: flex; align-items: center; gap: 10px;">
                 <!--<a href="ver_proyecto.php?id=<?php //echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">-->
                 <a href="new_of.php" class="btn btn-info chompa">Nueva OF Directa</a>
+                <a href="new_maq_interna.php" class="btn btn-info chompa">Nueva OF (Maquila interna)</a>
                 <?php if($username === 'admin' || $username === ''): ?>
                     <a href="reg_client.php" class="btn btn-info chompa">Registrar CLiente</a>
                     <a href="new_project.php" class="btn btn-info chompa">Nueva Cotización</nav></a>
@@ -149,7 +150,7 @@ if ($mensaje !== "") {
                     <a href="ver_cot.php?id=<?php echo urlencode($proyecto['orden_fab_id']); ?>" class="card-link" target="_blank">
                         <div class="card text-dark">
                             <div class="card-body">
-                                <h5 class="card-title"><?php echo htmlspecialchars($proyecto['orden_fab_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
+                                <h5 class="card-title">OF-<?php echo htmlspecialchars($proyecto['orden_fab_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
                                 <p class="card-text">
                                     Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
                                     Nota: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
