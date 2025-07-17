@@ -2,7 +2,7 @@
 // send_email.php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-require 'vendor/autoload.php'; // Asegúrate de que PHPMailer está instalado
+require 'vendor/autoload.php';
 
 function send_email_order($to, $subject, $body) {
     $mail = new PHPMailer(true);

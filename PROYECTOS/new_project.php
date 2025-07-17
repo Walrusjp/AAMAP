@@ -180,10 +180,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <!-- Dentro del formulario existente -->
+        <?php
+        $fecha = new DateTime();
+        $formatter = new IntlDateFormatter('es_MX', IntlDateFormatter::LONG, IntlDateFormatter::NONE, null, null, 'MMMM yyyy');
+        $vigencia = $formatter->format($fecha);
+        ?>
         <h3>Datos de Vigencia</h3>
         <div class="form-group">
             <label for="vigencia">Vigencia</label>
-            <input type="text" class="form-control" id="vigencia" name="vigencia" value="<?php setlocale(LC_TIME, "es_ES.UTF-8", "Spanish_Spain", "es_ES"); echo strftime("%B %Y"); ?>" required>
+            <input type="text" class="form-control" id="vigencia" name="vigencia" value="<?php 
+            echo $vigencia; ?>" required>
         </div>
         <div class="form-group">
             <label for="precios">Precios</label>

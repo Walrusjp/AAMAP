@@ -52,6 +52,7 @@ if (!isset($_SESSION['welcome_shown'])) {
 
     <!-- Navbar con logo -->
     <div class="navbar" style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="position: absolute; top: 40px; left: 600px;"><p style="font-size: 2.2em; font-family: 'Verdana';"><b>INTRANET</b></p></div>
         <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" id="aamap">
         <div style="display: flex; align-items: center;">
             <img src="/assets/user.ico" alt="usuario" style="width: 30px; height: auto; margin-right: 10px;">
@@ -124,12 +125,12 @@ if (!isset($_SESSION['welcome_shown'])) {
         <?php if($role === 'admin' || $username === 'CIS' || $username === 'atencionaclientes' || $username === 'calidad'): ?>
         <div class="card" onclick="window.location.href='/ERP/all_projects.php'">
             <img class="icon" src="/assets/icons/erp.svg" alt="ERP">
-            <span>ERP</span>
+            <span>Ordenes de Fabricación</span>
         </div>
         <?php else: ?>
         <div class="card disabled">
             <img class="icon" src="/assets/icons/erp.svg" alt="ERP">
-            <span>ERP</span>
+            <span>Ordenes de Fabricación</span>
         </div>
         <?php endif; ?>
 
