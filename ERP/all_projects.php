@@ -37,10 +37,14 @@ $sql = "SELECT
             p.etapa AS estatus,
             p.fecha_entrega,
             p.cod_fab,
-            c.nombre_comercial AS cliente_nombre
+            c.nombre_comercial AS cliente_nombre,
+            of.es_subproyecto,
+            of.of_padre,
+            padre.plano_ref AS padre_plano_ref
         FROM orden_fab AS of
         INNER JOIN proyectos AS p ON of.id_proyecto = p.cod_fab
         INNER JOIN clientes_p AS c ON of.id_cliente = c.id
+        LEFT JOIN orden_fab AS padre ON of.of_padre = padre.id_fab
         WHERE p.etapa IN ('directo', 'en proceso', 'finalizado', 'facturacion') AND of.activo = 1
         ORDER BY of.id_fab DESC";
 
@@ -121,11 +125,11 @@ if (isset($_POST['aprobar_cotizacion'])) {
     <img src="/assets/grupo_aamap.webp" alt="Logo AAMAP" style="width: 18%; position: absolute; top: 25px; left: 10px;">
 
     <!-- Contenedor de elementos alineados a la derecha -->
-    <div class="sticky-header" style="width: 100%;">
+    <div class="sticky-header" style="width: 100%; height: 150px;">
         <div class="container" style="display: flex; justify-content: flex-end; align-items: center;">
-        <div style="position: absolute; top: 90px; left: 600px;"><p style="font-size: 2.5em; font-family: 'Verdana';"><b>E R P</b></p></div>
+        <div style="position: absolute; top: 90px; left: 450px;"><p style="font-size: 2.2em; font-family: 'Verdana';"><b>ORDENES DE FABRICACIÓN</b></p></div>
             <!-- Filtro y botones -->
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: start; gap: 10px; position: absolute; top: 10px; left: 420px;">
                 <!-- Filtro -->
                 <div style="display: flex; align-items: center;">
                     <label for="filter" style="margin-right: 10px;">Filtrar:</label>
@@ -157,7 +161,7 @@ if (isset($_POST['aprobar_cotizacion'])) {
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item disabled" href="#" data-value="proveedores" data-url='proveedores/ver_proveedores.php'>Proveedores</a></li>
                     <li><a class="dropdown-item" href="/launch.php" data-value="almacen" data-url='almacen/ver_almacen.php'>Almacén</a></li>
-                    <li><a class="dropdown-item disabled" href="#" data-value="compras" data-url='compras/ver_ordenes_compra.php'>Compras</a></li>
+                    <li><a class="dropdown-item " href="#" data-value="compras" data-url='compras/ver_ordenes_compra.php'>Compras</a></li>
                     <?php if($username == 'CIS'): ?>
                         <li><a class="dropdown-item" href="#" data-value="req_interna" data-url='/ERP/req_interna/panel_almacen.php'>Requisición interna</a></li>
                     <?php else: ?>
@@ -190,16 +194,26 @@ if (isset($_POST['aprobar_cotizacion'])) {
                     <a href="ver_proyecto.php?id=<?php echo urlencode($proyecto['proyecto_id']); ?>" class="card-link">
                         <div class="card text-<?php 
                             echo $proyecto['estatus'] == 'finalizado' ? 'success' : 
-                                 ($proyecto['estatus'] == 'facturacion' ? 'primary' :
-                                 ($proyecto['estatus'] == 'directo' ? 'warning' : 
-                                 ($proyecto['estatus'] == 'en proceso' ? 'warning' : 'dark'))); 
+                                ($proyecto['estatus'] == 'facturacion' ? 'primary' :
+                                ($proyecto['estatus'] == 'directo' ? 'warning' : 
+                                ($proyecto['estatus'] == 'en proceso' ? 'warning' : 'dark'))); 
                         ?>">
                             <div class="card-body">
-                                <h5 class="card-title">OF-<?php echo htmlspecialchars($proyecto['proyecto_id']); ?> || <?php echo htmlspecialchars($proyecto['proyecto_nombre']); ?></h5>
+                                <h5 class="card-title">
+                                    <?php 
+                                        echo $proyecto['es_subproyecto'] ? '<i class="fas fa-level-down-alt"></i> ' : '';
+                                        echo 'OF-'.htmlspecialchars($proyecto['proyecto_id']).' || '.htmlspecialchars($proyecto['proyecto_nombre']);
+                                    ?>
+                                </h5>
                                 <p class="card-text">
-                                    Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
-                                    Nota: <?php echo htmlspecialchars($proyecto['descripcion']); ?><br>
-                                    <small class="text-muted"><b>Basado en cot: <?php echo htmlspecialchars($proyecto['cod_fab']); ?></b></small>
+                                    <?php if($proyecto['es_subproyecto']): ?>
+                                        <span style="color:rgb(44, 25, 151);">Tipo: Subproyecto (Maquila Interna)</span><br>
+                                        Asignado a: <?php echo $proyecto['of_padre'] ? 'OF-'.htmlspecialchars($proyecto['of_padre']) : 'N/A'; ?><br>
+                                    <?php else: ?>
+                                        Cliente: <?php echo htmlspecialchars($proyecto['cliente_nombre']); ?><br>
+                                        Basado en cot: <?php echo htmlspecialchars($proyecto['cod_fab']); ?><br>
+                                    <?php endif; ?>
+                                    Nota: <?php echo htmlspecialchars($proyecto['descripcion']); ?>
                                 </p>
 
                                 <span class="badge <?php 
@@ -212,13 +226,11 @@ if (isset($_POST['aprobar_cotizacion'])) {
                                     }
                                 ?> badge-estatus">
                                     <?php 
-                                        // Mapeo de estatus a textos personalizados
                                         $estatusTextos = [
                                             'en proceso' => 'En proceso ERP',
                                             'directo' => 'En proceso ERP',
                                             'finalizado' => 'Finalizado',
-                                            'facturacion' => 'Facturado',
-                                            'finalizado' => 'Finalizado'
+                                            'facturacion' => 'Facturado'
                                         ];
                                         echo $estatusTextos[$proyecto['estatus']] ?? ucfirst($proyecto['estatus']);
                                     ?>
@@ -226,7 +238,6 @@ if (isset($_POST['aprobar_cotizacion'])) {
                             </div>
                         </div>
                     </a>
-
                 </div>
             <?php endforeach; ?>
 

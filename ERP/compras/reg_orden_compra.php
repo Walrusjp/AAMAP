@@ -7,46 +7,43 @@ if (!isset($_SESSION['username'])) {
 
 require 'C:/xampp/htdocs/db_connect.php';
 require 'C:/xampp/htdocs/role.php';
+require 'C:/xampp/htdocs/ERP/send_email_oc.php';
 
 date_default_timezone_set("America/Mexico_City");
 $fechaActual = date("Ymd");
 $fechaH = date("Y-m-d H:i:s");
-//echo $fechaH;
 
 // Obtener datos necesarios para los select
 $proveedores = $conn->query("SELECT * FROM proveedores WHERE activo = TRUE")->fetch_all(MYSQLI_ASSOC);
 $proyectos = $conn->query("SELECT cod_fab, nombre FROM proyectos WHERE etapa IN ('aprobado', 'en proceso', 'directo')")->fetch_all(MYSQLI_ASSOC);
-$articulos = $conn->query("SELECT id_alm, codigo, descripcion FROM inventario_almacen WHERE activo = TRUE")->fetch_all(MYSQLI_ASSOC);
+$articulos = $conn->query("SELECT id_alm, codigo, descripcion FROM inventario_almacen WHERE id_cat_alm != 7")->fetch_all(MYSQLI_ASSOC);
 $usuarios = $conn->query("SELECT id, nombre FROM users WHERE role IN ('compras', 'admin', 'almacen')")->fetch_all(MYSQLI_ASSOC);
 
-// Generar folio automático (OC-YYYYMMDD o OC-YYYYMMDD-N si hay múltiples)
+// Generar folio automático
 $folio_base = 'OC-' . date('Ymd');
 $last_oc = $conn->query("SELECT folio FROM ordenes_compra WHERE folio LIKE '$folio_base%' ORDER BY id_oc DESC LIMIT 1")->fetch_assoc();
 
 if ($last_oc) {
-    // Si ya existe al menos una OC hoy
     $parts = explode('-', $last_oc['folio']);
     if (count($parts) === 2) {
-        // Es la primera del día (OC-YYYYMMDD), esta será la segunda (OC-YYYYMMDD-1)
         $folio = $folio_base . '-1';
     } else {
-        // Ya tiene sufijo, incrementarlo
         $sufijo = intval($parts[2]);
         $folio = $folio_base . '-' . ($sufijo + 1);
     }
 } else {
-    // Primera OC del día (sin sufijo)
     $folio = $folio_base;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $folio = $_POST['folio'];
     $id_pr = $_POST['id_pr'];
-    $id_fab = !empty($_POST['id_fab']) ? $_POST['id_fab'] : null;
+    $id_fab = !empty($_POST['id_fab']) && $_POST['id_fab'] !== 'none' ? $_POST['id_fab'] : null;
     $fecha_requerida = $_POST['fecha_requerida'];
     $descripcion_destino = $_POST['descripcion_destino'];
     $solicitante = $_SESSION['user_id'];
     $items = $_POST['items'];
+    $comentarios = $_POST['comentarios'] ?? ''; // Nuevo campo para comentarios
 
     // Iniciar transacción
     $conn->begin_transaction();
@@ -72,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_alm = $item['id_alm'];
             $cantidad = $item['cantidad'];
             $precio_unitario = $item['precio_unitario'];
-            $id_pr_detalle = $item['id_pr'] ?? $id_pr; // Usar proveedor específico si existe
+            $id_pr_detalle = $item['id_pr'] ?? $id_pr;
             
             $stmt_detalle->bind_param("iiidi", $id_oc, $id_alm, $cantidad, $precio_unitario, $id_pr_detalle);
             $stmt_detalle->execute();
@@ -80,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $subtotal_total += $cantidad * $precio_unitario;
         }
 
-        // Calcular totales (IVA del 16% en México)
+        // Calcular totales
         $iva = $subtotal_total * 0.16;
         $total = $subtotal_total + $iva;
 
@@ -90,16 +87,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_update->bind_param("dddi", $subtotal_total, $iva, $total, $id_oc);
         $stmt_update->execute();
 
-        // Registrar el estatus inicial
-        $sql_log = "INSERT INTO logs_estatus_oc (id_oc, estatus, id_usuario) VALUES (?, 'solicitada', ?)";
+        // Registrar el estatus inicial con comentarios
+        $sql_log = "INSERT INTO logs_estatus_oc (id_oc, estatus, id_usuario, observaciones) VALUES (?, 'solicitada', ?, ?)";
         $stmt_log = $conn->prepare($sql_log);
-        $stmt_log->bind_param("ii", $id_oc, $solicitante);
+        $stmt_log->bind_param("iis", $id_oc, $solicitante, $comentarios);
         $stmt_log->execute();
 
         // Commit de la transacción
         $conn->commit();
 
-        //ver_orden_compra.php?id=$id_oc
         echo "<script>
                 alert('Orden de compra registrada exitosamente con folio $folio');
                 window.location.href = 'ver_ordenes_compra.php';
@@ -155,27 +151,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="form-group">
             <label for="id_fab">Proyecto/Orden de Fabricación (opcional)</label>
-            <select class="form-control" id="id_fab" name="id_fab" >
-                <option value="">Sin proyecto/OF</option>
-                <?php foreach ($proyectos as $proy): ?>
-                    <?php 
-                    // Obtener órdenes de fabricación para este proyecto
-                    $ofs = $conn->query("SELECT id_fab FROM orden_fab WHERE id_proyecto = '".$proy['cod_fab']."'")->fetch_all(MYSQLI_ASSOC);
-                    ?>
-                    <?php if (count($ofs) > 0): ?>
-                        <?php foreach ($ofs as $of): ?>
-                            <option value="<?php echo $of['id_fab']; ?>">
-                                <?php echo htmlspecialchars($proy['cod_fab'] . ' - OF-' . $of['id_fab']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                <?php endforeach; ?>
+            <select class="form-control" id="id_fab" name="id_fab">
+                <option value="none">-- Seleccione una opción --</option>
+                
+                <!-- Opciones de OFs -->
+                <optgroup label="Órdenes de Fabricación">
+                    <?php foreach ($proyectos as $proy): ?>
+                        <?php 
+                        $ofs = $conn->query("SELECT id_fab FROM orden_fab WHERE id_proyecto = '".$proy['cod_fab']."'")->fetch_all(MYSQLI_ASSOC);
+                        ?>
+                        <?php if (count($ofs) > 0): ?>
+                            <?php foreach ($ofs as $of): ?>
+                                <option value="<?php echo $of['id_fab']; ?>">
+                                    <?php echo htmlspecialchars($proy['cod_fab'] . ' - OF-' . $of['id_fab']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </optgroup>
+                
+                <!-- Opciones de destino especial -->
+                <optgroup label="Destino Especial">
+                    <option value="none" data-desc="maquila interna">Maquila Interna</option>
+                    <option value="none" data-desc="prototipo">Prototipo</option>
+                </optgroup>
             </select>
         </div>
         
         <div class="form-group">
-            <label for="descripcion_destino">Descripción/Destino</label>
-            <input type="text" class="form-control" id="descripcion_destino" name="descripcion_destino">
+            <!--<label for="descripcion_destino">Descripción/Destino</label>-->
+            <input type="hidden" class="form-control" id="descripcion_destino" name="descripcion_destino" readonly>
+        </div>
+        
+        <div class="form-group">
+            <label for="comentarios">Comentarios</label>
+            <textarea class="form-control" id="comentarios" name="comentarios" rows="2"></textarea>
         </div>
         
         <div class="form-group">
@@ -264,6 +274,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
 $(document).ready(function() {
+
+    // Manejar cambio en el select de proyecto/OF
+    $('#id_fab').change(function() {
+        var selectedOption = $(this).find('option:selected');
+        var descripcion = selectedOption.data('desc') || '';
+        $('#descripcion_destino').val(descripcion);
+    });
+
     // Mostrar modal de búsqueda
     $('#search-articulo, #btn-search-articulo').click(function() {
         $('#articulosModal').modal('show');
@@ -331,7 +349,36 @@ $(document).ready(function() {
         $('#items-container').append(itemHtml);
         $('#articulosModal').modal('hide');
 
+        // Enfocar automáticamente el campo de cantidad
+        $(`#item-${id} .item-cantidad`).focus();
+
         // Actualizar totales
+        updateTotals();
+    });
+
+    // Manejar el evento keydown para los campos de cantidad y precio
+    $(document).on('keydown', '.item-cantidad, .item-precio', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            
+            if ($(this).hasClass('item-cantidad')) {
+                // Si estamos en cantidad, pasar a precio unitario
+                $(this).closest('.form-row').find('.item-precio').focus();
+            } else if ($(this).hasClass('item-precio')) {
+                // Si estamos en precio unitario, perder el foco (como hacer clic afuera)
+                $(this).blur();
+                
+                // Opcional: puedes enfocar el siguiente artículo si existe
+                var nextItem = $(this).closest('.item-row').next('.item-row');
+                if (nextItem.length) {
+                    nextItem.find('.item-cantidad').focus();
+                }
+            }
+        }
+    });
+
+    // Actualizar totales cuando se pierde el foco en precio unitario
+    $(document).on('blur', '.item-precio', function() {
         updateTotals();
     });
 
